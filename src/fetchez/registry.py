@@ -928,7 +928,7 @@ class FetchezRegistry:
         },
         # STAC (SpatioTemporal Asset Catalog)
         "stac": {
-            "mod": "globato.modules.common.stac",
+            "mod": "fetchez.modules.stac",
             "cls": "STACModule",
             "category": "Generic",
             "desc": "Generic STAC API Fetcher (SpatioTemporal Asset Catalog)",
@@ -951,7 +951,7 @@ class FetchezRegistry:
         },
         # Maxar Open Data
         "maxar": {
-            "mod": "globato.modules.maxar",
+            "mod": "fetchez.modules.maxar",
             "cls": "MaxarOpenData",
             "category": "Imagery",
             "desc": "Maxar Open Data Program (Disaster Response Imagery)",
