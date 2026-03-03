@@ -1,6 +1,10 @@
 import subprocess
 import sys
 
+from fetchez.cli import parse_hook_arg
+
+# Testing CLI using subprocess
+
 # CMD will run Fetchez
 CMD = [sys.executable, "-m", "fetchez.cli"]
 
@@ -56,3 +60,32 @@ def test_dry_run_ipinfo():
 
     result = run_fetchez(["ipinfo:ip=8.8.8.8", "--hook", "dryrun"])
     assert result.returncode == 0
+
+
+# Testing cli functions from python
+
+
+def test_parse_hook_arg_simple():
+    """Test basic hook parsing with string arguments."""
+
+    name, kwargs = parse_hook_arg("reproject:crs=EPSG:3857")
+    assert name == "reproject"
+    assert kwargs == {"crs": "EPSG:3857"}
+
+
+def test_parse_hook_arg_type_inference():
+    """Test if the parser correctly identifies booleans and numbers."""
+
+    name, kwargs = parse_hook_arg("filter:match=.tif,force=true,retries=3")
+    assert name == "filter"
+    assert kwargs["match"] == ".tif"
+    assert kwargs["force"] is True
+    assert kwargs["retries"] == 3
+
+
+def test_parse_hook_arg_no_args():
+    """Test a hook string that has no arguments."""
+
+    name, kwargs = parse_hook_arg("unzip")
+    assert name == "unzip"
+    assert kwargs == {}

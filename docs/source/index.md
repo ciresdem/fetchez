@@ -1,4 +1,4 @@
-# 🌍 Fetchez 🐄
+# Fetchez Documentation
 
 **Fetch geospatial data with ease.**
 

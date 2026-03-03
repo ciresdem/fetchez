@@ -27,8 +27,10 @@ class FetchHook:
     # 'post': Runs once after all downloads are finished.
     stage = "file"
 
-    def __init__(self, **kwargs):
+    def __init__(self, stage=None, **kwargs):
         self.opts = kwargs
+        if stage is not None:
+            self.stage = stage if stage in ["pre", "file", "post"] else self.stage
 
     def __eq__(self, other):
         """Hooks are 'equal' if they are the same type and have identical dicts."""

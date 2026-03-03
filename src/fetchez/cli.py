@@ -693,7 +693,17 @@ def fetchez_cli():
     for arg in remaining_argv:
         is_module = (arg in module_keys) or (arg.split(":")[0] in module_keys)
 
-        if is_module and not arg.startswith("-"):
+        is_url = False
+        try:
+            import urllib
+
+            parsed = urllib.parse.urlparse(arg)
+            if parsed.scheme in ["http", "https", "ftp"]:
+                is_url = True
+        except Exception:
+            pass
+
+        if is_module and not arg.startswith("-") and not is_url:
             if current_cmd:
                 commands.append((current_cmd, current_args))
 
@@ -703,8 +713,21 @@ def fetchez_cli():
             else:
                 current_cmd = module_keys.get(arg, arg)
                 current_args = []
+        elif is_url:
+            if current_cmd == "url_fetcher":
+                if current_args and current_args[0].startswith("--url="):
+                    commands.append((current_cmd, current_args))
+                    current_cmd = "url_fetcher"
+                    current_args = [f"--url={arg}"]
+                else:
+                    current_args.append(f"--url={arg}")
+            else:
+                if current_cmd:
+                    commands.append((current_cmd, current_args))
+                current_cmd = "url_fetcher"
+                current_args = [f"--url={arg}"]
         else:
-            if current_cmd and current_cmd != "file":
+            if current_cmd and current_cmd not in ["file", "url_fetcher"]:
                 current_args.append(arg)
             elif current_cmd == "file" and arg.startswith("-"):
                 current_args.append(arg)

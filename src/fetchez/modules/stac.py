@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-globato.modules.common.stac
+globato.modules.stac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Generic STAC (SpatioTemporal Asset Catalog) Module.

@@ -20,6 +20,7 @@ from .spatial import parse_region
 from .registry import FetchezRegistry
 from .hooks.registry import HookRegistry
 from .utils import TqdmLoggingHandler
+from .schema import SchemaRegistry
 from . import config
 from . import presets
 from . import __version__ as fetchez_version
@@ -190,6 +191,8 @@ class Recipe:
 
         if not self.config:
             return
+
+        self.config = SchemaRegistry.apply_schema(self.config)
 
         self._check_integrity()
         logger.info(f"Preparing to execute recipe: {self.name}")
