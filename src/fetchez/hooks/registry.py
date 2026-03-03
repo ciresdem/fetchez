@@ -38,7 +38,6 @@ class HookRegistry:
 
         # Walk the directory tree recursively
         for root, dirs, files in os.walk(builtins_dir):
-            # Prevent scanning hidden directories (like __pycache__)
             dirs[:] = [d for d in dirs if not d.startswith("_")]
 
             for f in files:

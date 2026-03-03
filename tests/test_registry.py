@@ -30,3 +30,5 @@ def test_hook_registry_integrity():
 
     for name, hook_cls in hooks.items():
         assert hook_cls.name is not None
+        assert hook_cls.stage is not None
+        assert hasattr(hook_cls, "run"), f"Hook {name} missing 'run' method"
