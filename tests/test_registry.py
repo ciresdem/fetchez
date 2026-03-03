@@ -22,6 +22,7 @@ def test_registry_integrity():
 def test_hook_registry_integrity():
     """Ensure all core hooks can be loaded."""
 
+    HookRegistry.load_builtins()
     HookRegistry.load_user_plugins()
 
     hooks = HookRegistry._hooks
