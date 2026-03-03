@@ -41,7 +41,13 @@ class FetchezRegistry:
 
     _modules = {
         # Generic https module to send an argument to FetchModule.results
-        "https": {"mod": "fetchez.core", "cls": "HttpDataset", "category": "Generic"},
+        "scratch": {"mod": "fetchez.core", "cls": "Scratch", "category": "Generic"},
+        "url_fetcher": {
+            "mod": "fetchez.core",
+            "cls": "HttpDataset",
+            "category": "Generic",
+            "desc": "Fetch an explicit URL directly.",
+        },
         "file": {
             "mod": "fetchez.modules.path",
             "cls": "LocalDataset",

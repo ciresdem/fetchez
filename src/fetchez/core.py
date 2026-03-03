@@ -1146,5 +1146,21 @@ class HttpDataset(FetchModule):
         super().__init__(**kwargs)
         self.url = url
 
+    def run(self):
         if self.url:
             self.add_entry_to_results(self.url, os.path.basename(self.url), "https")
+
+
+class Scratch(FetchModule):
+    """Scratch module that just fills the results
+    with it's own arguments.
+    """
+
+    def __init__(self, url, path, datatype, **kwargs):
+        super().__init__(**kwargs)
+        self.url = url
+        self.path = path
+        self.datatype = datatype
+
+    def run(self):
+        self.add_entry_to_results(self.url, self.path, self.datatype)
