@@ -19,17 +19,18 @@
 Geospatial data access is fragmented. You often need one script to scrape a website for tide stations, another to download LiDAR from an S3 bucket, and a third to parse a local directory of shapefiles.
 
 **Fetchez unifies this chaos.**
+
 * **One Command to Fetch Them All:** The syntax is always the same: `fetchez [module] -R [region]`.
+
 * **Streaming First:** Fetchez prefers streaming data through standard pipes over downloading massive archives to disk.
+
 * **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
 
-## 🌎 Features
+* **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
-* ***Unified Interface***: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+* **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
-* ***Pipeline Hooks***: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
-
-* ***Parallel Fetching***: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
+* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
 ---
 
