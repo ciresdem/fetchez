@@ -1,4 +1,4 @@
-# 🌍 Fetchez 🐄
+# 🌍 Fetchez
 
 **Fetch geospatial data with ease.**
 
@@ -19,18 +19,16 @@
 Geospatial data access is fragmented. You often need one script to scrape a website for tide stations, another to download LiDAR from an S3 bucket, and a third to parse a local directory of shapefiles.
 
 **Fetchez unifies this chaos.**
-* **One Command to Fetch Them All:** The syntax is always the same: `fetchez [module] -R [region]`.
+
+* **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+
 * **Streaming First:** Fetchez prefers streaming data through standard pipes over downloading massive archives to disk.
+
+* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
+
 * **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
 
-## 🌎 Features
-
-* One command to fetch data from [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html), (SRTM, GMRT, NOAA NOS, USGS 3DEP, Copernicus, etc.).
-* Built-in download management handles retries, resume-on-failure, authentication, and mirror switching automatically.
-* Seamlessly mix disparate data types (e.g., fetch Stream Gauges (JSON), DEMs (GeoTIFF), and Coastlines (Shapefile) in one command).
-* Define automated workflows (Hooks) (e.g., download -> unzip -> reproject -> grid) using Python-based Processing Hooks.
-* Save complex processing chains (Presets) as simple reusable flags (e.g., fetchez ... --run-through-waffles).
-* Supports user-defined Data Modules *and* Processing Hooks via `~/.fetchez/`.
+* **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
 ---
 
@@ -40,7 +38,7 @@ Geospatial data access is fragmented. You often need one script to scrape a webs
 pip install fetchez
 ```
 
-## 🚀 Quickstart
+## 🐄 Quickstart
 Fetch Copernicus topography and NOAA multibeam bathymetry for a specific bounding box in one command:
 
 ```bash
