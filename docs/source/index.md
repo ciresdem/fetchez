@@ -39,11 +39,15 @@ files = fetchez.get("blue_topo", hooks=['unzip', 'filter:match=.tif'])
 
 ## Key Features
 
-* ***Unified Interface***: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+* **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
-* ***Pipeline Hooks***: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
+* **Streaming First:** Fetchez prefers streaming data through standard pipes over downloading massive archives to disk.
 
-* ***Parallel Fetching***: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
+* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
+
+* **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
+
+* **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
 ```{toctree}
 :maxdepth: 2
