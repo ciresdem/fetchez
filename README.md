@@ -1,4 +1,4 @@
-# 🌍 Fetchez 🐄
+# 🌍 Fetchez
 
 **Fetch geospatial data with ease.**
 
@@ -40,7 +40,7 @@ Geospatial data access is fragmented. You often need one script to scrape a webs
 pip install fetchez
 ```
 
-## 🚀 Quickstart
+## 🐄 Quickstart
 Fetch Copernicus topography and NOAA multibeam bathymetry for a specific bounding box in one command:
 
 ```bash

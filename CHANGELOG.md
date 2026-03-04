@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The 'unzip' hook now supports tar and gz.
 - Post-hooks in fetchez.core was ignoring entry changes, this fixes that.
 - We now use yaml files for config, including presets
+- Fixed https (now url_fetcher) module bug.
+- Add 'schemas' and 'recipe'.
+- All builtin hooks in hooks.builtins.
+- Add documentation.
+- Some new modules.
 
 ## [0.4.2] - 2026-02-21
 ### Added
