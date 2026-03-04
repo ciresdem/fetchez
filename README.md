@@ -25,12 +25,11 @@ Geospatial data access is fragmented. You often need one script to scrape a webs
 
 ## 🌎 Features
 
-* One command to fetch data from [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html), (SRTM, GMRT, NOAA NOS, USGS 3DEP, Copernicus, etc.).
-* Built-in download management handles retries, resume-on-failure, authentication, and mirror switching automatically.
-* Seamlessly mix disparate data types (e.g., fetch Stream Gauges (JSON), DEMs (GeoTIFF), and Coastlines (Shapefile) in one command).
-* Define automated workflows (Hooks) (e.g., download -> unzip -> reproject -> grid) using Python-based Processing Hooks.
-* Save complex processing chains (Presets) as simple reusable flags (e.g., fetchez ... --run-through-waffles).
-* Supports user-defined Data Modules *and* Processing Hooks via `~/.fetchez/`.
+* ***Unified Interface***: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+
+* ***Pipeline Hooks***: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
+
+* ***Parallel Fetching***: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
 ---
 

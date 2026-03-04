@@ -39,9 +39,7 @@ files = fetchez.get("blue_topo", hooks=['unzip', 'filter:match=.tif'])
 
 ## Key Features
 
-* ***Unified Interface***: Access 50+ endpoints (OData, REST, THREDDS, FTP) using the exact same syntax.
-
-* ***Smart Geospatial Cropping***: Automatically translates user bounding boxes into the specific query parameters required by each target API.
+* ***Unified Interface***: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
 * ***Pipeline Hooks***: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
