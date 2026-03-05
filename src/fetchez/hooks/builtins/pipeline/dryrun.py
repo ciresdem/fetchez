@@ -5,7 +5,7 @@
 fetchez.hooks.builtins.pipeline.dryrun
 ~~~~~~~~~~~~~
 
-Empty the download queue in before downloads begin.
+Empty the download queue before downloads begin.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -24,5 +24,4 @@ class DryRun(FetchHook):
     category = "pipeline"
 
     def run(self, entries):
-        # Return empty list to stop execution
         return []
