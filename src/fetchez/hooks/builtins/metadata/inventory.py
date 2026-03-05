@@ -33,7 +33,6 @@ class Inventory(FetchHook):
         self.format = format.lower()
 
     def run(self, entries):
-        # Convert (mod, entry) tuples to dicts for reporting
         inventory_list = []
         for mod, entry in entries:
             item = {

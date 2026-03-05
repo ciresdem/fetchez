@@ -24,8 +24,8 @@ class Rename(FetchHook):
     """Rename files using Regex substitution before download.
 
     Args:
-        match (str): Regex pattern to match (e.g. 'export_(\\d+)')
-        replace (str): Replacement string (e.g. 'site_\\1')
+        match: Regex pattern to match
+        replace: Replacement string
     """
 
     name = "rename"

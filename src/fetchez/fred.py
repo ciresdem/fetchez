@@ -68,10 +68,6 @@ class FRED:
         self.name = name
         self.filename = f"{name}.geojson"
 
-        # Determine file path
-        # If the expected file doesn't exist (in `FETCH_DATA_DIR`) we check
-        # if it exists in the cwd; if not, the fetch module should create one
-        # (if needed).
         # Default to local directory if not found in data dir
         if local:
             self.path = self.filename
@@ -170,7 +166,6 @@ class FRED:
 
         results = []
 
-        # Prepare Spatial Filter
         search_geom = None
         if region is not None and spatial.region_valid_p(region):
             if HAS_SHAPELY:
@@ -214,7 +209,6 @@ class FRED:
                     # TODO: Basic bounding box check (if Shapely missing)
                     pass
 
-            # If we passed all filters, add to results
             results.append(props)
 
         logger.info(f"FRED Search found {len(results)} items.")

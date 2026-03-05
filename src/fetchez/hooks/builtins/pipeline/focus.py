@@ -6,6 +6,9 @@ fetchez.hooks.builtins.pipeline.focus
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pipeline control hooks for artifact focus.
+
+:copyright: (c) 2010-2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
 """
 
 import logging
@@ -35,7 +38,7 @@ class FocusSink(FetchHook):
 
     def run(self, entries):
         if not self.target:
-            logger.warning("FocusSink: No target specified. Ignoring.")
+            logger.warning("No target specified. Ignoring.")
             return entries
 
         new_entries = []
@@ -64,7 +67,5 @@ class FocusSink(FetchHook):
                         }
                         new_entries.append((mod, focused_entry))
 
-        logger.info(
-            f"FocusSink: Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts."
-        )
+        logger.info(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
         return new_entries

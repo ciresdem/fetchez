@@ -33,8 +33,8 @@ class SetWeight(FetchHook):
               gmrt: 0.01           # Background fill
 
     The 'rules' dictionary keys are matched against:
-    1. The module name (e.g., 'nos_hydro')
-    2. The 'datatype' entry field (e.g., 'bag', 'xyz')
+    - The module name (e.g., 'nos_hydro')
+    - The 'datatype' entry field (e.g., 'bag', 'xyz')
     """
 
     name = "set_weight"

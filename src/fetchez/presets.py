@@ -14,22 +14,10 @@ Preset 'hook' macros.
 import os
 import copy
 import logging
+import yaml
 
 from . import config
 from . import utils
-
-# example presets.json
-# {
-#   "presets": {
-#     "archive-ready": {
-#       "help": "Checksum, Enrich, Audit, and save to archive.log",
-#       "hooks": [
-#         {"name": "checksum", "args": {"algo": "sha256"}},
-#         {"name": "enrich"},
-#         {"name": "audit", "args": {"file": "archive_log.json"}}
-#       ]
-#     },
-# }
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +42,7 @@ def load_user_presets():
 
 
 def hook_list_from_preset(preset_def):
-    """Convert JSON definition to list of Hook Objects."""
+    """Convert yaml definition to list of Hook Objects."""
 
     from fetchez.hooks.registry import HookRegistry
 
@@ -63,7 +51,6 @@ def hook_list_from_preset(preset_def):
         name = h_def.get("name")
         kwargs = h_def.get("args", {})
 
-        # Instantiate using the Registry
         hook_cls = HookRegistry.get_hook(name)
         if hook_cls:
             try:
@@ -78,6 +65,7 @@ def hook_list_from_preset(preset_def):
 
 def register_global_preset(name, help_text, hooks):
     """Register a global CLI preset (e.g., --audit).
+
     These are available for ALL modules.
     """
 
@@ -90,6 +78,7 @@ def register_global_preset(name, help_text, hooks):
 
 def register_module_preset(module, name, help_text, hooks):
     """Register a module-specific preset (e.g., --extract for multibeam).
+
     These only appear when running that specific module.
 
     Args:
@@ -111,13 +100,11 @@ def register_module_preset(module, name, help_text, hooks):
 
 def get_module_presets(module_name):
     """Return presets registered for a specific module,
-    PLUS any global presets that don't conflict.
+    plus any global presets that don't conflict.
     """
 
-    # Start with global
     available = _GLOBAL_PRESETS.copy()
 
-    # Overlay module specific ones (they take precedence)
     if module_name in _MODULE_PRESETS:
         mod_specific = _MODULE_PRESETS[module_name]
         available.update(mod_specific)
@@ -138,8 +125,6 @@ def get_global_presets():
 # maybe we have it init actual presets?
 def init_current_presets():
     """Export the CURRENT active presets (built-ins + loaded plugins) to a JSON file."""
-
-    import yaml
 
     output_filename = "fetchez_presets_template.yaml"
     output_path = os.path.abspath(output_filename)
@@ -173,9 +158,7 @@ def init_current_presets():
 
 
 def init_presets():
-    """Generate a default presets.json file."""
-
-    import yaml
+    """Generate a default presets.yaml file."""
 
     config_dir = config.CONFIG_PATH
     config_file = os.path.join(config_dir, "presets.yaml")

@@ -5,7 +5,7 @@
 fetchez.hooks.builtins.file_ops.exec
 ~~~~~~~~~~~~~
 
-Run subprocess on the entry fn
+Run subprocess on the entry fn; using format templates.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class Exec(FetchHook):
     """Run an arbitrary shell command on each file.
+
     Template variables: {file}, {url}, {dir}, {name}
 
     Usage: --hook exec:cmd="gdal_translate -of COG {file} {dir}/{name}_cog.tif"

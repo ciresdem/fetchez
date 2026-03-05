@@ -48,14 +48,11 @@ class Audit(FetchHook):
         return clean
 
     def run(self, all_results):
-        # all_results is a list of dicts: [{'url':..., 'dst_fn':..., 'status':...}, ...]
-
         if not all_results:
             return
 
         try:
             entry_results = [self._sanitize(e) for m, e in all_results]
-            # entry_results = [e for m, e in all_results]
             with open(self.filename, "w") as f:
                 if self.format == "json":
                     json.dump(entry_results, f, indent=2)

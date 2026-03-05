@@ -22,10 +22,10 @@ class Flatten(FetchHook):
     """Flattens output directory structure.
 
     Args:
-        mode (str):
-            'module' (default) -> outdir/module/file.ext (Flattens subdirs INSIDE module)
-            'root'             -> outdir/file.ext (Removes module folder)
-            'cwd'              -> ./file.ext (Ignores outdir completely)
+        mode:
+            'module' -> outdir/module/file.ext (Flattens subdirs INSIDE module)
+            'root'   -> outdir/file.ext (Removes module folder)
+            'cwd'    -> ./file.ext (Ignores outdir completely)
     """
 
     name = "flatten"
