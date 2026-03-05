@@ -139,7 +139,6 @@ def _parse_hook_string(h_str):
     for p in parts:
         if "=" in p:
             k, v = p.split("=", 1)
-            # Simple type inference
             if v.lower() == "true":
                 v = True
             elif v.lower() == "false":
