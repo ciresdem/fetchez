@@ -14,6 +14,7 @@ Preset 'hook' macros.
 import os
 import copy
 import logging
+import yaml
 
 from . import config
 from . import utils
@@ -125,8 +126,6 @@ def get_global_presets():
 def init_current_presets():
     """Export the CURRENT active presets (built-ins + loaded plugins) to a JSON file."""
 
-    import yaml
-
     output_filename = "fetchez_presets_template.yaml"
     output_path = os.path.abspath(output_filename)
 
@@ -160,8 +159,6 @@ def init_current_presets():
 
 def init_presets():
     """Generate a default presets.yaml file."""
-
-    import yaml
 
     config_dir = config.CONFIG_PATH
     config_file = os.path.join(config_dir, "presets.yaml")
