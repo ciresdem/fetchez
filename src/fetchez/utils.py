@@ -283,6 +283,9 @@ def make_temp_fn(basename, temp_dir=None):
     return path
 
 
+# =============================================================================
+# Factory Module parsing (from cudem)
+# =============================================================================
 def parse_fmod(fmod):
     """Parse a factory module string.
 
