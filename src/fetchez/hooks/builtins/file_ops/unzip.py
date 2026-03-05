@@ -26,18 +26,19 @@ logger = logging.getLogger(__name__)
 class Unzip(FetchHook):
     """Automatically extract/decompress files after download."""
 
-    # Registry Metadata
     name = "unzip"
     desc = "Extract .zip, .tar, .tar.gz, and .gz files."
     stage = "file"
     category = "file-op"
 
     def __init__(self, remove=False, overwrite=False, **kwargs):
-        """
+        """Decompress and/or extract data from archives.
+
         Args:
-            remove (bool): Delete the original compressed file after extraction.
-            overwrite (bool): Overwrite existing files.
+            remove: Delete the original compressed file after extraction.
+            overwrite: Overwrite existing files.
         """
+
         super().__init__(**kwargs)
         self.remove = remove
         self.overwrite = overwrite
@@ -54,7 +55,7 @@ class Unzip(FetchHook):
 
             lower_path = file_path.lower()
 
-            # --- HANDLE .ZIP ARCHIVES ---
+            # --- .ZIP ARCHIVES ---
             if lower_path.endswith(".zip"):
                 extract_dir = os.path.dirname(file_path)
                 try:
@@ -87,7 +88,6 @@ class Unzip(FetchHook):
                                 continue
 
                         z.extractall(extract_dir)
-
                         for fname in files_to_extract:
                             full_path = os.path.join(extract_dir, fname)
                             out_entries.append(
@@ -112,13 +112,12 @@ class Unzip(FetchHook):
                     logger.error(f"Unzip failed for {file_path}: {e}")
                     out_entries.append((mod, entry))
 
-            # --- HANDLE .TAR / .TAR.GZ / .TGZ ARCHIVES ---
+            # --- .TAR / .TAR.GZ / .TGZ ARCHIVES ---
             elif lower_path.endswith((".tar", ".tar.gz", ".tgz")):
                 extract_dir = os.path.dirname(file_path)
                 try:
                     # 'r:*' automatically detects compression (gzip, bzip2, etc.)
                     with tarfile.open(file_path, "r:*") as tar:
-                        # Extract only files (skip directory entries)
                         files_to_extract = [
                             m.name for m in tar.getmembers() if m.isfile()
                         ]
@@ -175,7 +174,7 @@ class Unzip(FetchHook):
                     logger.error(f"Untar failed for {file_path}: {e}")
                     out_entries.append((mod, entry))
 
-            # --- HANDLE .GZ DECOMPRESSION (Single File) ---
+            # --- .GZ DECOMPRESSION (Single File) ---
             elif lower_path.endswith(".gz"):
                 extracted_path = file_path[:-3]
 
