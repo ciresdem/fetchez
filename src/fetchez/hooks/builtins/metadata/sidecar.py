@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Sidecar(FetchHook):
     """Write a metadata sidecar file (.meta.json) for every download.
+
     Useful for data provenance (tracking source URLs and dates).
     """
 

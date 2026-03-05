@@ -5,7 +5,7 @@
 fetchez.hooks.builtins.metadata.datatype
 ~~~~~~~~~~~~~
 
-Generates a 'sidecar' metadata file for each entry
+Change the default 'datatype' of an entry.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class SetDataType(FetchHook):
     """Overrides the data_type attribute of pipeline entries.
+
     Useful for mapping generic files to specific parser profiles.
 
     Usage: --hook set_datatype:type=nos_legacy_xyz
