@@ -22,13 +22,13 @@ Geospatial data access is fragmented. You often need one script to scrape a webs
 
 * **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
-* **Streaming First:** Fetchez prefers streaming data through standard pipes over downloading massive archives to disk.
-
 * **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
 * **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
+
+* **Extendable Design**: Through hooks, presets, recipes, schemas and extensions, `fetchez` can be endlessly expanded to perform specific tasks.
 
 ---
 
@@ -41,6 +41,8 @@ pip install fetchez
 ## 🐄 Quickstart
 Fetch Copernicus topography and NOAA multibeam bathymetry for a specific bounding box in one command:
 
+### CLI
+
 ```bash
 fetchez -R loc:"Miami, FL" copernicus multibeam --audit-log miami_audit.json
 ```
@@ -49,6 +51,15 @@ Or run a full processing pipeline from a YAML recipe:
 
 ```bash
 fetchez recipes/my_dem_project.yaml
+```
+
+### Python
+
+```python
+import fetchez
+
+# Fetch Electronic Nautical Chart data from NOAA
+files = fetchez.get(region=[-120, -118, 33, 34], "charts", hooks=['unzip', 'fn_filter:match=.000', 'audit'])
 ```
 
 ---
@@ -64,7 +75,7 @@ Would you like to know more? Check out our [Official Documentation](https://fetc
 
 * **Domain Schemas:** Enforce rigorous geospatial standards automatically.
 
-* **Custom Plugins:** Write your own data fetchers.
+* **Custom Plugins:** Write your own data fetchers, processing hooks and extensions.
 
 ---
 

@@ -16,7 +16,7 @@ Usage:
     files = fetchez.get("nos_hydro", region=[-120, -118, 33, 34], year=2020)
 
     # Advanced (With Hooks)
-    files = fetchez.get("blue_topo", hooks=['unzip', 'filter:match=.tif'])
+    files = fetchez.get(region=[-120, -118, 33, 34] "charts", hooks=['unzip', 'fn_filter:match=.000'])
 """
 
 import os
