@@ -18,6 +18,8 @@ pip install fetchez
 
 Download and install git (If you have not already): [git installation](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
+Then,
+
 ```bash
 pip install git+https://github.com/continuous-dems/fetchez.git#egg=fetchez
 ```
@@ -47,4 +49,4 @@ pip install "fetchez[vector]"
 pip install "fetchez[full]"
 ```
 
-If you try to run a module without its required dependency, fetchez will exit with a helpful error message telling you exactly which extra group to install.
+If you try to run a module without its required dependency, `fetchez` will exit with a helpful error message telling you exactly which extra group to install.

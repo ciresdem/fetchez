@@ -11,10 +11,13 @@ There are three stages in the Hook lifecycle:
 2. **FILE Stage:** Runs on each individual file as it is downloaded (e.g., unzipping, converting formats, or piping to stdout).
 3. **POST Stage:** Runs after all files are downloaded (e.g., merging grids, calculating checksums).
 
+Each hook defines it's default `stage`, which can be changed at any time.
+
 ### Common Built-in Hooks:
 * `unzip`: Automatically extracts `.zip` or `.gz` files.
 * `pipe`: Prints the final absolute path to stdout (useful for piping to GDAL/PDAL).
 * `audit`: Generates a JSON manifest of everything downloaded and processed.
+* `exec`: Run a shell command on a file (uses "{file}" formatter).
 
 ### Example (CLI):
 ```bash
@@ -22,6 +25,12 @@ There are three stages in the Hook lifecycle:
 # Extract data.tif (via unzip hook)
 # Print /path/to/data.tif (via pipe hook)
 fetchez charts --hook unzip --hook pipe
+
+# warp the copernicus files right when their downloaded
+fetchez -R loc:denver copernicus --pipe | xargs gdalwarp -t_srs EPSG:3857
+
+# build a vrt of the fetched files
+gdalbuildvrt cop_merged.vrt $(fetchez -R -105/-104/39/40 copernicus --pipe)
 ```
 
 ## Pipeline Presets (Macros)
@@ -70,7 +79,7 @@ presets:
         remove: 'true'
 ```
 
-**Run it:** Your new preset automatically appears as a CLI flag!
+**Run it:** Your new preset automatically appears as a CLI flag in `fetchez`!
 
 ```bash
 fetchez charts --audit-full --clean-download

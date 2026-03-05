@@ -2,14 +2,14 @@
 
 Need to fetch data from a specialized local server? Or maybe run a custom script immediately after every download? You don't need to fork the repo!
 
-There are two ways to extend Fetchez: **Local Plugins** (for quick, personal scripts) and **Full Extensions** (for distributable Python packages).
+There are two ways to extend `fetchez`: **Local Plugins** (for quick, personal scripts) and **Full Extensions** (for distributable Python packages).
 
 ##  Local Plugins (Quick & Easy)
 
-Local plugins are standalone Python scripts that you drop into your local Fetchez configuration folders. Fetchez automatically scans these folders at runtime and registers any valid classes it finds.
+Local plugins are standalone Python scripts that you drop into your local `fetchez` configuration folders. `fetchez` automatically scans these folders at runtime and registers any valid classes it finds.
 
 ### Data Modules (`~/.fetchez/plugins/`)
-Data Modules tell Fetchez how to talk to a specific API or data source.
+Data Modules tell `fetchez` how to talk to a specific API or data source.
 
 To build one, create a Python script containing a class that inherits from `fetchez.core.FetchModule`.
 
@@ -22,6 +22,9 @@ from fetchez.core import FetchModule
 class MyCustomServer(FetchModule):
     name = "my_server"
 
+	def __init__(self, **kwargs):
+		super().__init__(name="my_server", **kwargs)
+
     def run(self):
         # Your custom logic to query an API and yield URLs goes here.
         self.results.append({
@@ -30,27 +33,47 @@ class MyCustomServer(FetchModule):
         })
 ```
 
-You can now run this instantly from the CLI: fetchez my_server
+You can now run this instantly from the CLI: `fetchez my_server`
 
 ### Processing Hooks (~/.fetchez/hooks/)
 Hooks intercept data before, during, or after the fetch process.
 
-To build one, create a class that inherits from fetchez.hooks.FetchHook.
+To build one, create a class that inherits from `fetchez.hooks.FetchHook`.
 
 **Example:**
 
-Create ~/.fetchez/hooks/notify.py:
+Create ~/.fetchez/hooks/zulip_notify.py:
 ```python
+import logging
 from fetchez.hooks import FetchHook
+
+logger = logging.getLogger(__name__)
 
 class ZulipNotifier(FetchHook):
     name = "zulip_notify"
-    stage = "post" # Runs after all downloads finish
+    stage = "post"
+    category = "comms"
+
+    def __init__(self, chan="fetchez", **kwargs):
+        super().__init__(**kwargs)
+        self.chan = chan
 
     def run(self, entries):
-        # Code to ping a webhook
-        print(f"Notified Zulip that {len(entries)} files were downloaded!")
+        import zulip
+        client = zulip.Client()
+        mods = set()
+        for mod, entry in entries:
+            mods.add(mod)
+
+        params = {
+            "type": "stream",
+            "to": self.chan,
+            "topic": "Auto-Fetchez",
+            "content": f"Downloaded {len(entries)} files from {len(mods)} modules."
+        }
+        result = client.send_message(params)
+        logger.info(f"Zulip notification result: {result.get('result')}!")
         return entries
 ```
 
-You can now use this in your recipes and cli switches: `fetchez copernicus --hook zulip_notify`
+You can now use this in your presets, recipes and cli switches: `fetchez copernicus --hook zulip_notify`

@@ -43,9 +43,9 @@ Once you save the file, simply run:
 ```bash
 
 # Check if it loaded
-fetchez --modules | grep my_checkpoints
+	fetchez --search my_checkpoints
 
-# or
+# or see all plugins
 fetchez --search plugin
 
 # Run it
