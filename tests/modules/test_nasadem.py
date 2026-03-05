@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 # A sample region (Colorado)
 SAMPLE_REGION = (-105.5, -104.5, 39.5, 40.5)
 
+
 # @pytest.mark.health
 @pytest.mark.skip(reason="We don't really need this tested every time.")
 def test_nasadem_url_generation():
@@ -21,7 +22,6 @@ def test_nasadem_url_generation():
 
     first_result = mod.results[0]
 
-    print('test')
     assert "opentopography.s3.sdsc.edu" in first_result["url"]
     assert first_result["data_type"] == "gtif"
     assert "NASADEM_HGT_" in first_result["dst_fn"]
