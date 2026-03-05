@@ -18,7 +18,7 @@
 
 Geospatial data access is fragmented. You often need one script to scrape a website for tide stations, another to download LiDAR from an S3 bucket, and a third to parse a local directory of shapefiles.
 
-**Fetchez unifies this chaos.**
+**Fetchez unifies it all.**
 
 * **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 

@@ -19,7 +19,7 @@ pip install fetchez
 Fetch Copernicus topography and NOAA multibeam bathymetry for a specific bounding box in one command:
 
 ```bash
-fetchez -R loc:"Miami, FL" copernicus multibeam
+fetchez -R loc:"Miami, FL" copernicus multibeam --audit-log miami_audit.json
 ```
 
 ### Python API:
@@ -28,26 +28,26 @@ fetchez -R loc:"Miami, FL" copernicus multibeam
 import fetchez
 
 # Search
-fetchez.search("bathymetry")
+bathy_mods = fetchez.search("bathymetry")
 
 # Get Data (Returns list of local file paths)
-files = fetchez.get("nos_hydro", region=[-120, -118, 33, 34], year=2020)
+files = fetchez.get("nos_hydro", region=[-120, -118, 33, 34], min_year=2020)
 
-# Advanced (With Hooks)
-files = fetchez.get("blue_topo", hooks=['unzip', 'filter:match=.tif'])
+# Fetch Electronic Nautical Chart data from NOAA
+files = fetchez.get(region=[-120, -118, 33, 34], "charts", hooks=['unzip', 'fn_filter:match=.000', 'audit'])
 ```
 
 ## Key Features
 
 * **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
-* **Streaming First:** Fetchez prefers streaming data through standard pipes over downloading massive archives to disk.
-
 * **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
 * **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
+
+* **Extendable Design**: Through hooks, presets, recipes, schemas and extensions, `fetchez` can be endlessly expanded to perform specific tasks.
 
 ```{toctree}
 :maxdepth: 2
