@@ -613,7 +613,7 @@ def fetchez_cli():
 
         for cat in existing_cats + remaining_cats:
             # Format header: [ Metadata ]
-            print(f"\n[ {cat.title()} ]")
+            print(f"\n{utils.CYAN}[ {cat.title()} ]{utils.RESET}")
 
             for name, cls_obj in sorted(grouped_hooks[cat], key=lambda x: x[0]):
                 desc = getattr(cls_obj, "desc", "No description")
@@ -627,7 +627,7 @@ def fetchez_cli():
 
                 # Print with origin tag in yellow
                 print(
-                    f"  {utils.colorize(name, utils.BOLD):<18} "
+                    f"  {utils.colorize(name, utils.BOLD):<26} "
                     f"{utils.colorize(f'[{origin}]', utils.YELLOW):<13} : {desc}"
                 )
 
