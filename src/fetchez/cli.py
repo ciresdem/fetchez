@@ -57,7 +57,7 @@ def print_banner_orbit():
 print_welcome_banner = print_banner_orbit  # alias for when we randomly change it
 
 
-def print_cli_logo():
+def _cli_logo():
     """Prints a colored ANSI block representation of the Fetchez logo."""
 
     # ANSI Background Color Codes based on our soft palette
@@ -75,7 +75,7 @@ def print_cli_logo():
     {O}  {RST}{L}  {RST}{H}  {RST}{M}  {RST}{F}  {RST}   fetchez {__version__}
     {M}  {RST}{O}  {RST}{M}  {RST}{I}  {RST}{I}  {RST}   {utils.colorize('Fetch geospatial data with ease.', utils.ITALIC)}
     """
-    print(logo)
+    return logo
 
 
 def setup_logging(verbose=False):
@@ -345,7 +345,7 @@ def get_parser():
 
     parser = argparse.ArgumentParser(
         #description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
-        description=print_cli_logo(),
+        description=_cli_logo(),
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,
         usage=_usage,
