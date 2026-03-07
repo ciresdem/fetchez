@@ -87,7 +87,7 @@ Copyright (c) 2010-2026 Regents of the University of Colorado
 
 ---
 
-## Acknowledgements
+## ✨ Acknowledgements
 
 <a href="https://zulip.com/">
 	<img src="https://github.com/zulip/zulip/blob/main/static/images/logo/zulip-icon-circle.svg" alt="zulip" width="60"/>
