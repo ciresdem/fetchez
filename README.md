@@ -4,8 +4,6 @@
 <h1 align="center">Fetchez</h1>
 <p align="center"><strong>Fetch geospatial data with ease.</strong></p>
 
-*Fetchez Les Données*
-
 [![Version](https://img.shields.io/badge/version-0.4.2-blue.svg)](https://github.com/continuous-dems/fetchez)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/)
