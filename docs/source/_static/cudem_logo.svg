@@ -14,12 +14,12 @@
       rect {
           width: 4.8px;
           height: 4.8px;
-          rx: 0.8px;
-	  stroke: #000000;
-          /* stroke: #ffffff; /* Soft white stroke
+          rx: 0.65px;
+          stroke: #000000;
           stroke-width: 0.14px;
-          stroke-opacity: 0.4;
+          stroke-opacity: 0.425;
       }
+
     </style>
   </defs>
   <rect width="4.8px" height="4.8px" x="0" y="0" class="L" />
