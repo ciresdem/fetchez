@@ -61,18 +61,18 @@ def _cli_logo():
     """Prints a colored ANSI block representation of the Fetchez logo."""
 
     # ANSI Background Color Codes based on ETOPO soft palette
-    O = "\033[48;2;43;76;126m"   # Deep Ocean
-    M = "\033[48;2;84;130;180m"  # Mid Ocean
-    L = "\033[48;2;133;181;141m" # Lowland
-    F = "\033[48;2;181;193;142m" # Foothills
-    H = "\033[48;2;212;190;157m" # Highlands
-    I = "\033[48;2;244;247;250m" # Ice
-    RST = "\033[0m"              # Reset
+    OCEAN = "\033[48;2;43;76;126m"  # Deep Ocean
+    MID = "\033[48;2;84;130;180m"  # Mid Ocean
+    LOW = "\033[48;2;133;181;141m"  # Lowland
+    FOOT = "\033[48;2;181;193;142m"  # Foothills
+    HIGH = "\033[48;2;212;190;157m"  # Highlands
+    ICE = "\033[48;2;244;247;250m"  # Ice
+    RST = "\033[0m"  # Reset
 
     logo = f"""
-    {L}  {RST}{M}  {RST}{F}  {RST}{H}  {RST}{M}  {RST}
-    {O}  {RST}{L}  {RST}{H}  {RST}{M}  {RST}{F}  {RST}   fetchez {__version__}
-    {M}  {RST}{O}  {RST}{M}  {RST}{I}  {RST}{I}  {RST}   {utils.colorize('Fetch geospatial data with ease.', utils.ITALIC)}
+    {LOW}  {RST}{MID}  {RST}{FOOT}  {RST}{HIGH}  {RST}{MID}  {RST}
+    {OCEAN}  {RST}{LOW}  {RST}{HIGH}  {RST}{MID}  {RST}{FOOT}  {RST}   fetchez {__version__}
+    {MID}  {RST}{OCEAN}  {RST}{MID}  {RST}{ICE}  {RST}{ICE}  {RST}   {utils.colorize("Fetch geospatial data with ease.", utils.ITALIC)}
     """
     return logo
 
@@ -343,7 +343,7 @@ def get_parser():
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
     parser = argparse.ArgumentParser(
-        #description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
+        # description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
         description=_cli_logo(),
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,

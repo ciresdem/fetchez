@@ -42,7 +42,7 @@ def test_module_metadata_complete():
         "meta_desc",
         "meta_agency",
         "meta_tags",
-        "meta_region",
+        # "meta_region", # we check region specially (it is allowed to be meta_coverage as well.
         "meta_resolution",
         "meta_license",
         "meta_urls",
