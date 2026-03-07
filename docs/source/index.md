@@ -4,7 +4,9 @@
 
 *Fetchez Les Données*
 
-**Fetchez** is a lightweight, modular and highly extendable Python library and command-line tool designed to discover, retrieve and process geospatial data from a wide variety of public repositories.
+**Fetchez** is a lightweight, modular, and highly extendable Python framework designed to orchestrate geospatial data engineering workflows.
+
+Originally developed as the core fetching engine for the [CUDEM](https://github.com/continuous-dems/cudem) project, Fetchez has evolved into a standalone ETL platform. It seamlessly retrieves Bathymetry, Topography, Imagery, and Oceanographic data from dozens of global repositories (NOAA, USGS, Copernicus, ESA) and processes it on the fly.
 
 ## Quickstart
 
@@ -47,7 +49,7 @@ files = fetchez.get(region=[-120, -118, 33, 34], "charts", hooks=['unzip', 'fn_f
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
-* **Extendable Design**: Through hooks, presets, recipes, schemas and extensions, `fetchez` can be endlessly expanded to perform specific tasks.
+* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources and domain schemas.
 
 ```{toctree}
 :maxdepth: 2
