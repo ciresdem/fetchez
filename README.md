@@ -22,9 +22,9 @@ Originally developed as the core fetching engine for the [CUDEM](https://github.
 
 ### ❓ Why Fetchez?
 
-Geospatial data access is fragmented. You often need one script to scrape a website for tide stations, another to download LiDAR from an S3 bucket, and a third to parse a local directory of shapefiles.
+Geospatial data engineering is traditionally fragmented. You often need one script to query an API, another tool to download the files, a GIS application to clip the data, and complex shell scripts to tie it all together.
 
-**Fetchez unifies it all.**
+**Fetchez unifies the entire pipeline.**
 
 * **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
