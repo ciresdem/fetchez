@@ -24,7 +24,7 @@ import logging
 from typing import List, Optional, Dict, Any
 
 from .core import run_fetchez
-from .registry import FetchezRegistry
+from .modules.registry import FetchezRegistry
 from .hooks.registry import HookRegistry
 from .spatial import parse_region
 # from .cli import setup_logging
@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 def search(term: Optional[str] = None) -> Dict[Any, Any]:
     """Search available modules by tag, description, or name."""
 
+    FetchezRegistry.load_builtins()
     FetchezRegistry.load_user_plugins()
-    FetchezRegistry.load_installed_plugins()
 
     if not term:
         return FetchezRegistry._modules
@@ -74,9 +74,10 @@ def get(
         A list of absolute paths to the downloaded files.
     """
 
+    FetchezRegistry.load_builtins()
     FetchezRegistry.load_user_plugins()
-    FetchezRegistry.load_installed_plugins()
     HookRegistry.load_builtins()
+    HookRegistry.load_user_plugins()
 
     ModCls = FetchezRegistry.load_module(module)
     if not ModCls:

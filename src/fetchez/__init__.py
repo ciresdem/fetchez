@@ -23,7 +23,7 @@ except ImportError:
 from . import fred
 from . import core
 from . import spatial
-from . import registry
+from .modules import registry
 from .api import search, get
 
 __all__ = ["core", "fred", "spatial", "registry", "search", "get"]

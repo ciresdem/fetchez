@@ -19,7 +19,7 @@ from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxDirective
 
-from fetchez.registry import FetchezRegistry
+from fetchez.modules.registry import FetchezRegistry
 
 
 class ModuleTableDirective(SphinxDirective):
@@ -30,6 +30,8 @@ class ModuleTableDirective(SphinxDirective):
     optional_arguments = 0
 
     def run(self):
+        FetchezRegistry.load_builtins()
+
         modules = FetchezRegistry._modules
 
         rows = []

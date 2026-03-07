@@ -21,6 +21,7 @@ from fetchez.core import FetchModule
 
 class MyCustomServer(FetchModule):
     name = "my_server"
+	meta_desc = "Fetches data from my local company server."
 
 	def __init__(self, **kwargs):
 		super().__init__(name="my_server", **kwargs)

@@ -39,6 +39,7 @@ WHITE = "\033[37m"
 RESET = "\033[0m"
 
 BOLD = "\033[1m"
+ITALIC = "\033[3m"
 UNDERLINE = "\033[4m"
 REVERSE = "\033[7m"
 

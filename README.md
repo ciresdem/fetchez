@@ -1,6 +1,8 @@
-# 🌍 Fetchez
-
-**Fetch geospatial data with ease.**
+<p align="center">
+  <img src="source/_static/fetchez_logo.svg" width="200" alt="Fetchez Logo">
+</p>
+<h1 align="center">Fetchez</h1>
+<p align="center"><strong>Fetch geospatial data with ease.</strong></p>
 
 *Fetchez Les Données*
 

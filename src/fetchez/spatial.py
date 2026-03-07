@@ -288,6 +288,7 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
 
     if not os.path.exists(fn):
         return None
+
     regions = []
     try:
         with open(fn, "r") as f:
@@ -309,17 +310,17 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
                 max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
                 valid = True
 
-            # Simple fallback for Polygon geometry if no shapely
-            elif geom.get("type") == "Polygon":
-                coords = geom.get("coordinates", [])[0]
-                xs = [c[0] for c in coords]
-                ys = [c[1] for c in coords]
-                min_x, min_y = min(min_x, min(xs)), min(min_y, min(ys))
-                max_x, max_y = max(max_x, max(xs)), max(max_y, max(ys))
-                valid = True
+            elif "coordinates" in geom:
+                xs, ys = [], []
+                for x, y in _extract_coords(geom["coordinates"]):
+                    xs.append(x)
+                    ys.append(y)
+                if xs and ys:
+                    min_x, min_y = min(min_x, min(xs)), min(min_y, min(ys))
+                    max_x, max_y = max(max_x, max(xs)), max(max_y, max(ys))
+                    valid = True
 
         if valid:
-            # We return a list containing the union bbox for now
             regions.append(Region(min_x, max_x, min_y, max_y))
             return regions
     except Exception as e:
@@ -330,7 +331,7 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
 def region_from_place(query: str, centered: bool = True) -> Optional[Region]:
     """Resolve 'loc:PlaceName' to a bounding box."""
 
-    from .modules.nominatim import Nominatim
+    from .modules.builtins.nominatim import Nominatim
 
     clean_q = query.split(":", 1)[1] if ":" in query else query
     nom = Nominatim(query=clean_q)
@@ -449,8 +450,26 @@ def region_to_shapely(region: Tuple[float, float, float, float]):
 def region_to_wkt(region: Tuple[float, float, float, float]):
     """Convert a fetchez region (xmin, xmax, ymin, ymax) to WKT (via shapely)"""
 
-    polygon = region_to_shapely(region)
-    return polygon.wkt
+    if HAS_SHAPELY:
+        polygon = region_to_shapely(region)
+        if polygon:
+            return polygon.wkt
+
+    w, e, s, n = region
+    return f"POLYGON (({w} {s}, {w} {n}, {e} {n}, {e} {s}, {w} {s}))"
+
+
+def _extract_coords(coords):
+    """Recursively flatten any GeoJSON coordinate array into (x, y) tuples."""
+
+    if not isinstance(coords, list) or not coords:
+        return
+
+    if isinstance(coords[0], (int, float)):
+        yield coords[0], coords[1]
+    else:
+        for item in coords:
+            yield from _extract_coords(item)
 
 
 def region_to_bbox(region: Tuple[float, float, float, float]):

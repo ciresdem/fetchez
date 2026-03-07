@@ -20,10 +20,10 @@ import signal
 from typing import Dict, Optional, Any
 
 from . import utils
-from . import registry
 from . import spatial
 from . import core
 from . import __version__
+from .modules import registry
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,27 @@ def print_banner_orbit():
 
 
 print_welcome_banner = print_banner_orbit  # alias for when we randomly change it
+
+
+def print_cli_logo():
+    """Prints a colored ANSI block representation of the Fetchez logo."""
+
+    # ANSI Background Color Codes based on our soft palette
+    O = "\033[48;2;43;76;126m"   # Deep Ocean
+    M = "\033[48;2;84;130;180m"  # Mid Ocean
+    L = "\033[48;2;133;181;141m" # Lowland
+    F = "\033[48;2;181;193;142m" # Foothills
+    H = "\033[48;2;212;190;157m" # Highlands
+    I = "\033[48;2;244;247;250m" # Ice
+    RST = "\033[0m"              # Reset to terminal default
+
+    # Two spaces "  " creates a perfect square block in most terminal fonts
+    logo = f"""
+    {L}  {RST}{M}  {RST}{F}  {RST}{H}  {RST}{M}  {RST}
+    {O}  {RST}{L}  {RST}{H}  {RST}{M}  {RST}{F}  {RST}   fetchez {__version__}
+    {M}  {RST}{O}  {RST}{M}  {RST}{I}  {RST}{I}  {RST}   {utils.colorize('Fetch geospatial data with ease.', utils.ITALIC)}
+    """
+    print(logo)
 
 
 def setup_logging(verbose=False):
@@ -190,9 +211,10 @@ def get_module_cli_desc(m: Dict) -> str:
     rows = []
     existing_cats = [c for c in CATEGORY_ORDER if c in grouped_modules]
     remaining_cats = sorted([c for c in grouped_modules if c not in CATEGORY_ORDER])
-
+    # f"{utils.colorize(mod_key, utils.BOLD):<15} {utils.colorize(f'[{agency}]', utils.YELLOW):<10} {desc}"
     for cat in existing_cats + remaining_cats:
-        rows.append(f"\n\033[1;4m{cat}\033[0m")
+        rows.append(f"\n{utils.colorize(f'[ {cat} ]', utils.CYAN):<15}")
+        # rows.append(f"\n\033[1;4m{cat}\033[0m")
         for name, desc in sorted(grouped_modules[cat], key=lambda x: x[0]):
             rows.append(f"  \033[1m{name:<18}\033[0m : {desc}")
 
@@ -201,7 +223,8 @@ def get_module_cli_desc(m: Dict) -> str:
 
 class PrintModulesAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        print_welcome_banner()
+        # print_welcome_banner()
+        # print_cli_logo()
         print(f"""
         Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
 
@@ -213,7 +236,7 @@ class PrintModulesAction(argparse.Action):
 def print_module_info(mod_key):
     """Pretty-print module metadata."""
 
-    from .registry import FetchezRegistry
+    from .modules.registry import FetchezRegistry
 
     meta = FetchezRegistry.get_info(mod_key)
     if not meta:
@@ -321,7 +344,8 @@ def get_parser():
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
     parser = argparse.ArgumentParser(
-        description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
+        #description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
+        description=print_cli_logo(),
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,
         usage=_usage,
@@ -480,8 +504,11 @@ def fetchez_cli():
 
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
-    registry.FetchezRegistry.load_user_plugins()
-    registry.FetchezRegistry.load_installed_plugins()
+    from .modules.registry import FetchezRegistry
+
+    FetchezRegistry.load_builtins()
+    FetchezRegistry.load_user_plugins()
+    FetchezRegistry.load_installed_plugins()
 
     from .hooks.registry import HookRegistry
     from . import presets
@@ -524,6 +551,8 @@ def fetchez_cli():
     setup_logging(
         not global_args.quiet
     )  # this prevents logging from distorting tqdm and leaving partial tqdm bars everywhere...
+
+    #print_cli_logo()
 
     if global_args.init_presets:
         presets.init_presets()

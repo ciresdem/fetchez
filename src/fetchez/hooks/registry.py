@@ -11,10 +11,11 @@ This holds the hook registry.
 :license: MIT, see LICENSE for more details.
 """
 
+import pkgutil
 import importlib
 import os
-import sys
 import logging
+import fetchez.hooks.builtins
 from typing import Dict, Any
 from . import FetchHook
 
@@ -22,62 +23,80 @@ logger = logging.getLogger(__name__)
 
 
 class HookRegistry:
-    _hooks: Dict[Any, Any] = {}
+    """Fetchez Hook Registry using dynamic discovery."""
+
+    _hooks: Dict[str, Any] = {}
 
     @classmethod
     def load_builtins(cls):
-        """Recursively scan and load all built-in hooks from the 'builtins' directory."""
+        """Recursively scan and load all built-in hooks using pkgutil."""
 
-        # Determine the absolute path to the 'hooks' directory
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        builtins_dir = os.path.join(current_dir, "builtins")
-
-        if not os.path.exists(builtins_dir):
-            logger.debug(f"No builtins directory found at {builtins_dir}")
-            return
-
-        # Walk the directory tree recursively
-        for root, dirs, files in os.walk(builtins_dir):
-            dirs[:] = [d for d in dirs if not d.startswith("_")]
-
-            for f in files:
-                if f.endswith(".py") and not f.startswith("_"):
-                    rel_dir = os.path.relpath(root, current_dir)
-                    mod_path = rel_dir.replace(os.sep, ".")
-                    mod_name = f[:-3]
-
-                    full_mod_name = f"fetchez.hooks.{mod_path}.{mod_name}"
-
-                    try:
-                        mod = importlib.import_module(full_mod_name)
-                        cls._register_from_module(mod)
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to load built-in hook {full_mod_name}: {e}"
-                        )
+        for _, modname, ispkg in pkgutil.walk_packages(
+            path=fetchez.hooks.builtins.__path__,
+            prefix=fetchez.hooks.builtins.__name__ + ".",
+        ):
+            if not ispkg:
+                try:
+                    mod = importlib.import_module(modname)
+                    cls._register_from_module(mod)
+                except Exception as e:
+                    logger.warning(f"Failed to load built-in hook {modname}: {e}")
 
     @classmethod
     def load_user_plugins(cls):
-        """Scan ~/.fetchez/hooks/ and .fetchez/hooks for python files."""
+        """Securely scan local directories for user-provided Python hook scripts."""
+        import importlib.util
 
         home = os.path.expanduser("~")
-        home_hook_dir = os.path.join(home, ".fetchez", "hooks")
-        cwd_hook_dir = os.path.join(home, ".fetchez", "hooks")
 
-        for p_dir in [home_hook_dir, cwd_hook_dir]:
+        search_dirs = [
+            os.path.join(home, ".fetchez", "plugins"),
+            os.path.join(home, ".fetchez", "hooks"),
+            os.path.join(os.getcwd(), ".fetchez", "plugins"),
+            os.path.join(os.getcwd(), ".fetchez", "hooks"),
+        ]
+
+        for p_dir in search_dirs:
             if not os.path.exists(p_dir):
                 continue
 
-            sys.path.insert(0, p_dir)
             for f in os.listdir(p_dir):
                 if f.endswith(".py") and not f.startswith("_"):
+                    filepath = os.path.join(p_dir, f)
+                    mod_name = f"fetchez_user_hook_{f[:-3]}"
+
                     try:
-                        mod_name = f[:-3]
-                        mod = importlib.import_module(mod_name)
-                        cls._register_from_module(mod)
+                        spec = importlib.util.spec_from_file_location(
+                            mod_name, filepath
+                        )
+                        if spec and spec.loader:
+                            mod = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(mod)
+                            cls._register_from_module(mod)
                     except Exception as e:
-                        logger.warning(f"Failed to load user hook {f}: {e}")
-            sys.path.pop(0)
+                        logger.warning(
+                            f"Failed to securely load user hook {filepath}: {e}"
+                        )
+
+    @classmethod
+    def load_installed_plugins(cls):
+        """Load external pip-installed Fetchez plugins via entry_points."""
+
+        from importlib.metadata import entry_points
+
+        try:
+            eps = entry_points(group="fetchez.hooks")
+            for ep in eps:
+                try:
+                    plugin_module = ep.load()
+                    cls._register_from_module(plugin_module)
+                    logger.debug(f"Loaded external hook extension: {ep.name}")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to load external module extension '{ep.name}': {e}"
+                    )
+        except Exception as e:
+            logger.debug(f"Error checking entry points: {e}")
 
     @classmethod
     def register_hook(cls, hook_cls):

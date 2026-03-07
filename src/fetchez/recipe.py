@@ -17,7 +17,7 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import FetchezRegistry
+from .modules.registry import FetchezRegistry
 from .hooks.registry import HookRegistry
 from .utils import TqdmLoggingHandler
 from .schema import SchemaRegistry
@@ -131,6 +131,7 @@ class Recipe:
             return []
 
         HookRegistry.load_builtins()
+        HookRegistry.load_user_plugins()
         hook_presets = presets.get_global_presets()
         hook_mod_presets = config.load_user_config("presets").get("modules", {})
 

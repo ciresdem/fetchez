@@ -18,6 +18,19 @@ checkpoints_link = '67075e6bd34e969edc59c3e7?f=__disk__80%2F12%2F9e%2F80129e86d1
 
 @cli.cli_opts(help_text="USGS Elevation Checkpoints")
 class CheckPoints3DEP(core.FetchModule):
+    name = "3dep_cp"
+    meta_category = "Reference"
+    meta_desc = "USGS 3DEP Elevation Validation Checkpoints"
+    meta_agency = "USGS"
+    meta_tags = ["usgs", "3dep", "checkpoints", "validation", "accuracy", "control-points"]
+    meta_region = "USA"
+    meta_resolution = "Point Data"
+    meta_license = "Public Domain"
+    meta_urls = {
+        "home": "https://www.usgs.gov/3d-elevation-program",
+        "source": "https://www.sciencebase.gov/catalog/item/67075e6bd34e969edc59c3e7",
+    }
+
     def __init__(self, **kwargs):
     	# `name` here becomes the name of fetchez module in the cli
         super().__init__(name='my_checkpoints', **kwargs)

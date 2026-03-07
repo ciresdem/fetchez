@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "fetchez"
 description = "Geo-Spatial Data Fetching"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 authors = [
@@ -28,7 +28,6 @@ dependencies = [
     "requests[security]",
     "lxml",
     "tqdm",
-    "shapely",
     'pyyaml',
 ]
 
@@ -36,7 +35,7 @@ keywords = ["Geospatial"]
 
 [project.optional-dependencies]
 aws = ["boto3"]
-vector = ["pyshp", "pyproj"]
+vector = ["pyshp", "pyproj", "shapely"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client"]

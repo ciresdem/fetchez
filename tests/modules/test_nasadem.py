@@ -2,7 +2,7 @@
 import pytest
 import requests
 import logging
-from fetchez.modules.nasadem import NASADEM, HEADERS
+from fetchez.modules.builtins.nasadem import NASADEM, HEADERS
 
 logger = logging.getLogger(__name__)
 
