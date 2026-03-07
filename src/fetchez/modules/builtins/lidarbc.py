@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # The permanent ArcGIS Online Item IDs for the LidarBC Indexes
 AGOL_ITEM_IDS = [
-    "7e31672989dc447e88e6fc6b8dde6563",  # LidarBC - Temp index (active)
+    "7e31672989dc447e88e6fc6b8dde6563",  # LidarBC - Temp index (Active)
     "5f6a1f31212a4cb2826743d2e52ef02a",  # LidarBC - Open LiDAR Data Index
     "b08ecfee3a35403e893a1b43af3b469a",  # LidarBC Public Index - Dynamic (Fallback)
 ]
@@ -39,6 +39,7 @@ class LidarBC(core.FetchModule):
 
     def _get_live_featureserver(self):
         """Dynamically resolve the permanent Item ID to the live FeatureServer URL."""
+
         for item_id in AGOL_ITEM_IDS:
             req = core.Fetch(PORTAL_API.format(id=item_id)).fetch_req(timeout=10)
             if req:
