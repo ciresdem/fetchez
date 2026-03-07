@@ -1,6 +1,6 @@
 <p align="center">
 	<a href="https://github.com/continuous-dems">
-		<img src="https://github.com/continuous-dems/fetchez/blob/modules/docs/source/_static/continuous_dems_logo.svg" height="120" alt="Continuous DEMs Logo">
+		<img src="https://github.com/continuous-dems/fetchez/blob/modules/docs/source/_static/continuous_dems_logo.svg" height="80" alt="Continuous DEMs Logo">
 	</a>
 </p>
 <h1 align="center">Fetchez</h1>
