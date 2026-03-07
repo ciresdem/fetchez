@@ -43,6 +43,15 @@ ITALIC = "\033[3m"
 UNDERLINE = "\033[4m"
 REVERSE = "\033[7m"
 
+# ANSI Background Color Codes based on ETOPO soft palette
+OCEAN = "\033[48;2;43;76;126m"  # Deep Ocean
+MID = "\033[48;2;84;130;180m"  # Mid Ocean
+LOW = "\033[48;2;133;181;141m"  # Lowland
+FOOT = "\033[48;2;181;193;142m"  # Foothills
+HIGH = "\033[48;2;212;190;157m"  # Highlands
+ICE = "\033[48;2;244;247;250m"  # Ice
+RST = "\033[0m"  # Reset
+
 
 # =============================================================================
 # Terminal Printing Helpers
@@ -68,6 +77,17 @@ class TqdmLoggingHandler(logging.Handler):
             self.flush()
         except Exception:
             self.handleError(record)
+
+
+def _cli_logo(name="fetchez", desc="", version=""):
+    """Prints a colored ANSI block representation of the Fetchez logo."""
+
+    logo = f"""
+    {LOW}  {RST}{MID}  {RST}{FOOT}  {RST}{HIGH}  {RST}{MID}  {RST}
+    {OCEAN}  {RST}{LOW}  {RST}{HIGH}  {RST}{MID}  {RST}{FOOT}  {RST}   {colorize(name, MAGENTA)} {version}
+    {MID}  {RST}{OCEAN}  {RST}{MID}  {RST}{ICE}  {RST}{ICE}  {RST}   {colorize(desc, ITALIC)}
+    """
+    return logo
 
 
 # =============================================================================

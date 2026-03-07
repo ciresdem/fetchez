@@ -14,6 +14,7 @@ authors = [
     {name = "Christopher Amante", email = "christopher.amante@colorado.edu"},
     {name = "Elliot Lim", email = "elliot.lim@colorado.edu"},
     {name = "Michael MacFerrin", email = "michael.macferrin@colorado.edu"},
+    {name = "Matt Fisher", email = "mfisher87@gmail.com"},
 ]
 maintainers = [
     {name = "Matthew Love", email = "matthew.love@colorado.edu"},
@@ -39,6 +40,7 @@ vector = ["pyshp", "pyproj", "shapely"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client"]
+# jupyter = ["jupyterlab", "ipyleaflet", "ipywidgets"]
 
 full = ["fetchez[aws,bing,vector,earthdata,stac]"]
 

@@ -34,7 +34,7 @@ class LidarBC(core.FetchModule):
     meta_aliases = ["geobc"]
 
     def __init__(self, datatype="all", **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(name="lidarbc", **kwargs)
         self.datatype = datatype.lower()
 
     def _get_live_featureserver(self):
