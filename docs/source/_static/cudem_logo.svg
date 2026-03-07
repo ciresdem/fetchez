@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 27 17" width="300" height="200">
+  <defs>
+    <style>
+      /* Softened ETOPO Palette */
+      .O { fill: #2B4C7E; } /* Deep Ocean - softer navy */
+      .M { fill: #5482B4; } /* Mid Ocean - calm blue */
+      .S { fill: #77A3C8; } /* Shallow */
+      .L { fill: #85B58D; } /* Lowland - sage green */
+      .F { fill: #B5C18E; } /* Foothills - soft olive/khaki */
+      .H { fill: #D4BE9D; } /* Highlands - warm sand */
+      .P { fill: #A88572; } /* Peaks */
+      .I { fill: #F4F7FA; } /* Ice - bright crisp white */
+
+      rect {
+          width: 4.8px;
+          height: 4.8px;
+          rx: 0.8px; /* Slightly rounder edges */
+          stroke: #ffffff; /* Soft white stroke instead of black */
+          stroke-width: 0.2px;
+          stroke-opacity: 0.3;
+      }
+    </style>
+  </defs>
+  <rect x="0" y="0" class="L" />
+  <rect x="5" y="0" class="M" />
+  <rect x="10" y="0" class="F" />
+  <rect x="15" y="0" class="H" />
+  <rect x="20" y="0" class="M" />
+
+  <rect x="0" y="5" class="O" />
+  <rect x="5" y="5" class="L" />
+  <rect x="10" y="5" class="H" />
+  <rect x="15" y="5" class="M" />
+  <rect x="20" y="5" class="F" />
+
+  <rect x="0" y="10" class="M" />
+  <rect x="5" y="10" class="O" />
+  <rect x="10" y="10" class="M" />
+  <rect x="15" y="10" class="I" />
+  <rect x="20" y="10" class="I" />
+</svg>
