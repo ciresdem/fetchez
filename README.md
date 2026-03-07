@@ -85,6 +85,8 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 Copyright (c) 2010-2026 Regents of the University of Colorado
 
+---
+
 ## Acknowledgements
 
 <a href="https://zulip.com/">
