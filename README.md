@@ -84,11 +84,3 @@ Would you like to know more? Check out our [Official Documentation](https://fetc
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/continuous-dems/fetchez/blob/main/LICENSE) file for details.
 
 Copyright (c) 2010-2026 Regents of the University of Colorado
-
----
-
-## ✨ Acknowledgements
-
-<a href="https://zulip.com/">
-	<img src="https://github.com/zulip/zulip/blob/main/static/images/logo/zulip-icon-circle.svg" alt="zulip" width="60"/>
-</a>
