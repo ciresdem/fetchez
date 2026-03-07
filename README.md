@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://github.com/continuous-dems/fetchez/blob/modules/docs/source/_static/continuous_dems_logo.svg" height="60" alt="Continuous DEMs Logo">
+	<a href="https://github.com/continuous-dems">
+		<img src="https://github.com/continuous-dems/fetchez/blob/modules/docs/source/_static/continuous_dems_logo.svg" height="60" alt="Continuous DEMs Logo">
+	</a>
 </p>
 <h1 align="center">Fetchez</h1>
 <p align="center"><strong>Fetch geospatial data with ease.</strong></p>
