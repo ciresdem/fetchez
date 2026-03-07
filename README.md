@@ -59,7 +59,7 @@ fetchez recipes/my_dem_project.yaml
 import fetchez
 
 # Fetch Electronic Nautical Chart data from NOAA
-files = fetchez.get(region=[-120, -118, 33, 34], "charts", hooks=['unzip', 'fn_filter:match=.000', 'audit'])
+files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000', 'audit'])
 ```
 
 ---
