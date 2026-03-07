@@ -14,8 +14,8 @@
       rect {
           width: 4.8px;
           height: 4.8px;
-          rx: 0.8px; /* Slightly rounder edges */
-          stroke: #ffffff; /* Soft white stroke instead of black */
+          rx: 0.8px;
+          stroke: #ffffff; /* Soft white stroke
           stroke-width: 0.2px;
           stroke-opacity: 0.3;
       }

@@ -60,16 +60,15 @@ print_welcome_banner = print_banner_orbit  # alias for when we randomly change i
 def _cli_logo():
     """Prints a colored ANSI block representation of the Fetchez logo."""
 
-    # ANSI Background Color Codes based on our soft palette
+    # ANSI Background Color Codes based on ETOPO soft palette
     O = "\033[48;2;43;76;126m"   # Deep Ocean
     M = "\033[48;2;84;130;180m"  # Mid Ocean
     L = "\033[48;2;133;181;141m" # Lowland
     F = "\033[48;2;181;193;142m" # Foothills
     H = "\033[48;2;212;190;157m" # Highlands
     I = "\033[48;2;244;247;250m" # Ice
-    RST = "\033[0m"              # Reset to terminal default
+    RST = "\033[0m"              # Reset
 
-    # Two spaces "  " creates a perfect square block in most terminal fonts
     logo = f"""
     {L}  {RST}{M}  {RST}{F}  {RST}{H}  {RST}{M}  {RST}
     {O}  {RST}{L}  {RST}{H}  {RST}{M}  {RST}{F}  {RST}   fetchez {__version__}
@@ -552,17 +551,17 @@ def fetchez_cli():
         not global_args.quiet
     )  # this prevents logging from distorting tqdm and leaving partial tqdm bars everywhere...
 
-    #print_cli_logo()
-
     if global_args.init_presets:
         presets.init_presets()
         sys.exit(0)
 
     if global_args.info:
+        print(_cli_logo())
         print_module_info(global_args.info)
         sys.exit(0)
 
     if global_args.search:
+        print(_cli_logo())
         results = registry.FetchezRegistry.search_modules(global_args.search)
 
         if not results:
@@ -592,6 +591,7 @@ def fetchez_cli():
 
     # --- HOOK INFO ---
     if global_args.hook_info:
+        print(_cli_logo())
         from fetchez.hooks.registry import HookRegistry
 
         hook_cls = HookRegistry.get_hook(global_args.hook_info)
@@ -616,6 +616,7 @@ def fetchez_cli():
         sys.exit(0)
 
     if hasattr(global_args, "list_hooks") and global_args.list_hooks:
+        print(_cli_logo())
         print("\nAvailable Hooks:")
         print("=" * 60)
 
