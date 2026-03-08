@@ -20,7 +20,7 @@ import inspect
 import logging
 from typing import Dict, Any, Type
 
-from fetchez.core import FetchModule
+from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.schema import BaseSchema
 
@@ -185,7 +185,7 @@ class PluginRegistry:
         term = term.lower()
         results = []
 
-        for key, meta in cls.get_registry.items():
+        for key, meta in cls.get_registry().items():
             if (
                 term in key.lower()
                 or term in meta.get("desc", "").lower()
