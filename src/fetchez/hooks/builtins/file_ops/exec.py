@@ -29,9 +29,9 @@ class Exec(FetchHook):
     """
 
     name = "exec"
-    desc = "Run shell command on file. Usage: --hook exec:cmd='echo {file}'"
-    stage = "file"
-    category = "file-op"
+    meta_desc = "Run shell command on file. Usage: --hook exec:cmd='echo {file}'"
+    meta_stage = "file"
+    meta_category = "file-op"
 
     def __init__(self, cmd=None, **kwargs):
         super().__init__(**kwargs)

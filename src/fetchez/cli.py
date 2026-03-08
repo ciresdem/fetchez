@@ -23,7 +23,8 @@ from . import utils
 from . import spatial
 from . import core
 from . import __version__
-from .modules import registry
+#from .modules import registry
+from .registry import ModuleRegistry, HookRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -45,16 +46,6 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
         return cls
 
     return decorator
-
-
-def print_banner_orbit():
-    # C, B, G, R = "\033[36m", "\033[34m", "\033[32m", "\033[0m"
-    print("""
-    [ F E T C H E Z ]
-    """)
-
-
-print_welcome_banner = print_banner_orbit  # alias for when we randomly change it
 
 
 def setup_logging(verbose=False):
@@ -202,12 +193,10 @@ def get_module_cli_desc(m: Dict) -> str:
 
 class PrintModulesAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        # print_welcome_banner()
-        # print_cli_logo()
         print(f"""
         Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
 
-        {get_module_cli_desc(registry.FetchezRegistry._modules)}
+        {get_module_cli_desc(ModuleRegistry._registry)}
         """)
         sys.exit(0)
 
@@ -215,9 +204,7 @@ class PrintModulesAction(argparse.Action):
 def print_module_info(mod_key):
     """Pretty-print module metadata."""
 
-    from .modules.registry import FetchezRegistry
-
-    meta = FetchezRegistry.get_info(mod_key)
+    meta = ModuleRegistry.get_info(mod_key)
     if not meta:
         logger.error(f"Module {mod_key} not found.")
         return
@@ -236,6 +223,24 @@ def print_module_info(mod_key):
         print("\n  Links:")
         for k, v in meta["urls"].items():
             print(f"    {k:<10}: {v}")
+    print(f"{'-' * 40}\n")
+
+
+def print_hook_info(hook_key):
+    """Pretty-print module metadata."""
+
+    meta = HookRegistry.get_info(hook_key)
+    if not meta:
+        logger.error(f"Hook {hook_key} not found.")
+        return
+
+    print(f"\n🪝 {utils.CYAN}HOOK: {hook_key.upper()}{utils.RESET}")
+    print(f"{'-' * 40}")
+    print(f"\n  Hook: {meta.get('name')}")
+    print(f"    Stage: {meta.get('stage')}")
+    print(f"    Type:  {meta.get('category')}")
+    #print(f"    Origin: {hook_cls.__module__}\n")
+
     print(f"{'-' * 40}\n")
 
 
@@ -286,7 +291,7 @@ def parse_hook_arg(arg_str):
 def init_hooks(hook_list_strs):
     """Convert a list of strings ['pipe', 'unzip:force=true'] into initialized Hook objects."""
 
-    from .hooks.registry import HookRegistry
+    #from .hooks.registry import HookRegistry
 
     active_instances = []
     if not hook_list_strs:
@@ -295,7 +300,7 @@ def init_hooks(hook_list_strs):
     for h_str in hook_list_strs:
         name, kwargs = parse_hook_arg(h_str)
 
-        HookCls = HookRegistry.get_hook(name)
+        HookCls = HookRegistry.get_class(name)
         if HookCls:
             try:
                 instance = HookCls(**kwargs)
@@ -485,21 +490,23 @@ def fetchez_cli():
 
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
-    from .modules.registry import FetchezRegistry
+    #from .modules.registry import FetchezRegistry
+    #from .registry import ModuleRegistry, HookRegistry
 
     # FetchezRegistry.load_builtins()
     # FetchezRegistry.load_user_plugins()
     # FetchezRegistry.load_installed_plugins()
-    FetchezRegistry.load_all_modules()
+    #FetchezRegistry.load_all_modules()
 
-    from .hooks.registry import HookRegistry
+    #from .hooks.registry import HookRegistry
     from . import presets
     from . import config
 
     # HookRegistry.load_builtins()
     # HookRegistry.load_user_plugins()
     # HookRegistry.load_installed_plugins()
-    HookRegistry.load_all_hooks()
+    ModuleRegistry.load_all()
+    HookRegistry.load_all()
 
     # user_presets = presets.load_user_presets()
     # user_presets = config.load_user_config().get('presets', {})
@@ -551,7 +558,7 @@ def fetchez_cli():
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
         )
-        results = registry.FetchezRegistry.search_modules(global_args.search)
+        results = ModuleRegistry.search_modules(global_args.search)
 
         if not results:
             logger.warning(f'No modules found matching "{global_args.search}"')
@@ -563,7 +570,7 @@ def fetchez_cli():
         print("-" * 60)
 
         for mod_key in results:
-            info = registry.FetchezRegistry.get_info(mod_key)
+            info = ModuleRegistry.get_info(mod_key)
             desc = info.get("desc", "No description")
             agency = info.get("agency", "")
 
@@ -583,28 +590,29 @@ def fetchez_cli():
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
         )
-        from fetchez.hooks.registry import HookRegistry
-
-        hook_cls = HookRegistry.get_hook(global_args.hook_info)
-        if hook_cls:
-            print(f"\n🪝  Hook: {hook_cls.name}")
-            print(f"    Stage: {hook_cls.stage}")
-            print(f"    Type:  {hook_cls.category}")
-            print(f"    Origin: {hook_cls.__module__}\n")
-
-            import inspect
-
-            doc = inspect.getdoc(hook_cls)
-            if doc:
-                print(doc)
-            else:
-                print("(No documentation available for this hook)")
-            print("\n")
-        else:
-            print(f"❌ Hook '{global_args.hook_info}' not found.")
-            print("   Run 'fetchez --list-hooks' to see available options.")
-
+        #from fetchez.hooks.registry import HookRegistry
+        print_hook_info(global_args.hook_info)
         sys.exit(0)
+        # hook_cls = HookRegistry.get_class(global_args.hook_info)
+        # if hook_cls:
+        #     print(f"\n🪝  Hook: {hook_cls.name}")
+        #     print(f"    Stage: {hook_cls.stage}")
+        #     print(f"    Type:  {hook_cls.category}")
+        #     print(f"    Origin: {hook_cls.__module__}\n")
+
+        #     import inspect
+
+        #     doc = inspect.getdoc(hook_cls)
+        #     if doc:
+        #         print(doc)
+        #     else:
+        #         print("(No documentation available for this hook)")
+        #     print("\n")
+        # else:
+        #     print(f"❌ Hook '{global_args.hook_info}' not found.")
+        #     print("   Run 'fetchez --list-hooks' to see available options.")
+
+        # sys.exit(0)
 
     if hasattr(global_args, "list_hooks") and global_args.list_hooks:
         print(
@@ -615,8 +623,9 @@ def fetchez_cli():
 
         # Group by category
         grouped_hooks = {}
-        for name, cls_obj in HookRegistry._hooks.items():
-            cat = getattr(cls_obj, "category", "uncategorized").lower()
+        for name, cls_obj in HookRegistry._registry.items():
+            cat = cls_obj.get("category")
+            #cat = getattr(cls_obj, "category", "uncategorized").lower()
             if cat not in grouped_hooks:
                 grouped_hooks[cat] = []
             grouped_hooks[cat].append((name, cls_obj))
@@ -705,7 +714,7 @@ def fetchez_cli():
 
     # --- Parse out modules/commands ---
     module_keys = {}
-    for key, val in registry.FetchezRegistry._modules.items():
+    for key, val in ModuleRegistry._registry.items():
         module_keys[key] = key
         for alias in val.get("aliases", []):
             module_keys[alias] = key
@@ -798,7 +807,7 @@ def fetchez_cli():
     usable_modules = []
     for mod_key, mod_argv in commands:
         # LOAD MODULE HERE
-        mod_cls = registry.FetchezRegistry.load_module(mod_key)
+        mod_cls = ModuleRegistry.get_class(mod_key)
         if mod_cls is None:
             logger.error(f"Could not load module: {mod_key}")
             continue
