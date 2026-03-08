@@ -371,6 +371,38 @@ def fmod2dict(fmod: str, dict_args: Optional[Dict[str, Any]] = None) -> Dict[str
     return dict_args
 
 
+def parse_hook_string(h_str):
+    """Helper to parse 'hook:arg=val' strings."""
+
+    if ":" in h_str:
+        name, rest = h_str.split(":", 1)
+        parts = rest.split(",")
+    else:
+        name = h_str
+        parts = []
+
+    kwargs = {}
+    for p in parts:
+        if "=" in p:
+            k, v = p.split("=", 1)
+            if v.lower() == "true":
+                v = True
+            elif v.lower() == "false":
+                v = False
+            else:
+                try:
+                    if "." in v:
+                        v = float(v)
+                    else:
+                        v = int(v)
+                except Exception:
+                    pass
+            kwargs[k] = v
+        else:
+            kwargs[p] = True
+    return name, kwargs
+
+
 def range_pairs(lst):
     return [(lst[i], lst[i + 1]) for i in range(len(lst) - 1)]
 

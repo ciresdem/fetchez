@@ -172,6 +172,8 @@ class PluginRegistry:
         meta = cls.get_registry().get(mod_key)
         return meta.get("_class_obj") if meta else None
 
+    load_module = get_class # alias for backward compatability
+
     @classmethod
     def list_all(cls) -> Dict[str, Any]:
         return cls.get_registry()

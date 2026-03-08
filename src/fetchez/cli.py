@@ -23,7 +23,6 @@ from . import utils
 from . import spatial
 from . import core
 from . import __version__
-#from .modules import registry
 from .registry import ModuleRegistry, HookRegistry
 
 logger = logging.getLogger(__name__)
@@ -48,10 +47,15 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
     return decorator
 
 
-def setup_logging(verbose=False):
-    log_level = logging.INFO if verbose else logging.WARNING
+def setup_logging(quiet=False, verbose=False):
+    if quiet:
+        log_level = logging.WARNING
+    elif verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
 
-    logger = logging.getLogger()
+    logger = logging.getLogger("fetchez")
     logger.setLevel(log_level)
 
     if logger.hasHandlers():
@@ -383,7 +387,7 @@ CUDEM home page: <http://cudem.colorado.edu>
         "-h", "--help", action="store_true", help="Show this help message and exit."
     )
     disc_grp.add_argument(
-        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
     exec_grp = parser.add_argument_group("Execution Control")
@@ -421,6 +425,12 @@ CUDEM home page: <http://cudem.colorado.edu>
         "--quiet",
         action="store_true",
         help="Suppress progress bars and status messages.",
+    )
+    exec_grp.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Enable verbose (DEBUG) logging.",
     )
 
     preset_grp = parser.add_argument_group("Pipeline Shortcuts (Hook Presets)")
@@ -521,7 +531,7 @@ def fetchez_cli():
     ):
         from . import recipe
 
-        setup_logging(True)
+        setup_logging()
 
         project_file = sys.argv[1]
         recipe = recipe.Recipe.from_file(project_file)
@@ -540,8 +550,9 @@ def fetchez_cli():
     # I like sending logging to stderr, and anyway we want this with --pipe-path
     # logging.basicConfig(level=level, format='[ %(levelname)s ] %(name)s: %(message)s', stream=sys.stderr)
     setup_logging(
-        not global_args.quiet
-    )  # this prevents logging from distorting tqdm and leaving partial tqdm bars everywhere...
+        quiet=global_args.quiet,
+        verbose=getattr(global_args, "verbose", False)
+    )
 
     if global_args.init_presets:
         presets.init_presets()
