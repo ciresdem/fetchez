@@ -777,8 +777,8 @@ def fetchez_cli():
             commands[0][1].append("--help")
 
     if not commands:
-        logger.error("You must select at least one module")
         parser.print_help()
+        logger.error("You must select at least one module")
         sys.exit(0)
 
     if not global_args.region:
