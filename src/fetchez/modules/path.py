@@ -13,7 +13,6 @@ Useful for injecting local data into the processing pipeline (dlim).
 """
 
 import os
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

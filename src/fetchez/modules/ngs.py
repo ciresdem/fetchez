@@ -12,7 +12,6 @@ Fetch National Geodetic Survey (NGS) Monuments (Survey Marks) from NOAA.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

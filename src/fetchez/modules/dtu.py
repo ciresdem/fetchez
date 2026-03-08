@@ -6,7 +6,6 @@ Fetch global gravity and altimetry grids from DTU Space.
 
 import os
 import logging
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

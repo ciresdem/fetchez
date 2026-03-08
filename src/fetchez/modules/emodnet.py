@@ -14,7 +14,6 @@ Supports retrieval via WCS (default) or ERDDAP.
 
 from typing import Optional
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

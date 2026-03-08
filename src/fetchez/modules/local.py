@@ -13,7 +13,6 @@ Generic module to query custom/local FRED indices.
 
 import os
 from typing import Optional
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import fred

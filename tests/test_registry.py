@@ -9,6 +9,7 @@ from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
 
+
 def test_registry_integrity():
     """Ensure all core modules in the registry can be imported."""
 
@@ -24,6 +25,7 @@ def test_registry_integrity():
         cls = ModuleRegistry.get_class(name)
         assert cls is not None, f"Failed to load class for {name}"
         assert hasattr(cls, "run"), f"Module {name} missing 'run' method"
+
 
 def test_module_metadata_complete():
     """Ensure all core modules have the required metadata attributes defined."""
@@ -44,10 +46,11 @@ def test_module_metadata_complete():
 
     for name, meta in modules.items():
         if name in meta.get("aliases", []):
-            continue # Skip aliases
+            continue  # Skip aliases
 
         missing = [attr for attr in required_keys if attr not in meta]
         assert not missing, f"Module '{name}' is missing metadata: {missing}"
+
 
 def test_alias_resolution():
     ModuleRegistry.load_all()
@@ -72,8 +75,11 @@ def test_hook_registry_integrity():
     required_attrs = ["name", "meta_stage", "meta_category", "meta_desc"]
 
     for name, meta in hooks.items():
-        hook_cls = meta.get("cls", None)
-        assert hasattr(hook_cls, "run"), f"Hook {name} missing 'run' method"
+        # Get the actual class object, not the string name!
+        hook_cls = HookRegistry.get_class(name)
+
+        assert hook_cls is not None, f"Failed to retrieve class object for hook '{name}'"
+        assert hasattr(hook_cls, "run"), f"Hook '{name}' missing 'run' method"
 
         for attr in required_attrs:
             assert hasattr(hook_cls, attr), (

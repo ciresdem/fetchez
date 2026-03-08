@@ -17,7 +17,7 @@ Dependencies:
 
 import os
 import logging
-from fetchez import core, cli
+from fetchez import cli
 from fetchez.modules import FetchModule
 
 try:

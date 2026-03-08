@@ -11,7 +11,6 @@ Fetch Vertical Gravity Gradient (VGG) data from Scripps Institution of Oceanogra
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

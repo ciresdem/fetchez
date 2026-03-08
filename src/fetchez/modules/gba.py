@@ -12,7 +12,6 @@ Fetch Global Building Atlas (GBA) data via WFS.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

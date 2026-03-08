@@ -13,7 +13,6 @@ Fetch OpenStreetMap (OSM) data via the Overpass API.
 
 from typing import Optional
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial

@@ -14,7 +14,6 @@ Uses the 'Generative Tile' strategy for 5x5 degree tiles.
 
 import logging
 import math
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

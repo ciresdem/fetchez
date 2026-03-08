@@ -18,7 +18,6 @@ Supports two modes:
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from typing import Optional
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

@@ -11,7 +11,6 @@ fetchez.modules.checkpoints_3dep
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

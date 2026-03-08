@@ -12,7 +12,6 @@ Fetch NASA Digital Elevation Model (NASADEM) data via OpenTopography.
 """
 
 import math
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

@@ -199,7 +199,6 @@ def get_module_cli_desc(m: Dict) -> str:
         rows.append(f"\n{utils.colorize(f'[ {cat} ]', utils.CYAN)}")
 
         for name, desc, agency in sorted(grouped_modules[cat], key=lambda x: x[0]):
-
             name_padded = f"{name:<18}"
             agency_str = f"[{agency}]" if agency else ""
             agency_padded = f"{agency_str:<12}"
@@ -535,8 +534,7 @@ def fetchez_cli():
     # I like sending logging to stderr, and anyway we want this with --pipe-path
     # logging.basicConfig(level=level, format='[ %(levelname)s ] %(name)s: %(message)s', stream=sys.stderr)
     setup_logging(
-        quiet=global_args.quiet,
-        verbose=getattr(global_args, "verbose", False)
+        quiet=global_args.quiet, verbose=getattr(global_args, "verbose", False)
     )
 
     if global_args.init_presets:

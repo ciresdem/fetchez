@@ -11,7 +11,6 @@ Fetch GLOBathy (Global Lake Bathymetry) data.
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

@@ -12,7 +12,6 @@ Query the US Interagency Elevation Inventory (USIEI) via ArcGIS REST API.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

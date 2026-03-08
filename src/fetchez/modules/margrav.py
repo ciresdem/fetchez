@@ -12,7 +12,6 @@ Fetch Marine Gravity data from Scripps Institution of Oceanography (UCSD).
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

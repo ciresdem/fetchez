@@ -13,7 +13,6 @@ Useful for building context, labeling maps, or identifying features.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial

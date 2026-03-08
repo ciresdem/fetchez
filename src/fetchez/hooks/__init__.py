@@ -11,6 +11,7 @@ This init file also holds the FetchHook super class
 :license: MIT, see LICENSE for more details.
 """
 
+
 class FetchHook:
     """Base class for all Fetchez Hooks."""
 

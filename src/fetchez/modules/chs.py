@@ -17,7 +17,6 @@ The NONNA (Non-Navigational) bathymetry data is available at
 import logging
 from urllib.parse import urlencode
 
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

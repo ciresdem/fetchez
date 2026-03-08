@@ -12,7 +12,6 @@ Fetch Sun/Moon Rise/Set times and phases from the US Naval Observatory (USNO).
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils

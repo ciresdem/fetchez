@@ -44,7 +44,6 @@ class PluginRegistry:
             cls._registry = {}
         return cls._registry
 
-
     @classmethod
     def load_builtins(cls):
         """Recursively scan and load all built-in plugins."""
@@ -90,7 +89,9 @@ class PluginRegistry:
                     mod_name = f"fetchez_user_{cls.user_folder}_{f[:-3]}"
 
                     try:
-                        spec = importlib.util.spec_from_file_location(mod_name, filepath)
+                        spec = importlib.util.spec_from_file_location(
+                            mod_name, filepath
+                        )
                         if spec and spec.loader:
                             mod = importlib.util.module_from_spec(spec)
                             spec.loader.exec_module(mod)
@@ -119,9 +120,13 @@ class PluginRegistry:
                             mod = importlib.import_module(modname)
                             cls._register_from_module(mod)
                         except Exception as e:
-                            logger.warning(f"Failed to load external plugin {modname}: {e}")
+                            logger.warning(
+                                f"Failed to load external plugin {modname}: {e}"
+                            )
         except Exception as e:
-            logger.debug(f"Error checking entry points for {cls.entry_point_group}: {e}")
+            logger.debug(
+                f"Error checking entry points for {cls.entry_point_group}: {e}"
+            )
 
     @classmethod
     def load_all(cls):
@@ -172,7 +177,7 @@ class PluginRegistry:
         meta = cls.get_registry().get(mod_key)
         return meta.get("_class_obj") if meta else None
 
-    load_module = get_class # alias for backward compatability
+    load_module = get_class  # alias for backward compatability
 
     @classmethod
     def list_all(cls) -> Dict[str, Any]:

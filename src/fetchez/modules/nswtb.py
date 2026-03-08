@@ -12,7 +12,6 @@ Fetch New South Wales (NSW) Topo-Bathy data via ArcGIS REST API.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 

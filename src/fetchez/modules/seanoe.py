@@ -9,7 +9,7 @@ DOI: 10.17882/85408
 """
 
 import logging
-from fetchez import core, cli
+from fetchez import cli
 from fetchez.modules import FetchModule
 
 logger = logging.getLogger(__name__)

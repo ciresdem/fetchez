@@ -12,7 +12,6 @@ Fetch SRTM15+ Global Bathymetry and Topography from Scripps Institution of Ocean
 """
 
 from urllib.parse import urlencode
-from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import cli
 
