@@ -487,16 +487,19 @@ def fetchez_cli():
 
     from .modules.registry import FetchezRegistry
 
-    FetchezRegistry.load_builtins()
-    FetchezRegistry.load_user_plugins()
-    FetchezRegistry.load_installed_plugins()
+    # FetchezRegistry.load_builtins()
+    # FetchezRegistry.load_user_plugins()
+    # FetchezRegistry.load_installed_plugins()
+    FetchezRegistry.load_all_modules()
 
     from .hooks.registry import HookRegistry
     from . import presets
     from . import config
 
-    HookRegistry.load_builtins()
-    HookRegistry.load_user_plugins()
+    # HookRegistry.load_builtins()
+    # HookRegistry.load_user_plugins()
+    # HookRegistry.load_installed_plugins()
+    HookRegistry.load_all_hooks()
 
     # user_presets = presets.load_user_presets()
     # user_presets = config.load_user_config().get('presets', {})

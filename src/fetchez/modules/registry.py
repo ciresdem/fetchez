@@ -86,19 +86,27 @@ class FetchezRegistry:
 
         from importlib.metadata import entry_points
 
-        try:
-            eps = entry_points(group="fetchez.modules")
-            for ep in eps:
-                try:
-                    plugin_module = ep.load()
-                    cls._register_from_module(plugin_module)
-                    logger.debug(f"Loaded external module extension: {ep.name}")
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to load external module extension '{ep.name}': {e}"
-                    )
-        except Exception as e:
-            logger.debug(f"Error checking entry points: {e}")
+        eps = entry_points(group="fetchez.modules")
+        for ep in eps:
+            plugin_module = ep.load()
+            for _, modname, ispkg in pkgutil.walk_packages(
+                path=plugin_module.__path__,
+                prefix=plugin_module.__name__ + ".",
+            ):
+                if not ispkg:
+                    try:
+                        mod = importlib.import_module(modname)
+                        cls._register_from_module(mod)
+                    except Exception as e:
+                        logger.warning(f"Failed to load built-in module {modname}: {e}")
+
+    @classmethod
+    def load_all_modules(cls):
+        """Load all the modules. [ builtins, plugins, extensions ]"""
+
+        cls.load_builtins()
+        cls.load_user_plugins()
+        cls.load_installed_plugins()
 
     @classmethod
     def _register_from_module(cls, module):
@@ -123,9 +131,7 @@ class FetchezRegistry:
                     "urls": getattr(obj, "meta_urls", {}),
                     "aliases": obj.__dict__.get("meta_aliases", []),
                 }
-
                 cls._modules[mod_key] = meta
-
                 for alias in meta["aliases"]:
                     cls._modules[alias] = meta
 
