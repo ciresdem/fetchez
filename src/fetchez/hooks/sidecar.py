@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.sidecar
+fetchez.hooks.sidecar
 ~~~~~~~~~~~~~
 
 Generates a 'sidecar' metadata file for each entry
@@ -28,9 +28,9 @@ class Sidecar(FetchHook):
     """
 
     name = "sidecar"
-    desc = "Write a .meta.json sidecar file. Usage: --hook sidecar"
-    stage = "file"
-    category = "metadata"
+    meta_desc = "Write a .meta.json sidecar file. Usage: --hook sidecar"
+    meta_stage = "file"
+    meta_category = "metadata"
 
     def run(self, entries):
         for mod, entry in entries:

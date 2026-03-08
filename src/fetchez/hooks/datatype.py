@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.datatype
+fetchez.hooks.datatype
 ~~~~~~~~~~~~~
 
 Change the default 'datatype' of an entry.
@@ -26,9 +26,9 @@ class SetDataType(FetchHook):
     """
 
     name = "set_datatype"
-    desc = "Override the data_type of pipeline entries."
-    stage = "file"
-    category = "metadata"
+    meta_desc = "Override the data_type of pipeline entries."
+    meta_stage = "file"
+    meta_category = "metadata"
 
     def __init__(self, data_type=None, **kwargs):
         super().__init__(**kwargs)

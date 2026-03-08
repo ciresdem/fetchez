@@ -179,22 +179,35 @@ def get_module_cli_desc(m: Dict) -> str:
     grouped_modules: Dict[Any, Any] = {}
 
     for key, val in m.items():
+        if key in val.get("aliases", []):
+            continue
+
         cat = val.get("category", "Generic")
         if cat not in grouped_modules:
             grouped_modules[cat] = []
 
         desc = val.get("desc", f"Fetch data from {key}")
-        grouped_modules[cat].append((key, desc))
+        agency = val.get("agency", "")
+
+        grouped_modules[cat].append((key, desc, agency))
 
     rows = []
     existing_cats = [c for c in CATEGORY_ORDER if c in grouped_modules]
     remaining_cats = sorted([c for c in grouped_modules if c not in CATEGORY_ORDER])
-    # f"{utils.colorize(mod_key, utils.BOLD):<15} {utils.colorize(f'[{agency}]', utils.YELLOW):<10} {desc}"
+
     for cat in existing_cats + remaining_cats:
-        rows.append(f"\n{utils.colorize(f'[ {cat} ]', utils.CYAN):<15}")
-        # rows.append(f"\n\033[1;4m{cat}\033[0m")
-        for name, desc in sorted(grouped_modules[cat], key=lambda x: x[0]):
-            rows.append(f"  \033[1m{name:<18}\033[0m : {desc}")
+        rows.append(f"\n{utils.colorize(f'[ {cat} ]', utils.CYAN)}")
+
+        for name, desc, agency in sorted(grouped_modules[cat], key=lambda x: x[0]):
+
+            name_padded = f"{name:<18}"
+            agency_str = f"[{agency}]" if agency else ""
+            agency_padded = f"{agency_str:<12}"
+
+            rows.append(
+                f"  \033[1m{name_padded}\033[0m "
+                f"{utils.colorize(agency_padded, utils.YELLOW)} : {desc}"
+            )
 
     return "\n".join(rows)
 
@@ -202,10 +215,9 @@ def get_module_cli_desc(m: Dict) -> str:
 class PrintModulesAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         print(f"""
-        Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
-
-        {get_module_cli_desc(ModuleRegistry.get_registry())}
-        """)
+Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
+{get_module_cli_desc(ModuleRegistry.get_registry())}
+""")
         sys.exit(0)
 
 
@@ -367,21 +379,18 @@ CUDEM home page: <http://cudem.colorado.edu>
 
     disc_grp = parser.add_argument_group("Discovery & Metadata")
     disc_grp.add_argument(
-        "-m",
-        "--modules",
+        "--list-modules",
         nargs=0,
         action=PrintModulesAction,
         help="List all available data modules.",
     )
     disc_grp.add_argument(
-        "-s",
-        "--search",
+        "--search-modules",
         metavar="TERM",
         help="Search modules by tag, agency, or description.",
     )
     disc_grp.add_argument(
-        "-i",
-        "--info",
+        "--module-info",
         metavar="MODULE",
         help="Show detailed metadata for a specific module.",
     )
@@ -535,25 +544,25 @@ def fetchez_cli():
         sys.exit(0)
 
     # --- MODULE INFO ---
-    if global_args.info:
+    if global_args.module_info:
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
         )
-        print_module_info(global_args.info)
+        print_module_info(global_args.module_info)
         sys.exit(0)
 
-    if global_args.search:
+    if global_args.search_modules:
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
         )
-        results = ModuleRegistry.search_modules(global_args.search)
+        results = ModuleRegistry.search_modules(global_args.search_modules)
 
         if not results:
-            logger.warning(f'No modules found matching "{global_args.search}"')
+            logger.warning(f'No modules found matching "{global_args.search_modules}"')
             sys.exit(0)
 
         print(
-            f'\nSearch results for "{utils.colorize(global_args.search, utils.CYAN)}":'
+            f'\nSearch results for "{utils.colorize(global_args.search_modules, utils.CYAN)}":'
         )
         print("-" * 60)
 
@@ -588,13 +597,17 @@ def fetchez_cli():
         print("\nAvailable Hooks:")
         print("=" * 60)
 
-        # Group by category
+        # Group by category using the parsed registry metadata
         grouped_hooks = {}
-        for name, cls_obj in HookRegistry.get_registry().items():
-            cat = cls_obj.get("category")
+        for name, meta in HookRegistry.get_registry().items():
+            # Skip aliases so we don't print duplicate entries
+            if name in meta.get("aliases", []):
+                continue
+
+            cat = meta.get("category", "uncategorized")
             if cat not in grouped_hooks:
                 grouped_hooks[cat] = []
-            grouped_hooks[cat].append((name, cls_obj))
+            grouped_hooks[cat].append((name, meta))
 
         # Define display order
         cat_order = [
@@ -613,11 +626,12 @@ def fetchez_cli():
             # Format header: [ Metadata ]
             print(f"\n{utils.CYAN}[ {cat.title()} ]{utils.RESET}")
 
-            for name, cls_obj in sorted(grouped_hooks[cat], key=lambda x: x[0]):
-                desc = getattr(cls_obj, "desc", "No description")
+            for name, meta in sorted(grouped_hooks[cat], key=lambda x: x[0]):
+                # Grab the cleaned metadata directly from the dictionary
+                desc = meta.get("desc", "No description provided.")
+                mod_path = meta.get("mod", "")
 
                 # Determine the origin of the hook
-                mod_path = getattr(cls_obj, "__module__", "")
                 if mod_path:
                     origin = mod_path.split(".")[0].capitalize()
                 else:
@@ -648,16 +662,16 @@ def fetchez_cli():
             global_hook_objs.extend(chain)
 
     if global_args.list:
-        from .hooks.builtins.pipeline.dryrun import DryRun
-        from .hooks.builtins.metadata.list_entries import ListEntries
+        from .hooks.dryrun import DryRun
+        from .hooks.list_entries import ListEntries
 
         global_hook_objs.append(ListEntries())
         if not any(h.name == "dryrun" for h in global_hook_objs):
             global_hook_objs.append(DryRun())
 
     if global_args.inventory:
-        from .hooks.builtins.metadata.inventory import Inventory
-        from .hooks.builtins.pipeline.dryrun import DryRun
+        from .hooks.inventory import Inventory
+        from .hooks.dryrun import DryRun
 
         fmt = global_args.inventory
         global_hook_objs.append(Inventory(format=fmt))
@@ -665,14 +679,14 @@ def fetchez_cli():
             global_hook_objs.append(DryRun())
 
     if global_args.pipe_path:
-        from .hooks.builtins.pipeline.pipe import PipeOutput
+        from .hooks.pipe import PipeOutput
 
         global_hook_objs.append(PipeOutput())
 
     if global_args.audit_log:
-        from .hooks.builtins.metadata.checksum import Checksum
-        from .hooks.builtins.metadata.enrich import MetadataEnrich
-        from .hooks.builtins.metadata.audit import Audit
+        from .hooks.checksum import Checksum
+        from .hooks.enrich import MetadataEnrich
+        from .hooks.audit import Audit
 
         global_hook_objs.append(Checksum(algo="md5"))
         global_hook_objs.append(MetadataEnrich())

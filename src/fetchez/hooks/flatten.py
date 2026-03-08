@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.file_ops.flatten
+fetchez.hooks.flatten
 ~~~~~~~~~~~~~
 
 Flatten the output directory structure.
@@ -29,8 +29,9 @@ class Flatten(FetchHook):
     """
 
     name = "flatten"
-    stage = "pre"
-    category = "file-op"
+    meta_desc = "Flatten the output directory structure."
+    meta_stage = "pre"
+    meta_category = "file-op"
 
     def __init__(self, mode="module", **kwargs):
         super().__init__(**kwargs)

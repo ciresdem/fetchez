@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.list_entries
+fetchez.hooks.list_entries
 ~~~~~~~~~~~~~
 
 List the urls gathered from the module.
@@ -23,9 +23,9 @@ PRINT_LOCK = threading.Lock()
 
 class ListEntries(FetchHook):
     name = "list"
-    desc = "Print discovered URLs to stdout."
-    stage = "pre"
-    category = "metadata"
+    meta_desc = "Print discovered URLs to stdout."
+    meta_stage = "pre"
+    meta_category = "metadata"
 
     def run(self, entries):
         for mod, entry in entries:

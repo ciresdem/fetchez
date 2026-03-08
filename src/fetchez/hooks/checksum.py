@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.metadata.builtins.checksum
+fetchez.hooks.checksum
 ~~~~~~~~~~~~~
 
 Calculate the checksum of each result entry.
@@ -29,9 +29,9 @@ class Checksum(FetchHook):
     """
 
     name = "checksum"
-    desc = "Calculate file checksums (md5/sha1/sha256)."
-    stage = "file"
-    category = "metadata"
+    meta_desc = "Calculate file checksums (md5/sha1/sha256)."
+    meta_stage = "file"
+    meta_category = "metadata"
 
     def __init__(self, algo="md5", **kwargs):
         super().__init__(**kwargs)

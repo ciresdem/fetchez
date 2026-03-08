@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.file_ops.exec
+fetchez.hooks..exec
 ~~~~~~~~~~~~~
 
 Run subprocess on the entry fn; using format templates.

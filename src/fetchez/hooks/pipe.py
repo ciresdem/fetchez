@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.pipeline.pipe
+fetchez.hooks.pipe
 ~~~~~~~~~~~~~
 
 Pipe the dst_fn to stdout.
@@ -25,9 +25,9 @@ PRINT_LOCK = threading.Lock()
 
 class PipeOutput(FetchHook):
     name = "pipe"
-    desc = "Print absolute file paths to stdout for piping."
-    stage = "post"
-    category = "pipeline"
+    meta_desc = "Print absolute file paths to stdout for piping."
+    meta_stage = "post"
+    meta_category = "pipeline"
 
     def run(self, entries):
         """Input is: [url, path, type, status]"""

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.inventory
+fetchez.hooks.inventory
 ~~~~~~~~~~~~~
 
 Generate an inventory of (pre) of the fetchez operation.
@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 
 class Inventory(FetchHook):
     name = "inventory"
-    desc = "Output metadata inventory (JSON/CSV). Usage: --hook inventory:format=csv"
-    stage = "pre"
-    category = "metadata"
+    meta_desc = "Output metadata inventory (JSON/CSV)"
+    meta_stage = "pre"
+    meta_category = "metadata"
 
     def __init__(self, format="json", **kwargs):
         super().__init__(**kwargs)

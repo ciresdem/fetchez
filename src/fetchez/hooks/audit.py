@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.audit
+fetchez.hooks.audit
 ~~~~~~~~~~~~~
 
 Post-fetchez audit (summary of all operations, etc)
@@ -24,9 +24,9 @@ class Audit(FetchHook):
     """Write a summary of all operations to a log file."""
 
     name = "audit"
-    desc = "Save a run summary to a file. Usage: --hook audit:file=log.json"
-    stage = "post"
-    category = "metadata"
+    meta_desc = "Save a run summary to a file."
+    meta_stage = "post"
+    meta_category = "metadata"
 
     def __init__(self, file="audit.json", format="json", **kwargs):
         super().__init__(**kwargs)

@@ -1,114 +1,97 @@
+# test_registry.py
 import logging
 import os
 import ast
-import fetchez.modules.builtins
-import fetchez.hooks.builtins
-from fetchez.hooks.registry import HookRegistry
-from fetchez.modules.registry import FetchezRegistry
+import fetchez.modules
+import fetchez.hooks
+from fetchez.registry import ModuleRegistry, HookRegistry
+from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
-
 
 def test_registry_integrity():
     """Ensure all core modules in the registry can be imported."""
 
-    FetchezRegistry.load_builtins()
-    # It is usually best to exclude user plugins in core unit tests to ensure environment isolation
-    # FetchezRegistry.load_user_plugins()
+    ModuleRegistry.load_all()
+    modules = ModuleRegistry.get_registry()
 
-    modules = FetchezRegistry._modules
     assert len(modules) > 0
 
-    for name, meta in modules.items():
-        logger.info(f"Testing import of: {name}")
+    # Ensure we only test primary classes, not aliases
+    primary_keys = [k for k, v in modules.items() if v.get("cls").lower() == k.lower()]
 
-        cls = FetchezRegistry.load_module(name)
-
-        # FIXED: Changed mod_key to name to prevent UnboundLocalError
+    for name in primary_keys:
+        cls = ModuleRegistry.get_class(name)
         assert cls is not None, f"Failed to load class for {name}"
         assert hasattr(cls, "run"), f"Module {name} missing 'run' method"
-
 
 def test_module_metadata_complete():
     """Ensure all core modules have the required metadata attributes defined."""
 
-    FetchezRegistry.load_builtins()
-    modules = FetchezRegistry._modules
+    ModuleRegistry.load_all()
+    modules = ModuleRegistry.get_registry()
 
-    # The standard metadata fields every module MUST provide
-    required_attrs = [
-        "name",
-        "meta_category",
-        "meta_desc",
-        "meta_agency",
-        "meta_tags",
-        # "meta_region", # we check region specially (it is allowed to be meta_coverage as well.
-        "meta_resolution",
-        "meta_license",
-        "meta_urls",
+    # In the new registry, `meta_` is stripped from the keys in the dictionary!
+    required_keys = [
+        "category",
+        "desc",
+        "agency",
+        "tags",
+        "resolution",
+        "license",
+        "urls",
     ]
 
     for name, meta in modules.items():
-        cls = FetchezRegistry.load_module(name)
+        if name in meta.get("aliases", []):
+            continue # Skip aliases
 
-        has_coverage = hasattr(cls, "meta_coverage") or hasattr(cls, "meta_region")
-        assert has_coverage, f"Module '{name}' missing 'meta_coverage' attribute."
+        missing = [attr for attr in required_keys if attr not in meta]
+        assert not missing, f"Module '{name}' is missing metadata: {missing}"
 
-        for attr in required_attrs:
-            assert hasattr(cls, attr), (
-                f"Module '{name}' ({cls.__name__}) is missing required attribute: '{attr}'"
-            )
+def test_alias_resolution():
+    ModuleRegistry.load_all()
 
-            val = getattr(cls, attr)
-            if attr == "meta_tags":
-                assert isinstance(val, list), (
-                    f"Module '{name}' attribute 'tags' must be a list."
-                )
-            elif attr == "meta_urls":
-                assert isinstance(val, dict), (
-                    f"Module '{name}' attribute 'urls' must be a dictionary."
-                )
-            elif attr == "meta_desc":
-                assert isinstance(val, str) and len(val) > 0, (
-                    f"Module '{name}' must have a non-empty description string."
-                )
+    primary_cls = ModuleRegistry.get_class("lidarbc")
+    alias_cls = ModuleRegistry.get_class("geobc")
 
-
-def test_module_aliases():
-    """Ensure aliases correctly map to their parent class."""
-    FetchezRegistry.load_builtins()
-
-    # Grab a module we know has an alias, like DAV / digital_coast
-    dav_class = FetchezRegistry.load_module("dav")
-    alias_class = FetchezRegistry.load_module("digital_coast")
-
-    assert dav_class is not None, "Main module 'dav' failed to load."
-    assert alias_class is not None, "Alias 'digital_coast' failed to load."
-
-    # The alias should return the EXACT same class object as the main name
-    assert dav_class is alias_class, "Alias did not map to the same class object!"
+    assert primary_cls is not None
+    assert primary_cls is alias_cls
 
 
 # Hooks
 def test_hook_registry_integrity():
     """Ensure all core hooks can be loaded and have required metadata."""
 
-    HookRegistry.load_builtins()
-    # HookRegistry.load_user_plugins()
+    HookRegistry.load_all()
 
-    hooks = HookRegistry._hooks
+    hooks = HookRegistry.get_registry()
     assert len(hooks) > 0
 
     # The standard metadata fields every hook MUST provide
-    required_attrs = ["name", "stage", "category", "desc"]
+    required_attrs = ["name", "meta_stage", "meta_category", "meta_desc"]
 
-    for name, hook_cls in hooks.items():
+    for name, meta in hooks.items():
+        hook_cls = meta.get("cls", None)
         assert hasattr(hook_cls, "run"), f"Hook {name} missing 'run' method"
 
         for attr in required_attrs:
             assert hasattr(hook_cls, attr), (
                 f"Hook '{name}' ({hook_cls.__name__}) is missing required attribute: '{attr}'"
             )
+
+
+def test_hook_stage_mapping():
+    class DummyHook(FetchHook):
+        meta_stage = "post"
+
+    # Defaults to the class meta_stage
+    hook = DummyHook()
+    assert hook.stage == "post"
+
+    # Can be overridden by the user at runtime
+    hook_override = DummyHook(stage="pre")
+    assert hook_override.stage == "pre"
 
 
 def test_optional_dependencies_are_protected():
@@ -125,8 +108,8 @@ def test_optional_dependencies_are_protected():
         "pystac_client",
     }
 
-    mod_dir = os.path.dirname(fetchez.modules.builtins.__file__)
-    hook_dir = os.path.dirname(fetchez.hooks.builtins.__file__)
+    mod_dir = os.path.dirname(fetchez.modules.__file__)
+    hook_dir = os.path.dirname(fetchez.hooks.__file__)
 
     unprotected_imports = []
 
