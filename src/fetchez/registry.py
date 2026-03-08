@@ -185,7 +185,7 @@ class PluginRegistry:
         term = term.lower()
         results = []
 
-        for key, meta in cls._registry.items():
+        for key, meta in cls.get_registry.items():
             if (
                 term in key.lower()
                 or term in meta.get("desc", "").lower()

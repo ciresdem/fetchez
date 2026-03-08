@@ -22,6 +22,8 @@ from typing import Dict, Optional, Any
 from . import utils
 from . import spatial
 from . import core
+from . import presets
+from . import config
 from . import __version__
 from .registry import ModuleRegistry, HookRegistry
 
@@ -57,6 +59,8 @@ def setup_logging(quiet=False, verbose=False):
 
     logger = logging.getLogger("fetchez")
     logger.setLevel(log_level)
+
+    logger.propagate = False
 
     if logger.hasHandlers():
         logger.handlers.clear()
@@ -200,7 +204,7 @@ class PrintModulesAction(argparse.Action):
         print(f"""
         Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
 
-        {get_module_cli_desc(ModuleRegistry._registry)}
+        {get_module_cli_desc(ModuleRegistry.get_registry())}
         """)
         sys.exit(0)
 
@@ -240,10 +244,10 @@ def print_hook_info(hook_key):
 
     print(f"\n🪝 {utils.CYAN}HOOK: {hook_key.upper()}{utils.RESET}")
     print(f"{'-' * 40}")
-    print(f"\n  Hook: {meta.get('name')}")
-    print(f"    Stage: {meta.get('stage')}")
-    print(f"    Type:  {meta.get('category')}")
-    #print(f"    Origin: {hook_cls.__module__}\n")
+    print(f"  Description : {meta.get('desc')}")
+    print(f"  Stage       : {meta.get('stage')}")
+    print(f"  Type        : {meta.get('category')}")
+    print(f"  Origin      : {meta.get('mod')}\n")
 
     print(f"{'-' * 40}\n")
 
@@ -294,8 +298,6 @@ def parse_hook_arg(arg_str):
 
 def init_hooks(hook_list_strs):
     """Convert a list of strings ['pipe', 'unzip:force=true'] into initialized Hook objects."""
-
-    #from .hooks.registry import HookRegistry
 
     active_instances = []
     if not hook_list_strs:
@@ -414,12 +416,6 @@ CUDEM home page: <http://cudem.colorado.edu>
         metavar="N",
         help="Number of retry attempts per file (default: 5).",
     )
-    # exec_grp.add_argument(
-    #     "-z",
-    #     "--no_check_size",
-    #     action="store_true",
-    #     help="Skip remote file size check if local file exists.",
-    # )
     exec_grp.add_argument(
         "-q",
         "--quiet",
@@ -484,7 +480,6 @@ CUDEM home page: <http://cudem.colorado.edu>
         action="store_true",
         help="Generate a default ~/.fetchez/presets.yaml file.",
     )
-    # adv_grp.add_argument('--init-presets', action='store_true', help="Export active presets to ./fetchez_presets_template.json (template for customization).")
 
     return parser
 
@@ -500,26 +495,9 @@ def fetchez_cli():
 
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
-    #from .modules.registry import FetchezRegistry
-    #from .registry import ModuleRegistry, HookRegistry
-
-    # FetchezRegistry.load_builtins()
-    # FetchezRegistry.load_user_plugins()
-    # FetchezRegistry.load_installed_plugins()
-    #FetchezRegistry.load_all_modules()
-
-    #from .hooks.registry import HookRegistry
-    from . import presets
-    from . import config
-
-    # HookRegistry.load_builtins()
-    # HookRegistry.load_user_plugins()
-    # HookRegistry.load_installed_plugins()
     ModuleRegistry.load_all()
     HookRegistry.load_all()
 
-    # user_presets = presets.load_user_presets()
-    # user_presets = config.load_user_config().get('presets', {})
     user_presets = presets.get_global_presets()
     user_mod_presets = config.load_user_config("presets").get("modules", {})
 
@@ -544,8 +522,6 @@ def fetchez_cli():
     fixed_argv = spatial.fix_argparse_region(sys.argv[1:])
     global_args, remaining_argv = parser.parse_known_args(fixed_argv)
 
-    # check_size = not global_args.no_check_size
-
     # level = logging.WARNING if global_args.quiet else logging.INFO
     # I like sending logging to stderr, and anyway we want this with --pipe-path
     # logging.basicConfig(level=level, format='[ %(levelname)s ] %(name)s: %(message)s', stream=sys.stderr)
@@ -558,6 +534,7 @@ def fetchez_cli():
         presets.init_presets()
         sys.exit(0)
 
+    # --- MODULE INFO ---
     if global_args.info:
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
@@ -601,29 +578,8 @@ def fetchez_cli():
         print(
             utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
         )
-        #from fetchez.hooks.registry import HookRegistry
         print_hook_info(global_args.hook_info)
         sys.exit(0)
-        # hook_cls = HookRegistry.get_class(global_args.hook_info)
-        # if hook_cls:
-        #     print(f"\n🪝  Hook: {hook_cls.name}")
-        #     print(f"    Stage: {hook_cls.stage}")
-        #     print(f"    Type:  {hook_cls.category}")
-        #     print(f"    Origin: {hook_cls.__module__}\n")
-
-        #     import inspect
-
-        #     doc = inspect.getdoc(hook_cls)
-        #     if doc:
-        #         print(doc)
-        #     else:
-        #         print("(No documentation available for this hook)")
-        #     print("\n")
-        # else:
-        #     print(f"❌ Hook '{global_args.hook_info}' not found.")
-        #     print("   Run 'fetchez --list-hooks' to see available options.")
-
-        # sys.exit(0)
 
     if hasattr(global_args, "list_hooks") and global_args.list_hooks:
         print(
@@ -634,9 +590,8 @@ def fetchez_cli():
 
         # Group by category
         grouped_hooks = {}
-        for name, cls_obj in HookRegistry._registry.items():
+        for name, cls_obj in HookRegistry.get_registry().items():
             cat = cls_obj.get("category")
-            #cat = getattr(cls_obj, "category", "uncategorized").lower()
             if cat not in grouped_hooks:
                 grouped_hooks[cat] = []
             grouped_hooks[cat].append((name, cls_obj))
@@ -683,7 +638,7 @@ def fetchez_cli():
         # global_hook_objs = init_hooks(global_args.hook)
         global_hook_objs.extend(init_hooks(global_args.hook))
 
-    # --- Process Shortcuts ---
+    # --- Process Default Presets ---
     for name, defs in user_presets.items():
         arg_attr = name.replace("-", "_")
 
@@ -725,7 +680,7 @@ def fetchez_cli():
 
     # --- Parse out modules/commands ---
     module_keys = {}
-    for key, val in ModuleRegistry._registry.items():
+    for key, val in ModuleRegistry.get_registry().items():
         module_keys[key] = key
         for alias in val.get("aliases", []):
             module_keys[alias] = key
@@ -783,11 +738,6 @@ def fetchez_cli():
                 else:
                     current_cmd = "file"
                     current_args = [f"--paths={arg}"]
-                # current_cmd = "file"
-                # if current_args:
-                #     current_args[0] += f",{arg}"
-                # else:
-                #     current_args = [f"--paths={arg}"]
 
     if current_cmd:
         commands.append((current_cmd, current_args))

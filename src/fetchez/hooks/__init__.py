@@ -11,33 +11,37 @@ This init file also holds the FetchHook super class
 :license: MIT, see LICENSE for more details.
 """
 
-
 class FetchHook:
     """Base class for all Fetchez Hooks."""
 
     name = "base_hook"
-    desc = "Does something."
 
-    # Category for CLI grouping: metadata, file-op, stream-transform, sink, pipeline, etc.
-    category = "uncategorized"
+    # --- Registry Metadata ---
+    meta_desc = "Does something."
+    meta_category = "uncategorized"
 
-    # Defaults to 'file', but could be 'pre_fetch' or 'post_fetch'
+    # Defaults to 'file', but could be 'pre' or 'post'
     # 'pre':  Runs once before any downloads start.
     # 'file': Runs in the worker thread immediately after a file download.
     # 'post': Runs once after all downloads are finished.
-    stage = "file"
+    meta_stage = "file"
 
     def __init__(self, stage=None, **kwargs):
         self.opts = kwargs
+
+        # If the user doesn't pass a specific stage to __init__, fallback to the class meta_stage
+        default_stage = getattr(self, "meta_stage", "file")
+
         if stage is not None:
-            self.stage = stage if stage in ["pre", "file", "post"] else self.stage
+            self.stage = stage if stage in ["pre", "file", "post"] else default_stage
+        else:
+            self.stage = default_stage
 
     def __eq__(self, other):
         """Hooks are 'equal' if they are the same type and have identical dicts."""
 
         if not isinstance(other, type(self)):
             return False
-
         return self.__dict__ == other.__dict__
 
     def teardown(self):

@@ -17,8 +17,7 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .modules.registry import FetchezRegistry
-from .hooks.registry import HookRegistry
+from .registry import ModuleRegistry, HookRegistry
 from .utils import TqdmLoggingHandler
 from .schema import SchemaRegistry
 from . import config
@@ -130,8 +129,7 @@ class Recipe:
         if not hook_defs:
             return []
 
-        HookRegistry.load_builtins()
-        HookRegistry.load_user_plugins()
+        HookRegistry.load_all()
         hook_presets = presets.get_global_presets()
         hook_mod_presets = config.load_user_config("presets").get("modules", {})
 
@@ -174,18 +172,13 @@ class Recipe:
                         f"could not load preset {is_preset} into the recipe: {e}"
                     )
             else:
-                HookCls = HookRegistry.get_hook(name)
+                HookCls = HookRegistry.get_class(name)
                 if HookCls:
                     active_hooks.append(HookCls(**kwargs))
                 else:
                     logger.warning(f"Hook '{name}' missing.")
 
         return active_hooks
-
-    def launch(self):
-        """Alias for run() for backward compatibility."""
-
-        self.launch()
 
     def run(self):
         """Execute the recipe!"""
@@ -225,7 +218,7 @@ class Recipe:
                 logger.warning(f"Module '{mod_key}' has no target region. Skipping.")
                 continue
 
-            ModCls = FetchezRegistry.load_module(mod_key)
+            ModCls = ModuleRegistry.get_class(mod_key)
             if not ModCls:
                 logger.error(f"Unknown module: {mod_key}")
                 continue

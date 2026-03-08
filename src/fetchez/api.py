@@ -37,7 +37,7 @@ def search(term: Optional[str] = None) -> Dict[Any, Any]:
     ModuleRegistry.load_all()
 
     if not term:
-        return ModuleRegistry._modules
+        return ModuleRegistry.get_registry()
 
     results = ModuleRegistry.search_modules(term)
     if not results:
