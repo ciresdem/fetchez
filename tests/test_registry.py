@@ -78,7 +78,9 @@ def test_hook_registry_integrity():
         # Get the actual class object, not the string name!
         hook_cls = HookRegistry.get_class(name)
 
-        assert hook_cls is not None, f"Failed to retrieve class object for hook '{name}'"
+        assert hook_cls is not None, (
+            f"Failed to retrieve class object for hook '{name}'"
+        )
         assert hasattr(hook_cls, "run"), f"Hook '{name}' missing 'run' method"
 
         for attr in required_attrs:

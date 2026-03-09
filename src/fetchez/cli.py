@@ -356,7 +356,7 @@ def get_parser():
 Examples:
   fetchez -R -105/-104/39/40 srtm_plus
   fetchez -R loc:"Boulder, CO" copernicus --datatype=1
-  fetchez charts --hook unzip --hook filename_filter:match=.000 --pipe-path
+  fetchez -R loc:seattle -H4 charts --hook unzip --hook filename_filter:match=.000 --pipe-path
   fetchez --search bathymetry
 
 CUDEM home page: <http://cudem.colorado.edu>
