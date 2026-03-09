@@ -35,7 +35,7 @@ class PluginRegistry:
     builtin_pkg: str = ""
     entry_point_group: str = ""
     user_folder: str = ""
-    _registry: Dict[Any, Any] = {}
+    #_registry = {}
 
     @classmethod
     def get_registry(cls) -> Dict[str, Any]:
