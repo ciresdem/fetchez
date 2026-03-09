@@ -110,7 +110,6 @@ class PluginRegistry:
             eps = entry_points(group=cls.entry_point_group)
             for ep in eps:
                 plugin_module = ep.load()
-
                 # Scan the loaded extension for submodules
                 for _, modname, ispkg in pkgutil.walk_packages(
                     path=plugin_module.__path__,
@@ -125,7 +124,7 @@ class PluginRegistry:
                                 f"Failed to load external plugin {modname}: {e}"
                             )
         except Exception as e:
-            logger.debug(
+            logger.error(
                 f"Error checking entry points for {cls.entry_point_group}: {e}"
             )
 
