@@ -3,17 +3,17 @@
 The most common contribution is adding support for a new data source. Because Fetchez uses dynamic discovery, you do not need to register your module in any central files!
 
 1.  **Create the Module File:**
-    Create a new Python file in `src/fetchez/modules/builtins` (e.g., `mydata.py`).
+    Create a new Python file in `src/fetchez/moduless` (e.g., `mydata.py`).
 
 2.  **Inherit from FetchModule:**
-    Your class must inherit from `fetchez.core.FetchModule`. You must define the `meta_` class attributes so the CLI and API can discover and index your module. Be sure to include all the relevant metadata for posterity and discoverability.
+    Your class must inherit from `fetchez.modules.FetchModule`. You must define the `meta_` class attributes so the CLI and API can discover and index your module. Be sure to include all the relevant metadata for posterity and discoverability.
 
     ```python
-    from fetchez import core
+    from fetchez.core import FetchModule
     from fetchez import cli
 
     @cli.cli_opts(help_text="Fetch data from MyData Source")
-    class MyData(core.FetchModule):
+    class MyData(FetchModule):
 		name = "mydata"
         meta_category = "Topography"
         meta_desc = "Short summary of the dataset (e.g., Global Lidar Synthesis)"
@@ -54,6 +54,7 @@ Fetchez aims to keep its core footprint small. If your new module or plugin requ
 
 	```python
 	# fetchez/modules/mys3.py
+    from fetchez.core import FetchModule
 
 	try:
 		import boto3
@@ -62,7 +63,7 @@ Fetchez aims to keep its core footprint small. If your new module or plugin requ
 		HAS_BOTO = False
 
 	@cli.cli_opts(help_text="Fetch data from AWS")
-	class MyS3Fetcher(core.FetchModule):
+	class MyS3Fetcher(FetchModule):
 		"""Fetches data from private S3 buckets.
 
 		**Dependencies:**

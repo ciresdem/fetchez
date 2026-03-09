@@ -17,7 +17,7 @@ To build one, create a Python script containing a class that inherits from `fetc
 
 Create `~/.fetchez/plugins/my_server.py`:
 ```python
-from fetchez.core import FetchModule
+from fetchez.modules import FetchModule
 
 class MyCustomServer(FetchModule):
     name = "my_server"
@@ -52,8 +52,8 @@ logger = logging.getLogger(__name__)
 
 class ZulipNotifier(FetchHook):
     name = "zulip_notify"
-    stage = "post"
-    category = "comms"
+	meta_stage = "post"
+    meta_category = "comms"
 
     def __init__(self, chan="fetchez", **kwargs):
         super().__init__(**kwargs)

@@ -19,7 +19,7 @@ from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxDirective
 
-from fetchez.modules.registry import FetchezRegistry
+from fetchez.registry import ModuleRegistry
 
 
 class ModuleTableDirective(SphinxDirective):
@@ -30,13 +30,13 @@ class ModuleTableDirective(SphinxDirective):
     optional_arguments = 0
 
     def run(self):
-        FetchezRegistry.load_builtins()
+        ModuleRegistry.load_all()
 
-        modules = FetchezRegistry._modules
+        modules = ModuleRegistry.get_registry()
 
         rows = []
         for key in sorted(modules.keys()):
-            meta = FetchezRegistry.get_info(key)
+            meta = ModuleRegistry.get_info(key)
 
             if meta.get("category") == "Generic" and key not in ["earthdata", "https"]:
                 continue

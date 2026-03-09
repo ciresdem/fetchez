@@ -2,7 +2,7 @@ Registry
 ========
 
 ```{eval-rst}
-.. automodule:: fetchez.modules.registry
+.. automodule:: fetchez.registry
    :members:
    :undoc-members:
    :show-inheritance:

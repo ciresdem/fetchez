@@ -17,8 +17,8 @@ from fetchez.hooks import FetchHook
 class AuditLog(FetchHook):
     # This name is used in the CLI: --hook audit
     name = "audit"
-    desc = "Log downloaded files to audit.txt"
-    stage = 'file'  # Runs per-file
+    meta_desc = "Log downloaded files to audit.txt"
+    meta_stage = 'file'  # Runs per-file
 
     def run(self, entries):
         # Hooks receive a list of entries: [{url, path, type, status}, ...]

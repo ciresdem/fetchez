@@ -8,6 +8,7 @@ This section details the internal Python API for Fetchez, which is useful if you
 api
 core
 registry
+modules
 hooks
 spatial
 recipe
