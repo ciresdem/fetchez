@@ -16,6 +16,7 @@ import json
 import logging
 from typing import Optional
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial
 
@@ -36,7 +37,26 @@ PROJ_CDN_INDEX_URL = "https://cdn.proj.org/files.geojson"
     query='Search term (e.g., "geoid18", "vertcon", "nadcon").',
     epsg="Filter by source or target EPSG code.",
 )
-class PROJ(core.FetchModule):
+class PROJ(FetchModule):
+    name = "proj"
+    meta_category = "Geodesy"
+    meta_desc = "PROJ CDN Transformation Grids (Geoids, Shift Grids)"
+    meta_agency = "PROJ / NOAA / NGA"
+    meta_tags = [
+        "proj",
+        "cdn",
+        "geoid",
+        "egm2008",
+        "vertcon",
+        "nadcon",
+        "transformation",
+    ]
+    meta_region = "Global"
+    meta_resolution = "Various"
+    meta_license = "Public Domain / CC0"
+    meta_urls = {"home": "https://cdn.proj.org/"}
+    meta_aliases = ["geoid", "vertcon"]
+
     """Fetch vertical and horizontal transformation grids from PROJ.org.
 
     This module is the 'fast path' for standard grids like:

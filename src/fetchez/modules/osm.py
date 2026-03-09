@@ -13,7 +13,7 @@ Fetch OpenStreetMap (OSM) data via the Overpass API.
 
 from typing import Optional
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial
 
@@ -64,7 +64,17 @@ PRESETS = {
     tag="Dynamic Tag Search (e.g. 'amenity=pub' or 'leisure=park'). Overrides query.",
     chunk_size="Split region into chunks of N degrees (e.g. 0.5) to avoid timeouts.",
 )
-class OSM(core.FetchModule):
+class OSM(FetchModule):
+    name = "osm"
+    meta_category = "Vector"
+    meta_desc = "OpenStreetMap (Coastlines, Water, Buildings)"
+    meta_agency = "OpenStreetMap Foundation"
+    meta_tags = ["osm", "vector", "coastline", "buildings", "roads", "overpass"]
+    meta_region = "Global"
+    meta_resolution = "Vector"
+    meta_license = "ODbL (Open Data Commons Open Database License)"
+    meta_urls = {"home": "https://www.openstreetmap.org/"}
+
     """Fetch raw OpenStreetMap data using the Overpass API.
 
     This module handles the complexity of querying Overpass, including

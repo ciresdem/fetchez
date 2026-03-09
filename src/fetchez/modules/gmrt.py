@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.gmrt
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Fetch data from the Global Multi-Resolution Topography (GMRT) synthesis.
 
@@ -14,6 +14,7 @@ Fetch data from the Global Multi-Resolution Topography (GMRT) synthesis.
 import logging
 from typing import Optional
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import spatial
 from fetchez import cli
@@ -59,7 +60,20 @@ def gmrt_fetch_point(latitude: float, longitude: float) -> Optional[str]:
     layer="Data layer (topo, topo-mask)",
     want_swath="Fetch swath polygon shapefile instead of grid",
 )
-class GMRT(core.FetchModule):
+class GMRT(FetchModule):
+    name = "gmrt"
+    meta_category = "Bathymetry"
+    meta_desc = "Global Multi-Resolution Topography Synthesis"
+    meta_agency = "Lamont-Doherty Earth Observatory"
+    meta_tags = ["bathymetry", "ocean", "global", "synthesis", "grid"]
+    meta_region = "Global"
+    meta_resolution = "Varies (100m - 400m)"
+    meta_license = "CC-BY-4.0"
+    meta_urls = {
+        "home": "https://www.gmrt.org",
+        "citation": "https://www.gmrt.org/about/citation.php",
+    }
+
     """The Global Multi-Resolution Topography synthesis.
 
     The Global Multi-Resolution Topography (GMRT) synthesis is a multi-resolutional
@@ -105,17 +119,6 @@ class GMRT(core.FetchModule):
         else:
             self.gmrt_region = None
 
-        # Metadata for DLIM/Processing
-        self.data_format = 200
-        self.src_srs = "epsg:4326+3855"
-        self.title = "GMRT"
-        self.source = "GMRT"
-        self.date = None
-        self.data_type = "Raster"
-        self.resolution = None
-        self.hdatum = "wgs84"
-        self.vdatum = "msl"
-        self.url = GMRT_URL
         self.headers = GMRT_HEADERS
 
     def run(self):

@@ -12,7 +12,7 @@ Fetch Global Building Atlas (GBA) data via WFS.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 GBA_WFS_URL = "https://tubvsig-so2sat-vm1.srv.mwn.de/geoserver/ows"
@@ -26,7 +26,17 @@ GBA_WFS_URL = "https://tubvsig-so2sat-vm1.srv.mwn.de/geoserver/ows"
     layer="WFS Layer Name (default: 'lod1_global')",
     fmt="Output format: 'json' (GeoJSON) or 'shape-zip' (Shapefile)",
 )
-class GBA(core.FetchModule):
+class GBA(FetchModule):
+    name = "gba"
+    meta_category = "Reference"
+    meta_desc = "Global Building Atlas (LOD1 Footprints)"
+    meta_agency = "TUM / DLR"
+    meta_tags = ["buildings", "gba", "footprints", "lod1", "urban", "3d"]
+    meta_region = "Global (Partial Coverage)"
+    meta_resolution = "Vector"
+    meta_license = "Academic / Research"
+    meta_urls = {"home": "https://www.wk.bgu.tum.de/en/global-building-atlas/"}
+
     """Fetch building footprints from the Global Building Atlas.
 
     The GBA provides Level of Detail 1 (LOD1) 3D building models (footprint + height)

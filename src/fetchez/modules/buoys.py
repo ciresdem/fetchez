@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.buoys
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Fetch NOAA National Data Buoy Center (NDBC) data.
 
@@ -21,6 +21,7 @@ import lxml.html
 from typing import Optional, Set
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import spatial
 from fetchez import cli
 
@@ -43,7 +44,17 @@ BUOY_HISTORICAL_URL = "https://www.ndbc.noaa.gov/data/historical/stdmet/"
     min_year="Start year for historical data (default: 2010)",
     max_year="End year for historical data (default: current year)",
 )
-class Buoys(core.FetchModule):
+class Buoys(FetchModule):
+    name = "buoys"
+    meta_category = "Oceanography"
+    meta_desc = "NOAA NDBC Buoy Data (Realtime & Historical)"
+    meta_agency = "NOAA NDBC"
+    meta_tags = ["buoy", "ocean", "waves", "wind", "meteorology", "noaa"]
+    meta_region = "Global (NOAA network)"
+    meta_resolution = "Point Data"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.ndbc.noaa.gov/"}
+
     """Fetch NOAA Buoy Data (NDBC).
 
     Can fetch "Realtime" (txt) or "Historical" (gz) standard meteorological data.

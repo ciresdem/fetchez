@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.earthdata
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch data from NASA's EarthData CMR (Common Metadata Repository)
 and Harmony API.
@@ -21,6 +21,7 @@ import logging
 from typing import Dict, Optional
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import spatial
 from fetchez import cli
 
@@ -50,7 +51,27 @@ HARMONY_BASE_URL = "https://harmony.earthdata.nasa.gov"
     subset="Use Harmony API for subsetting (if supported)",
     filename_filter="Filter granules by filename pattern (wildcards supported)",
 )
-class EarthData(core.FetchModule):
+class EarthData(FetchModule):
+    name = "earthdata"
+    meta_category = "Generic"
+    meta_desc = "NASA Earth Science Data via CMR & Harmony"
+    meta_agency = "NASA"
+    meta_tags = [
+        "nasa",
+        "cmr",
+        "harmony",
+        "satellite",
+        "earth-science",
+        "remote-sensing",
+    ]
+    meta_region = "Global"
+    meta_resolution = "Varies"
+    meta_license = "NASA Data and Information Policy (Open)"
+    meta_urls = {
+        "home": "https://earthdata.nasa.gov/",
+        "search": "https://search.earthdata.nasa.gov/",
+    }
+
     """Access NASA Earth Science Data via CMR and Harmony.
 
     NASA promotes the full and open sharing of all its data.

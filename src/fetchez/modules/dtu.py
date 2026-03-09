@@ -6,7 +6,7 @@ Fetch global gravity and altimetry grids from DTU Space.
 
 import os
 import logging
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,28 @@ DTU_BASE_URL = "ftp://ftp.space.dtu.dk/pub"
     product='Product type: "mss", "lat", "mdt", "tide", "gravity". Default: "mss"',
     format='File format preference: "nc" (NetCDF) or "ascii". Default: "nc"',
 )
-class DTU(core.FetchModule):
+class DTU(FetchModule):
+    name = "dtu"
+    meta_category = "Geodesy"
+    meta_desc = "DTU Global Gravity, Altimetry, and Tide Models"
+    meta_agency = "DTU Space"
+    meta_tags = [
+        "gravity",
+        "altimetry",
+        "oceanography",
+        "mss",
+        "tides",
+        "dtu",
+        "global",
+    ]
+    meta_region = "Global"
+    meta_resolution = "1 arc-minute (~2km)"
+    meta_license = "Public / Scientific Use"
+    meta_urls = {
+        "home": "https://ftp.space.dtu.dk/pub/DTU10/",
+        "data": "https://ftp.space.dtu.dk/pub/",
+    }
+
     """Fetch global grids from the Technical University of Denmark (DTU).
 
     * This module is in development and may contain bugs *

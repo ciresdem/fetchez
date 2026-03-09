@@ -12,7 +12,7 @@ Fetch New South Wales (NSW) Topo-Bathy data via ArcGIS REST API.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 NSW_MAP_SERVER = (
@@ -29,7 +29,19 @@ NSW_MAP_SERVER = (
     layer="Layer ID: 0=Contours (5m), 1=Slope, 2=Bathymetry DEM. Default: 0",
     where="SQL filter clause (default: '1=1')",
 )
-class NSWTB(core.FetchModule):
+class NSWTB(FetchModule):
+    name = "nswtb"
+    meta_category = "Bathymetry"
+    meta_desc = "NSW Marine LiDAR Topo-Bathy (Contours/DEM)"
+    meta_agency = "NSW Government"
+    meta_tags = ["nsw", "australia", "bathymetry", "lidar", "contours", "topo-bathy"]
+    meta_region = "Australia (NSW Coast)"
+    meta_resolution = "5m Contours / 5m DEM"
+    meta_license = "Creative Commons Attribution"
+    meta_urls = {
+        "home": "https://datasets.seed.nsw.gov.au/dataset/marine-lidar-topo-bathy-2018"
+    }
+
     """Fetch New South Wales (NSW) Marine LiDAR Topo-Bathy data.
 
     This dataset covers the NSW coast using Airborne LiDAR Bathymetry (ALB)

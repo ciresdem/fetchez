@@ -12,7 +12,7 @@ Fetch Sun/Moon Rise/Set times and phases from the US Naval Observatory (USNO).
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
@@ -24,7 +24,28 @@ USNO_API = "https://aa.usno.navy.mil/api/rstt/oneday"
     date="Date (YYYY-MM-DD). Default: Today.",
     timezone="Timezone offset (e.g. -7 for MST). Default: 0 (UTC).",
 )
-class SunMoon(core.FetchModule):
+class SunMoon(FetchModule):
+    name = "sun_moon"
+    meta_category = "Reference"
+    meta_desc = "USNO Sun/Moon Rise/Set Times & Phases"
+    meta_agency = "US Naval Observatory"
+    meta_tags = [
+        "sun",
+        "moon",
+        "ephemeris",
+        "daylight",
+        "planning",
+        "astronomy",
+        "usno",
+    ]
+    meta_region = "Global"
+    meta_resolution = "Temporal (Daily)"
+    meta_license = "Public Domain"
+    meta_urls = {
+        "home": "https://aa.usno.navy.mil/data/api",
+        "docs": "https://aa.usno.navy.mil/data/docs/RS_OneDay.php",
+    }
+
     """Fetch official Sun/Moon data for the center of the region.
 
     Returns a JSON file containing:

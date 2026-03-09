@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.csb
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Fetch Crowd Sourced Bathymetry (CSB) from NOAA.
 
@@ -20,6 +20,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import spatial
 from fetchez import cli
 
@@ -42,7 +43,24 @@ S3_BASE_URL = "https://noaa-dcdb-bathymetry-pds.s3.amazonaws.com"
     provider="Filter by Provider Name (exact match)",
     limit="Max number of files to fetch (default: 2000)",
 )
-class CSB(core.FetchModule):
+class CSB(FetchModule):
+    name = "csb"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA Crowd Sourced Bathymetry (CSB)"
+    meta_agency = "NOAA NCEI"
+    meta_tags = [
+        "bathymetry",
+        "crowd-sourced",
+        "citizen-science",
+        "csv",
+        "depth",
+        "noaa",
+    ]
+    meta_region = "Global"
+    meta_resolution = "Varies"
+    meta_license = "CC0 / Public Domain"
+    meta_urls = {"home": "https://www.ngdc.noaa.gov/iho/"}
+
     """Fetch Crowd Sourced Bathymetry (CSB) data.
 
     Instead of waiting for a server-side aggregation, this module:

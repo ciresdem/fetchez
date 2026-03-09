@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.file_ops.rename
+fetchez.hooks.rename
 ~~~~~~~~~~~~~
 
 Rename an entry fn.
@@ -29,8 +29,9 @@ class Rename(FetchHook):
     """
 
     name = "rename"
-    stage = "pre"
-    category = "file-op"
+    meta_desc = "Rename files using regex"
+    meta_stage = "pre"
+    meta_category = "file-op"
 
     def __init__(self, match=None, replace="", **kwargs):
         super().__init__(**kwargs)

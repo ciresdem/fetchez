@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.chs
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Fetch Canadian Hydrographic Service (CHS) NONNA data via WCS.
 
@@ -17,7 +17,7 @@ The NONNA (Non-Navigational) bathymetry data is available at
 import logging
 from urllib.parse import urlencode
 
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -30,9 +30,21 @@ CHS_WCS_URL = "https://nonna-geoserver.data.chs-shc.ca/geoserver/wcs"
 # =============================================================================
 @cli.cli_opts(
     help_text="Canadian Hydrographic Service (NONNA Bathymetry)",
-    resolution="Data resolution in meters: '10' or '100' (Default: 100)",
+    meta_resolution="Data resolution in meters: '10' or '100' (Default: 100)",
 )
-class CHS(core.FetchModule):
+class CHS(FetchModule):
+    name = "chs"
+    meta_category = "Bathymetry"
+    meta_desc = "Canadian Hydrographic Service NONNA (10m & 100m)"
+    meta_agency = "CHS"
+    meta_tags = ["bathymetry", "canada", "chs", "nonna", "wcs", "topography"]
+    meta_region = "Canada"
+    meta_resolution = "10m or 100m"
+    meta_license = "Open Government Licence - Canada"
+    meta_urls = {
+        "home": "https://open.canada.ca/data/en/dataset/d3881c4c-650d-4070-bf9b-1e00aabf0a1d"
+    }
+
     """Fetch bathymetric soundings from the CHS via Web Coverage Service (WCS).
 
     Supports NONNA-10 (10m resolution) and NONNA-100 (100m resolution).

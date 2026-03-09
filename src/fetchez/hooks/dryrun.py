@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.pipeline.dryrun
+fetchez.hooks.dryrun
 ~~~~~~~~~~~~~
 
 Empty the download queue before downloads begin.
@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 class DryRun(FetchHook):
     name = "dryrun"
-    desc = "Clear the download queue (simulate only)."
-    stage = "pre"
-    category = "pipeline"
+    meta_desc = "Clear the download queue (simulate only)."
+    meta_stage = "pre"
+    meta_category = "pipeline"
 
     def run(self, entries):
         return []

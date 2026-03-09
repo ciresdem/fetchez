@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.set_weight
+fetchez.hooks.set_weight
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Assigns processing weights to data entries based on module name or patterns.
@@ -38,8 +38,9 @@ class SetWeight(FetchHook):
     """
 
     name = "set_weight"
-    stage = "pre"
-    category = "metadata"
+    meta_desc = "Assigns weights to entries"
+    meta_stage = "pre"
+    meta_category = "metadata"
 
     def __init__(self, default=1.0, rules=None, **kwargs):
         super().__init__(**kwargs)

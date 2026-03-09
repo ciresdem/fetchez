@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.multibeam
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch Multibeam bathymetry from NOAA NCEI, MBDB (ArcGIS), and R2R.
 
@@ -20,6 +20,7 @@ from io import StringIO
 from typing import Optional, List, Tuple, cast
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import spatial
 from fetchez import cli
@@ -81,7 +82,17 @@ def _parse_mbsystem_inf_bounds(
     max_year="Filter by maximum year",
     want_inf="Also download associated .inf metadata files",
 )
-class Multibeam(core.FetchModule):
+class Multibeam(FetchModule):
+    name = "multibeam"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA NCEI Multibeam Bathymetry (Global)"
+    meta_agency = "NOAA NCEI"
+    meta_tags = ["bathymetry", "multibeam", "ocean", "sonar", "noaa", "ncei"]
+    meta_region = "Global"
+    meta_resolution = "Varies (10m - 100m)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.ngdc.noaa.gov/mgg/bathymetry/multibeam.html"}
+
     """Fetch multibeam bathymetric data from NOAA NCEI.
 
     This module queries the NCEI groovy script to find surveys intersecting
@@ -287,7 +298,17 @@ class Multibeam(core.FetchModule):
 # MBDB Module (ArcGIS)
 # =============================================================================
 @cli.cli_opts(help_text="NOAA MBDB (ArcGIS Feature Server)")
-class MBDB(core.FetchModule):
+class MBDB(FetchModule):
+    name = "mbdb"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA Multibeam via ArcGIS Feature Server"
+    meta_agency = "NOAA NCEI"
+    meta_tags = ["bathymetry", "arcgis", "feature-server"]
+    meta_region = "Global"
+    meta_resolution = "Raw Swath Data"
+    meta_license = "Academic / Public"
+    meta_urls = {"home": "https://www.rvdata.us/"}
+
     """Fetch data via the NOAA Multibeam Bathymetry Database (MBDB)
     ArcGIS Feature Server.
     """
@@ -392,7 +413,17 @@ class MBDB(core.FetchModule):
 # R2R Module
 # =============================================================================
 @cli.cli_opts(help_text="Rolling Deck to Repository (R2R) Multibeam")
-class R2R(core.FetchModule):
+class R2R(FetchModule):
+    name = "r2r"
+    meta_category = "Bathymetry"
+    meta_desc = "Rolling Deck to Repository (R2R) Multibeam"
+    meta_agency = "NSF / R2R"
+    meta_tags = ["bathymetry", "research-vessels", "academic", "r2r"]
+    meta_region = "Global"
+    meta_resolution = "Raw Swath Data"
+    meta_license = "Academic / Public"
+    meta_urls = {"home": "https://www.rvdata.us/"}
+
     """Fetch multibeam data from the Rolling Deck to Repository (R2R) program."""
 
     def __init__(self, **kwargs):

@@ -1,4 +1,5 @@
-from fetchez.core import FetchModule
+# test_core.py
+from fetchez.modules import FetchModule
 
 
 def test_fetchmodule_default_region():

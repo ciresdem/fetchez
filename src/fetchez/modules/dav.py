@@ -30,6 +30,7 @@ except ImportError:
     HAS_LIGHT_GEO = False
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import cli
 
@@ -56,7 +57,18 @@ except ImportError:
     want_footprints="Fetch the dataset footprint (tile index) zip only",
     keep_footprints="Keep the downloaded tile index zip after processing",
 )
-class DAV(core.FetchModule):
+class DAV(FetchModule):
+    name = "dav"
+    meta_category = "Multidisciplinary"
+    meta_desc = "NOAA Digital Coast Data Access Viewer"
+    meta_agency = "NOAA"
+    meta_tags = ["noaa", "lidar", "imagery", "dem", "digital coast", "landcover"]
+    meta_region = "USA"
+    meta_resolution = "Variable"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://coast.noaa.gov/dataviewer/"}
+    meta_aliases = ["digital_coast"]
+
     """
     Fetch NOAA Lidar, Elevation, and Imagery.
 
@@ -402,6 +414,16 @@ class DAV(core.FetchModule):
     keep_footprints="Keep the downloaded tile index zip after processing",
 )
 class SLR(DAV):
+    name = "slr"
+    meta_category = "Topography"
+    meta_desc = "NOAA Sea Level Rise DEMs"
+    meta_agency = "NOAA"
+    meta_tags = ["slr", "dem", "elevation", "coastal"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Various"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://coast.noaa.gov/slr/"}
+
     """Fetch NOAA Sea Level Rise (SLR) DEMs.
 
     This is a shortcut for the DAV module that specifically filters for
@@ -421,6 +443,16 @@ class SLR(DAV):
     keep_footprints="Keep the downloaded tile index zip after processing",
 )
 class CoNED(DAV):
+    name = "coned"
+    meta_category = "Topography"
+    meta_desc = "Coastal National Elevation Database (CoNED)"
+    meta_agency = "USGS / NOAA"
+    meta_tags = ["coned", "topobathy", "dem"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "1m - 3m"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.usgs.gov/core-science-systems/ngp/coned"}
+
     """Fetch CoNED Topobathymetric Models.
 
     This is a shortcut for the DAV module that filters for 'CoNED' data.
@@ -441,6 +473,16 @@ class CoNED(DAV):
     keep_footprints="Keep the downloaded tile index zip after processing",
 )
 class CUDEM(DAV):
+    name = "cudem"
+    meta_category = "Bathymetry"
+    meta_desc = "Continuously Updated DEM (CUDEM)"
+    meta_agency = "NOAA"
+    meta_tags = ["cudem", "bathymetry", "dem"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "1/9 Arc-Second"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://coast.noaa.gov/digitalcoast/data/cudem.html"}
+
     """Fetch CUDEM Tiled DEMs via Digital Coast."""
 
     def __init__(self, **kwargs):

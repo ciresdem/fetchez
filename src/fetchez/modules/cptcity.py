@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.cptcity
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch Color Palette Tables (CPT) from CPT City.
 
@@ -21,6 +21,7 @@ from typing import Optional
 import lxml.etree
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,17 @@ PACKAGE_XML_URL = f"{CPT_PKG_BASE_URL}package.xml"
     help_text="CPT City Color Palettes",
     query="Search term to filter palettes (e.g. 'bathymetry', 'topography', 'rainbow')",
 )
-class CPTCity(core.FetchModule):
+class CPTCity(FetchModule):
+    name = "cpt_city"
+    meta_category = "Visualization"
+    meta_desc = "Color Palette Tables (CPT) from CPT City"
+    meta_agency = "SeaView Sensing / CPT City"
+    meta_tags = ["visualization", "color", "palette", "cpt", "cartography"]
+    meta_region = "Global"
+    meta_resolution = "N/A"
+    meta_license = "Varies (Mostly Public/Open)"
+    meta_urls = {"home": "http://soliton.vm.bytemark.co.uk/pub/cpt-city/"}
+
     """Fetch various CPT files for DEM hillshades, bathymetry, and visualization."""
 
     def __init__(self, query: Optional[str] = None, **kwargs):

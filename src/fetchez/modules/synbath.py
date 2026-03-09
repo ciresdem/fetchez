@@ -11,7 +11,7 @@ Fetch UCSD SynBath Global Synthetic Bathymetry.
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # The latest stable release (V2.0)
@@ -24,7 +24,17 @@ SYNBATH_URL = "https://topex.ucsd.edu/pub/synbath/SYNBATH_V2.0.nc"
 @cli.cli_opts(
     help_text="UCSD SynBath Global Bathymetry (Geologically Constrained)",
 )
-class SynBath(core.FetchModule):
+class SynBath(FetchModule):
+    name = "synbath"
+    meta_category = "Bathymetry"
+    meta_desc = "UCSD SynBath Global Synthetic Bathymetry"
+    meta_agency = "SIO / UCSD"
+    meta_tags = ["synbath", "bathymetry", "global", "scripps", "synthetic"]
+    meta_region = "Global"
+    meta_resolution = "30 arc-seconds (~1km)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://topex.ucsd.edu/pub/synbath/"}
+
     """Fetch the UCSD SynBath (Synthetic Bathymetry) dataset.
 
     SynBath is a global bathymetry grid that merges satellite gravity with

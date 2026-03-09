@@ -13,7 +13,7 @@ Generic module to query custom/local FRED indices.
 
 import os
 from typing import Optional
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import fred
 
@@ -23,7 +23,18 @@ from fetchez import fred
     index="Name or path of the FRED index (json) to load",
     mode=' "reference" (default) to point to existing files, or "copy" to stage them to outdir',
 )
-class Local(core.FetchModule):
+class Local(FetchModule):
+    name = "fred_local"
+    meta_category = "Local Data"
+    meta_desc = "Spatially query a pre-built FRED index (.json)"
+    meta_agency = "Fetchez"
+    meta_tags = ["local", "index", "database", "fred"]
+    meta_region = "Custom"
+    meta_resolution = "N/A"
+    meta_aliases = ["local_index"]
+    meta_license = "MIT (Fetchez Core)"
+    meta_urls: dict[str, str] = {}
+
     """Query a custom local spatial index.
 
     This module loads a user-defined FRED index (created via `fred.ingest`)

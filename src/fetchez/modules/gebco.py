@@ -14,7 +14,7 @@ or full global downloads from BODC.
 """
 
 import logging
-from fetchez.core import FetchModule
+from fetchez.modules import FetchModule
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,16 @@ GEBCO_GLOBAL_URLS = {
 
 
 class GEBCO(FetchModule):
+    name = "gebco"
+    meta_category = "Bathymetry"
+    meta_desc = "General Bathymetric Chart of the Oceans (GEBCO)"
+    meta_agency = "GEBCO / IHO / IOC"
+    meta_tags = ["gebco", "bathymetry", "global", "wcs", "tid"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain / Attribution"
+    meta_urls = {"home": "https://www.gebco.net/"}
+
     """Fetch GEBCO global bathymetry data.
 
     GEBCO provides a global terrain model at ~15 arc-seconds (~500m).

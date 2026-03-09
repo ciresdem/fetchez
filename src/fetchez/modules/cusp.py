@@ -14,7 +14,7 @@ Uses the 'Generative Tile' strategy for 5x5 degree tiles.
 
 import logging
 import math
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -24,9 +24,19 @@ CUSP_BASE = "https://nsde.ngs.noaa.gov/downloads/"
 
 @cli.cli_opts(
     help_text="NOAA Continually Updated Shoreline Product (CUSP)",
-    region="Region to fetch (W/E/S/N)",
+    meta_region="Region to fetch (W/E/S/N)",
 )
-class CUSP(core.FetchModule):
+class CUSP(FetchModule):
+    name = "cusp"
+    meta_category = "Reference"
+    meta_desc = "NOAA Continually Updated Shoreline Product"
+    meta_agency = "NOAA NGS"
+    meta_tags = ["shoreline", "cusp", "noaa", "mhw", "vector"]
+    meta_resolution = "Varies"
+    meta_license = "Public Domain"
+    meta_region = "USA"
+    meta_urls = {"home": "https://shoreline.noaa.gov/cusp.html"}
+
     """NOAA Continually Updated Shoreline Product (CUSP).
 
     Data is distributed in 5x5 degree tiles, snapped to 5-degree lines.

@@ -16,6 +16,7 @@ import os
 import logging
 from typing import Optional
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
@@ -39,7 +40,17 @@ ARCTIC_DEM_INDEX_URL = "https://data.pgc.umn.edu/elev/dem/setsm/ArcticDEM/indexe
     help_text="ArcticDEM (PGC/NGA/NSF)",
     where="Filter by attribute (Not fully supported in light mode, uses manual check)",
 )
-class ArcticDEM(core.FetchModule):
+class ArcticDEM(FetchModule):
+    name = "arcticdem"
+    meta_category = "Topography"
+    meta_desc = "ArcticDEM (Polar Geospatial Center)"
+    meta_agency = "PGC / NGA"
+    meta_tags = ["arctic", "dem", "topography", "elevation", "polar"]
+    meta_region = "Arctic"
+    meta_resolution = "2m, 10m, 32m"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.pgc.umn.edu/data/arcticdem/"}
+
     """Fetch ArcticDEM data (Digital Surface Models).
 
     ArcticDEM is an NGA-NSF public-private initiative to automatically

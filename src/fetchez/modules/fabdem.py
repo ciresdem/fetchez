@@ -15,6 +15,7 @@ import os
 import json
 import logging
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,19 @@ FABDEM_INFO_URL = "https://data.bris.ac.uk/data/dataset/s5hqmjcdj8yo2ibzi9b4ew3s
 # FABDEM Module
 # =============================================================================
 @cli.cli_opts(help_text="FABDEM (Forest And Buildings removed Copernicus DEM)")
-class FABDEM(core.FetchModule):
+class FABDEM(FetchModule):
+    name = "fabdem"
+    meta_category = "Topography"
+    meta_desc = "FABDEM (Forest And Buildings removed Copernicus DEM)"
+    meta_agency = "University of Bristol"
+    meta_tags = ["fabdem", "dem", "dtm", "copernicus", "global", "30m"]
+    meta_region = "Global"
+    meta_resolution = "1 arc-second (~30m)"
+    meta_license = "CC-BY-NC-SA 4.0"
+    meta_urls = {
+        "home": "https://data.bris.ac.uk/data/dataset/s5hqmjcdj8yo2ibzi9b4ew3sn"
+    }
+
     """Fetch FABDEM elevation data.
 
     FABDEM is a global elevation map that removes building and tree height

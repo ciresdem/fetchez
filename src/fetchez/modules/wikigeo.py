@@ -13,7 +13,7 @@ Useful for building context, labeling maps, or identifying features.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial
 
@@ -25,7 +25,20 @@ WIKI_API = "https://en.wikipedia.org/w/api.php"
     limit="Max results per chunk (default 500, max 500)",
     chunk_size="Size of search chunks in degrees (default 0.1 to satisfy API limits)",
 )
-class WikiGeo(core.FetchModule):
+class WikiGeo(FetchModule):
+    name = "wikigeo"
+    meta_category = "Context"
+    meta_desc = "Geolocated Wikipedia Articles (Points of Interest)"
+    meta_agency = "Wikipedia Foundation"
+    meta_tags = ["wikipedia", "context", "labels", "history", "poi", "geosearch"]
+    meta_region = "Global"
+    meta_resolution = "Point Data"
+    meta_license = "CC-BY-SA 3.0"
+    meta_urls = {
+        "home": "https://www.wikipedia.org/",
+        "api": "https://en.wikipedia.org/w/api.php",
+    }
+
     """Fetch geolocated Wikipedia articles.
 
     The Wikipedia API limits geosearch to small areas. This module automatically

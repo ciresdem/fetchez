@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.wsf
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Fetch World Settlement Footprint (WSF) 2019 data from the
 German Aerospace Center (DLR).
@@ -18,6 +18,7 @@ import os
 import logging
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import fred
 from fetchez import cli
 
@@ -33,7 +34,17 @@ WSF_BASE_URL = "https://download.geoservice.dlr.de/WSF2019/files/"
     help_text="World Settlement Footprint (WSF) 2019",
     update="Force update of the local index (FRED)",
 )
-class WSF(core.FetchModule):
+class WSF(FetchModule):
+    name = "wsf"
+    meta_category = "Land Cover"
+    meta_desc = "World Settlement Footprint 2019 (10m)"
+    meta_agency = "DLR"
+    meta_tags = ["urban", "settlement", "population", "dlr", "land-cover"]
+    meta_region = "Global"
+    meta_resolution = "10m"
+    meta_license = "CC-BY 4.0"
+    meta_urls = {"home": "https://geoservice.dlr.de/web/maps/wsf2019"}
+
     """Fetch World Settlement Footprint (WSF) 2019 data.
 
     The WSF 2019 is a 10m resolution binary mask outlining the

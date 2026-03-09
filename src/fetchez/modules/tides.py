@@ -18,7 +18,7 @@ Supports two modes:
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from typing import Optional
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # Service for finding stations (ArcGIS REST)
@@ -40,7 +40,17 @@ DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
     product="Product (water_level, predictions, air_temperature, wind). Default: water_level",
     interval="Data Interval (h, hilo). Default: h (Hourly) for data, None for 6-min.",
 )
-class Tides(core.FetchModule):
+class Tides(FetchModule):
+    name = "tides"
+    meta_category = "Oceanography"
+    meta_desc = "NOAA Tides & Currents (CO-OPS)"
+    meta_agency = "NOAA"
+    meta_tags = ["tides", "water level", "co-ops", "oceanography", "stations"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Temporal (6-min / Hourly)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://tidesandcurrents.noaa.gov/"}
+
     """Fetch NOAA Tides & Currents data.
 
     Mode: Station Discovery (Default if -R provided, --station omitted)

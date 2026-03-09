@@ -23,6 +23,30 @@ logger = logging.getLogger(__name__)
     analytic="Fetch analytic (multispectral) COGs.",
 )
 class MaxarOpenData(STACModule):
+    name = "maxar"
+    meta_category = "Imagery"
+    meta_desc = "Maxar Open Data Program (Disaster Response Imagery)"
+    meta_agency = "Maxar Technologies"
+    meta_tags = [
+        "maxar",
+        "imagery",
+        "disaster",
+        "response",
+        "stac",
+        "cog",
+        "optical",
+        "earthquake",
+        "flood",
+    ]
+    meta_region = "Global (Event Based)"
+    meta_resolution = "High-Res (~30cm - 50cm)"
+    meta_license = "CC BY-NC 4.0"
+    meta_urls = {
+        "home": "https://www.maxar.com/open-data",
+        "registry": "https://registry.opendata.aws/maxar-open-data/",
+        "license": "https://www.maxar.com/open-data/attribution",
+    }
+
     """Maxar Open Data (Static STAC Catalog)."""
 
     CATALOG_URL = "https://maxar-opendata.s3.amazonaws.com/events/catalog.json"

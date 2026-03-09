@@ -17,6 +17,7 @@ import csv
 import logging
 from io import StringIO
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,17 @@ HEADERS = {
     help_text="OpenLandMap GEDTM30 (Global 30m DTM)",
     product="Product Name (e.g., 'Ensemble Digital Terrain Model', 'dtm_downscaled')",
 )
-class GEDTM30(core.FetchModule):
+class GEDTM30(FetchModule):
+    name = "gedtm30"
+    meta_category = "Topography"
+    meta_desc = "Global 1-Arc-Second DTM (OpenLandMap)"
+    meta_agency = "OpenLandMap"
+    meta_tags = ["gedtm30", "dtm", "global", "30m", "land"]
+    meta_region = "Global"
+    meta_resolution = "1 arc-second (~30m)"
+    meta_license = "CC-BY / Public"
+    meta_urls = {"home": "https://github.com/openlandmap/GEDTM30"}
+
     """Fetch Global 1-Arc-Second (30m) Digital Terrain Models.
 
     This module queries the OpenLandMap GEDTM30 repository to find

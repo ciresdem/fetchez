@@ -12,7 +12,7 @@ Fetch NASA Digital Elevation Model (NASADEM) data via OpenTopography.
 """
 
 import math
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # OpenTopography S3 Mirror (Public)
@@ -29,7 +29,17 @@ HEADERS = {
 # NASADEM Module
 # =============================================================================
 @cli.cli_opts(help_text="NASA Digital Elevation Model (NASADEM)")
-class NASADEM(core.FetchModule):
+class NASADEM(FetchModule):
+    name = "nasadem"
+    meta_category = "Topography"
+    meta_desc = "NASADEM (Modernized SRTM)"
+    meta_agency = "NASA"
+    meta_tags = ["nasadem", "srtm", "elevation", "global", "30m"]
+    meta_region = "Global (60N to 56S)"
+    meta_resolution = "1 arc-second (~30m)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://earthdata.nasa.gov/"}
+
     """Fetch NASADEM Global Elevation data.
 
     NASADEM is a modernization of the SRTM data, featuring improved

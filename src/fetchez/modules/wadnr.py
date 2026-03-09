@@ -17,6 +17,7 @@ import logging
 from typing import Optional
 from urllib.parse import urlencode
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,17 @@ def mercator_to_latlon(x, y):
     filter="Filter projects by name (case-insensitive substring).",
     project_id="Filter by specific Project ID (integer).",
 )
-class WADNR(core.FetchModule):
+class WADNR(FetchModule):
+    name = "wadnr"
+    meta_category = "Topography"
+    meta_desc = "Washington State DNR LiDAR"
+    meta_agency = "WA DNR"
+    meta_tags = ["lidar", "washington", "dnr", "wa", "elevation", "point-cloud"]
+    meta_region = "Washington State"
+    meta_resolution = "High-Res LiDAR"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://lidarportal.dnr.wa.gov/"}
+
     """Fetch LiDAR data from the Washington State DNR Portal.
 
     This module queries the WA DNR ArcGIS MapServer to find projects

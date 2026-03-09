@@ -11,7 +11,7 @@ Fetch GLOBathy (Global Lake Bathymetry) data.
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # Figshare download link for GLOBathy basic parameters (CSV/Shapefile)
@@ -22,7 +22,19 @@ GLOBATHY_URL = "https://springernature.figshare.com/ndownloader/files/28919991"
 # GLOBathy Module
 # =============================================================================
 @cli.cli_opts(help_text="GLOBathy Global Lake Bathymetry")
-class GLOBathy(core.FetchModule):
+class GLOBathy(FetchModule):
+    name = "globathy"
+    meta_category = "Bathymetry"
+    meta_desc = "GLOBathy (Global Lake Bathymetry Parameters)"
+    meta_agency = "HydroSHEDS / Figshare"
+    meta_tags = ["lakes", "bathymetry", "depth", "volume", "global"]
+    meta_region = "Global"
+    meta_resolution = "Derived Parameters"
+    meta_license = "CC-BY 4.0"
+    meta_urls = {
+        "home": "https://figshare.com/articles/dataset/GLOBathy_Bathymetric_Data/13353392"
+    }
+
     """Fetch GLOBathy (Global Lakes Bathymetry).
 
     GLOBathy provides bathymetric estimates (depth, volume) for the 1.4 million

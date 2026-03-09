@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- FetchModule is now in fetchez.modules
+- fetchez.registry combines all registries (modules/hooks for now)
+- Hooks are moved out of builtins to flat directory
+- Now load extensions/plugins automatically
+- Add "lidarbc" fetchez modules (canada)
+- Module metadata is prefixed with "meta_"
+
+## [0.4.3] - 2026-03-02
 - Breaks hooks into individual files, out of topical ones.
 - Hooks are now auto-detected from 'builtins', so we don't have to maintain a registry.
 - Adds 'focus' and 'datatype' builtin hooks.

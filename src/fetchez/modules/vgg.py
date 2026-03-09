@@ -11,7 +11,7 @@ Fetch Vertical Gravity Gradient (VGG) data from Scripps Institution of Oceanogra
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # =============================================================================
@@ -26,7 +26,17 @@ VGG_URL = "https://topex.ucsd.edu/pub/global_grav_1min/curv_33.1.nc"
 # VGG Module
 # =============================================================================
 @cli.cli_opts(help_text="Vertical Gravity Gradient (Scripps/UCSD)")
-class VGG(core.FetchModule):
+class VGG(FetchModule):
+    name = "vgg"
+    meta_category = "Bathymetry"
+    meta_desc = "Vertical Gravity Gradient (VGG)"
+    meta_agency = "SIO / UCSD"
+    meta_tags = ["vgg", "gravity", "curvature", "seamounts", "scripps"]
+    meta_region = "Global"
+    meta_resolution = "1-minute"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://topex.ucsd.edu/WWW_html/mar_grav.html"}
+
     """
     Fetch the Vertical Gravity Gradient (VGG) global grid.
 

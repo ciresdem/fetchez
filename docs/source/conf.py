@@ -74,6 +74,9 @@ html_theme_options = {
             "icon": "fa-solid fa-box",
         },
     ],
+    "logo": {
+        "text": "Fetchez Documentation",
+    },
     "secondary_sidebar_items": [],
 }
 
@@ -86,15 +89,9 @@ html_theme_options = {
 
 # Optional: Add a logo
 # html_logo = "_static/logo.png"
-# html_title = "Fetchez Documentation"
+html_title = "Fetchez Documentation"
 # #html_logo = "_static/fetchez_logo_micro.svg"
-# html_logo = "_static/cudem_logo_micro_plain.svg"
-
-# html_theme_options = {
-#     "logo": {
-#         "text": "Fetchez Documentation",
-#     }
-# }
+html_logo = "_static/continuous_dems_logo.svg"
 
 # -- Autodoc Options ---------------------------------------------------------
 # Ensure methods are documented

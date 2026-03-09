@@ -1,19 +1,32 @@
 # 🌎 Adding a New Fetch Module
 
-The most common contribution is adding support for a new data source.
+The most common contribution is adding support for a new data source. Because Fetchez uses dynamic discovery, you do not need to register your module in any central files!
 
 1.  **Create the Module File:**
     Create a new Python file in `src/fetchez/modules/` (e.g., `mydata.py`).
 
 2.  **Inherit from FetchModule:**
-    Your class must inherit from `fetchez.core.FetchModule`.
+    Your class must inherit from `fetchez.modules.FetchModule`. You must define the `meta_` class attributes so the CLI and API can discover and index your module. Be sure to include all the relevant metadata for posterity and discoverability.
 
     ```python
-    from fetchez import core
+    from fetchez.core import FetchModule
     from fetchez import cli
 
     @cli.cli_opts(help_text="Fetch data from MyData Source")
-    class MyData(core.FetchModule):
+    class MyData(FetchModule):
+		name = "mydata"
+        meta_category = "Topography"
+        meta_desc = "Short summary of the dataset (e.g., Global Lidar Synthesis)"
+        meta_agency = "Provider Name (e.g., USGS, NOAA)"
+        meta_tags = ["lidar", "elevation", "high-res"]
+        meta_coverage = "Coverage Area (e.g., CONUS, Global)"
+        meta_resolution = "Nominal Resolution (e.g., 1m)"
+        meta_license = "License Type (e.g., Public Domain, CC-BY)"
+        meta_urls = {
+            "home": "[https://provider.gov/data](https://provider.gov/data)",
+            "docs": "[https://provider.gov/docs](https://provider.gov/docs)"
+        }
+
         def __init__(self, **kwargs):
             super().__init__(name='mydata', **kwargs)
             # Initialize your specific headers or API endpoints here
@@ -25,29 +38,7 @@ The most common contribution is adding support for a new data source.
             pass
     ```
 
-3. **Register the Module:**
-Open src/fetchez/registry.py and add your module to the _modules dictionary. Please fill out all metadata fields to aid in data discovery.
-
-	```python
-
-	'mydata': {
-		'mod': 'fetchez.modules.mydata',
-		'cls': 'MyData',
-		'category': 'Topography',
-		'desc': 'Short summary of the dataset (e.g. Global Lidar Synthesis)',
-		'agency': 'Provider Name (e.g. USGS, NOAA)',
-		'tags': ['lidar', 'elevation', 'high-res'],
-		'region': 'Coverage Area (e.g. CONUS, Global)',
-		'resolution': 'Nominal Resolution (e.g. 1m)',
-		'license': 'License Type (e.g. Public Domain, CC-BY)',
-		'urls': {
-			'home': '[https://provider.gov/data](https://provider.gov/data)',
-			'docs': '[https://provider.gov/docs](https://provider.gov/docs)'
-		}
-	},
-	```
-
-4.  **Test It:**
+3.  **Test It:**
     Run `fetchez mydata --help` to ensure it loads correctly.
 
 ## Handling Dependencies & Imports
@@ -63,6 +54,7 @@ Fetchez aims to keep its core footprint small. If your new module or plugin requ
 
 	```python
 	# fetchez/modules/mys3.py
+    from fetchez.core import FetchModule
 
 	try:
 		import boto3
@@ -71,7 +63,7 @@ Fetchez aims to keep its core footprint small. If your new module or plugin requ
 		HAS_BOTO = False
 
 	@cli.cli_opts(help_text="Fetch data from AWS")
-	class MyS3Fetcher(core.FetchModule):
+	class MyS3Fetcher(FetchModule):
 		"""Fetches data from private S3 buckets.
 
 		**Dependencies:**

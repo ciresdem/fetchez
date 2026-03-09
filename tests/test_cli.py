@@ -32,7 +32,7 @@ def test_version():
 def test_list_modules():
     """Can we list modules without crashing?"""
 
-    result = run_fetchez(["--modules"])
+    result = run_fetchez(["--list-modules"])
     assert result.returncode == 0
     assert "multibeam" in result.stdout
     assert "local" in result.stdout
@@ -52,7 +52,7 @@ def test_hook_info():
 
     result = run_fetchez(["--hook-info", "audit"])
     assert result.returncode == 0
-    assert "Write a summary of all operations" in result.stdout
+    assert "Save a run summary to a file" in result.stdout
 
 
 def test_dry_run_ipinfo():

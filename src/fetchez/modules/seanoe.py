@@ -3,13 +3,14 @@
 
 """
 fetchez.modules.seanoe
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 Fetches FES2014 Derived Surfaces (LAT/MSL) from SEANOE.
 DOI: 10.17882/85408
 """
 
 import logging
-from fetchez import core, cli
+from fetchez import cli
+from fetchez.modules import FetchModule
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,17 @@ HEADERS = {
     help_text="Fetch FES2014 Global Tide Surfaces from SEANOE (Open Access).",
     product="Product ID. Currently only 'fes2014_derived' is supported.",
 )
-class Seanoe(core.FetchModule):
+class Seanoe(FetchModule):
+    name = "seanoe"
+    meta_category = "Geodesy"
+    meta_desc = "FES Global Gravity, Altimetry, and Tide Models"
+    meta_agency = "SHOM"
+    meta_tags = ["tides", "lat", "msl", "fes2014", "global", "open-science"]
+    meta_region = "Global"
+    meta_resolution = "1 arc-minute (~2km)"
+    meta_license = "Public / Scientific Use"
+    meta_urls = {"home": "https://www.seanoe.org/data/00742/85408/"}
+
     FILENAME = "FES2014_LAT_MSL_global.nc"
 
     def __init__(self, product="fes2014_derived", **kwargs):

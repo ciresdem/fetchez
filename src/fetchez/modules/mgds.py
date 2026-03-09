@@ -13,6 +13,7 @@ Fetch marine geophysical data from the Marine Geoscience Data System (MGDS).
 
 import logging
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 try:
@@ -33,7 +34,17 @@ MGDS_NAMESPACE = "https://www.marine-geo.org/services/xml/mgdsDataService"
     help_text="Marine Geoscience Data System (MGDS)",
     datatype="Data type (e.g., 'Bathymetry', 'Bathymetry:Swath'). Default: 'Bathymetry'",
 )
-class MGDS(core.FetchModule):
+class MGDS(FetchModule):
+    name = "mgds"
+    meta_category = "Bathymetry"
+    meta_desc = "Marine Geoscience Data System (MGDS)"
+    meta_agency = "IEDA / NSF"
+    meta_tags = ["mgds", "bathymetry", "marine", "swath", "geophysics"]
+    meta_region = "Global / Marine"
+    meta_resolution = "Various"
+    meta_license = "Public / Academic"
+    meta_urls = {"home": "https://www.marine-geo.org/"}
+
     """
     Fetch marine data from MGDS.
 

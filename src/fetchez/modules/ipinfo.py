@@ -12,7 +12,8 @@ A fun module to fetch IP geolocation data from ipinfo.io.
 """
 
 import logging
-from fetchez.core import FetchModule, Fetch
+from fetchez.core import Fetch
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,16 @@ logger = logging.getLogger(__name__)
     ip="Specific IP address to lookup (default: current IP)",
 )
 class IPInfo(FetchModule):
+    name = "ipinfo"
+    meta_category = "Reference"
+    meta_desc = "Query IP Addresses for coordinates"
+    meta_agency = "IPinfo"
+    meta_tags = ["utility", "geolocation", "ip", "context"]
+    meta_region = "Custom"
+    meta_resolution = "N/A"
+    meta_license = "CC BY-SA 4.0 (attribution required)"
+    meta_urls = {"home": "https://ipinfo.io/"}
+
     """Fetch JSON data from ipinfo.io.
 
     If no IP is provided, it fetches data for the machine running the script.

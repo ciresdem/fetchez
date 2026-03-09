@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.copernicus
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch data from the Copernicus Digital Elevation Model (DEM).
 
@@ -16,6 +16,7 @@ from typing import Optional, List, Any
 from tqdm import tqdm
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import fred
 from fetchez import cli
 
@@ -46,7 +47,20 @@ HEADERS = {
     datatype="Set data type: '1'=COP-30 (Global), '3'=COP-10 (Europe)",
     update="Force update of the local index (FRED)",
 )
-class CopernicusDEM(core.FetchModule):
+class CopernicusDEM(FetchModule):
+    name = "copernicus"
+    meta_category = "Topography"
+    meta_desc = "Copernicus Global/European Digital Elevation Models (COP-30/10)"
+    meta_agency = "ESA/Eurostat"
+    meta_tags = ["satellite", "dsm", "radar", "global", "europe"]
+    meta_region = "Global (COP-30) / Europe (COP-10)"
+    meta_resolution = "30m / 10m"
+    meta_license = "Open Data / attribution required"
+    meta_urls = {
+        "home": "https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/elevation/copernicus-dem",
+        "docs": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
+    }
+
     """The Copernicus DEM is a Digital Surface Model (DSM) which
     represents the surface of the Earth including buildings,
     infrastructure and vegetation.

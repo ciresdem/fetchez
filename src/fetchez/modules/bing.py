@@ -15,6 +15,7 @@ import os
 import csv
 import logging
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 # Soft Dependency: mercantile (for QuadKey calculation)
@@ -46,7 +47,17 @@ BING_HEADERS = {
     help_text="Microsoft Bing Building Footprints",
     zoom="Zoom level for QuadKey calculation (Default: 9)",
 )
-class Bing(core.FetchModule):
+class Bing(FetchModule):
+    name = "bing"
+    meta_category = "Reference"
+    meta_desc = "Microsoft Global ML Building Footprints"
+    meta_agency = "Microsoft"
+    meta_tags = ["buildings", "footprints", "ai", "ml", "vector"]
+    meta_region = "Global"
+    meta_resolution = "Vector"
+    meta_license = "ODbL"
+    meta_urls = {"home": "https://github.com/microsoft/GlobalMLBuildingFootprints"}
+
     """Fetch building footprints from Microsoft's Global ML Building Footprints.
 
     This dataset provides building footprints generated from Bing satellite imagery

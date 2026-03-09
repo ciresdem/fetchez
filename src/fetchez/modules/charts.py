@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.charts
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch NOAA Nautical Charts (ENC) using official XML Catalogs.
 
@@ -16,6 +16,7 @@ import logging
 import copy
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import fred
 from fetchez import cli
 
@@ -32,7 +33,17 @@ ENC_CATALOG_URL = "https://charts.noaa.gov/ENCs/ENCProdCat_19115.xml"
     help_text="NOAA Nautical Charts (ENC)",
     update="Force update of the local catalog index (FRED)",
 )
-class NOAACharts(core.FetchModule):
+class NOAACharts(FetchModule):
+    name = "charts"
+    meta_category = "Reference"
+    meta_desc = "NOAA Nautical Charts (ENC)"
+    meta_agency = "NOAA NOS"
+    meta_tags = ["charts", "nautical", "enc", "rnc", "navigation", "ocean"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Varies"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.charts.noaa.gov/"}
+
     """Fetch NOAA Nautical Charts.
 
     This module downloads the official NOAA ISO 19115 XML catalogs for

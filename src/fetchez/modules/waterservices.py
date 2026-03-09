@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.waterservices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch Instantaneous Value (IV) data from USGS Water Services.
 
@@ -20,6 +20,7 @@ from urllib.parse import urlencode
 from typing import Optional
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,17 @@ WATER_SERVICES_IV_URL = "https://waterservices.usgs.gov/nwis/iv/?"
     sites="Specific comma-separated site numbers (ignores region if set)",
     printout="Fetch and print station summary to console immediately",
 )
-class WaterServices(core.FetchModule):
+class WaterServices(FetchModule):
+    name = "waterservices"
+    meta_category = "Hydrography"
+    meta_desc = "USGS Water Services (Streamflow/River Data)"
+    meta_agency = "USGS"
+    meta_tags = ["water", "streamflow", "river", "usgs", "hydrology", "realtime"]
+    meta_region = "USA"
+    meta_resolution = "Point Data"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://waterservices.usgs.gov/"}
+
     """Fetch USGS Water Services data.
 
     Retrieves "Instantaneous Values" (IV) such as streamflow, gage height,

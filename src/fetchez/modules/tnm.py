@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.tnm
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Fetch elevation data from The National Map (TNM) API.
 
@@ -15,6 +15,7 @@ import logging
 from typing import Optional
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import spatial
 from fetchez import cli
@@ -68,7 +69,20 @@ DATASET_CODES = [
     date_start="Start date (YYYY-MM-DD)",
     date_end="End date (YYYY-MM-DD)",
 )
-class TheNationalMap(core.FetchModule):
+class TheNationalMap(FetchModule):
+    name = "tnm"
+    meta_category = "Topography"
+    meta_desc = "USGS 3DEP Products (NED, Lidar, Hydro) via The National Map"
+    meta_agency = "USGS"
+    meta_tags = ["usgs", "ned", "3dep", "lidar", "usa", "elevation"]
+    meta_region = "USA"
+    meta_resolution = "Varies (1m - 1 arc-second)"
+    meta_license = "Public Domain (USGS)"
+    meta_urls = {
+        "home": "https://apps.nationalmap.gov/",
+        "api": "https://tnmaccess.nationalmap.gov/api/v1/docs/",
+    }
+
     """Fetch elevation data from The National Map.
 
     Default behavior fetches 'NED 1 arc-second' if no dataset is specified.
@@ -222,6 +236,11 @@ class TheNationalMap(core.FetchModule):
     res="Resolution: '13' (Default: 1 & 1/3 arc-sec), '1m' (1-meter), '1', '1/3', or 'all'",
 )
 class NED(TheNationalMap):
+    name = "ned"
+    meta_category = "Topography"
+    meta_desc = 'USGS Seamless DEMs (1m, 1/3", 1")'
+    meta_aliases = ["3dep_dem", "NED"]
+
     """
     Shortcut for fetching USGS NED / 3DEP DEMs at various resolutions.
 
@@ -254,6 +273,11 @@ class NED(TheNationalMap):
 
 @cli.cli_opts(help_text="USGS 3DEP Lidar Point Clouds (LAZ)")
 class TNM_LAZ(TheNationalMap):
+    name = "3dep"
+    meta_category = "Topography"
+    meta_desc = "USGS 3DEP Lidar Point Clouds (LAZ)"
+    meta_aliases = ["3dep_lidar"]
+
     """Shortcut for fetching Lidar Point Clouds (LAZ)."""
 
     def __init__(self, **kwargs):

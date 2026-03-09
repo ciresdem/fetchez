@@ -12,7 +12,7 @@ Fetch Marine Gravity data from Scripps Institution of Oceanography (UCSD).
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 MARGRAV_CGI_URL = "https://topex.ucsd.edu/cgi-bin/get_data.cgi"
@@ -29,7 +29,17 @@ MARGRAV_GLOBAL_NC = "https://topex.ucsd.edu/pub/global_grav_1min/grav_33.1.nc"
     mag="Magnitude/Zoom level (0.0-1.0). Default: 1.0 (Full Res)",
     global_grid="Fetch the full global grid (IMG format) instead of a regional slice.",
 )
-class MarGrav(core.FetchModule):
+class MarGrav(FetchModule):
+    name = "margrav"
+    meta_category = "Bathymetry"
+    meta_desc = "Marine Gravity (Scripps/UCSD)"
+    meta_agency = "SIO"
+    meta_tags = ["gravity", "bathymetry", "scripps", "altimetry"]
+    meta_region = "Global / Marine"
+    meta_resolution = "1-minute"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://topex.ucsd.edu/WWW_html/mar_grav.html"}
+
     """Fetch Marine Gravity Satellite Altimetry Topography.
 
     Data is sourced from the Scripps Institution of Oceanography (UCSD)

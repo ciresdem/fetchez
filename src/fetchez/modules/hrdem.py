@@ -19,6 +19,7 @@ import os
 import logging
 import requests
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -39,10 +40,22 @@ HRDEM_FOOTPRINTS_URL = (
 @cli.cli_opts(
     help_text="Canada HRDEM (Mosaic & Legacy)",
     mode=" 'mosaic' (default) or 'legacy'",
-    resolution=" '1m' (default) or '2m' (Mosaic only)",
+    meta_resolution=" '1m' (default) or '2m' (Mosaic only)",
     model=" 'dtm' (Terrain) or 'dsm' (Surface). Default: dtm",
 )
-class HRDEM(core.FetchModule):
+class HRDEM(FetchModule):
+    name = "hrdem"
+    meta_category = "Topography"
+    meta_desc = "Canada HRDEM (Mosaic STAC & Legacy)"
+    meta_agency = "NRCAN"
+    meta_tags = ["canada", "hrdem", "nrcan", "lidar", "mosaic", "stac"]
+    meta_region = "Canada"
+    meta_resolution = "1m / 2m"
+    meta_license = "Open Government Licence - Canada"
+    meta_urls = {
+        "home": "https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995"
+    }
+
     """
     Fetch High-Resolution Digital Elevation Model (HRDEM) data for Canada.
 

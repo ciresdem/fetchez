@@ -14,6 +14,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 try:
@@ -38,7 +39,20 @@ LEGACY_API_URL = "https://apihub.copernicus.eu/apihub"
     end_date="End Date (YYYYMMDD). Default: Today.",
     cloud_cover="Max Cloud Cover % (0-100). Default: 20",
 )
-class Sentinel2(core.FetchModule):
+class Sentinel2(FetchModule):
+    name = "sentinel2"
+    meta_category = "Imagery"
+    meta_desc = "Copernicus Sentinel-2 (Optical Imagery)"
+    meta_agency = "ESA"
+    meta_tags = ["sentinel", "satellite", "imagery", "copernicus", "esa", "optical"]
+    meta_region = "Global"
+    meta_resolution = "10m / 20m / 60m"
+    meta_license = "Copernicus Open Access"
+    meta_urls = {
+        "home": "https://dataspace.copernicus.eu/",
+        "auth": "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/account/",
+    }
+
     """Fetch Sentinel-2 optical satellite imagery."""
 
     def __init__(

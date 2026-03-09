@@ -17,7 +17,8 @@ Dependencies:
 
 import os
 import logging
-from fetchez import core, cli
+from fetchez import cli
+from fetchez.modules import FetchModule
 
 try:
     import pystac_client
@@ -38,7 +39,20 @@ logger = logging.getLogger(__name__)
     cloud_cover="Maximum cloud cover percentage (0-100).",
     limit="Max number of items to fetch.",
 )
-class STACModule(core.FetchModule):
+class STACModule(FetchModule):
+    name = "stac"
+    meta_category = "Generic"
+    meta_desc = "Generic STAC API Fetcher (SpatioTemporal Asset Catalog)"
+    meta_agency = "Various"
+    meta_tags = ["stac", "api", "catalog", "spatiotemporal", "json", "cloud-native"]
+    meta_region = "Global"
+    meta_resolution = "Variable"
+    meta_license = "Varies"
+    meta_urls = {
+        "spec": "https://stacspec.org/",
+        "browser": "https://radiantearth.github.io/stac-browser/",
+    }
+
     """Generic fetcher for STAC APIs."""
 
     DEFAULT_API = "https://earth-search.aws.element84.com/v1"

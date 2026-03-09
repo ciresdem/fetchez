@@ -15,6 +15,7 @@ import logging
 from urllib.parse import urlencode
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,17 @@ TIGER_BASE_URL = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/
     where="SQL-like filter clause (default: '1=1')",
     check_meta="Force a refresh of the layer ID metadata lookup",
 )
-class Tiger(core.FetchModule):
+class Tiger(FetchModule):
+    name = "tiger"
+    meta_category = "Reference"
+    meta_desc = "US Census Bureau TIGER (Boundaries)"
+    meta_agency = "US Census Bureau"
+    meta_tags = ["census", "tiger", "boundaries", "states", "counties", "tracts"]
+    meta_region = "USA"
+    meta_resolution = "Vector"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://tigerweb.geo.census.gov/"}
+
     """Fetch US Census Bureau boundary data (TIGER).
 
     Uses the TIGERweb GeoServices REST API to download vector features

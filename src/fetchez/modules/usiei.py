@@ -12,7 +12,7 @@ Query the US Interagency Elevation Inventory (USIEI) via ArcGIS REST API.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 USIEI_MAP_SERVER_URL = (
@@ -29,7 +29,17 @@ USIEI_MAP_SERVER_URL = (
     layer="Layer ID: 0=TopoBathy, 1=Bathy, 2=Topo, 3=IfSAR. Default: 0",
     where="SQL filter clause (default: '1=1')",
 )
-class USIEI(core.FetchModule):
+class USIEI(FetchModule):
+    name = "usiei"
+    meta_category = "Reference"
+    meta_desc = "US Interagency Elevation Inventory (Metadata Only)"
+    meta_agency = "NOAA / USGS / FEMA"
+    meta_tags = ["inventory", "metadata", "usiei", "lidar", "footprints"]
+    meta_region = "USA"
+    meta_resolution = "Vector Footprints"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://coast.noaa.gov/inventory/"}
+
     """Query the US Interagency Elevation Inventory (USIEI).
 
     The USIEI is a comprehensive inventory of known high-accuracy topographic

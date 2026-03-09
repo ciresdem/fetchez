@@ -20,6 +20,7 @@ import logging
 import xml.etree.ElementTree as ET
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
@@ -37,7 +38,20 @@ CDSE_AUTH_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/proto
     start_date="Start date (YYYY-MM-DD)",
     end_date="End date (YYYY-MM-DD)",
 )
-class CDSE(core.FetchModule):
+class CDSE(FetchModule):
+    name = "cdse"
+    meta_category = "Imagery"
+    meta_desc = "Copernicus Data Space Ecosystem (CDSE) Direct Node Fetcher"
+    meta_agency = "ESA"
+    meta_tags = ["cdse", "copernicus", "esa", "satellite", "odata", "imagery"]
+    meta_region = "Global"
+    meta_resolution = "Varies"
+    meta_license = "Copernicus Open Access"
+    meta_urls = {
+        "home": "https://dataspace.copernicus.eu/",
+        "auth": "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/account/",
+    }
+
     """Copernicus Data Space Ecosystem Fetch Module
 
     Fetches individual satellite imagery bands directly from CDSE Nodes.

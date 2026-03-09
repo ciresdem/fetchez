@@ -15,6 +15,7 @@ import os
 import logging
 from typing import Optional
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import fred
 
@@ -38,7 +39,26 @@ VDATUM_REGIONS = [
     datatype='Filter by datum type (e.g., "mllw", "mhhw", "tidal").',
     update="Force a re-scrape of the NOAA website.",
 )
-class VDatum(core.FetchModule):
+class VDatum(FetchModule):
+    name = "vdatum"
+    meta_category = "Geodesy"
+    meta_desc = "NOAA VDatum Tidal Grids (MLLW, MHHW)"
+    meta_agency = "NOAA"
+    meta_tags = [
+        "vdatum",
+        "tidal",
+        "mllw",
+        "mhhw",
+        "noaa",
+        "vertical-datum",
+        "transformation",
+    ]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Varies (Regional Grids)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://vdatum.noaa.gov/"}
+    meta_aliases = ["tidal_grids"]
+
     """Fetch NOAA VDatum grids, specifically Tidal Datums (MLLW, MHHW).
 
     Because these grids are not available in the PROJ CDN, this module

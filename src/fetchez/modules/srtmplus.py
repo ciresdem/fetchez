@@ -12,7 +12,7 @@ Fetch SRTM15+ Global Bathymetry and Topography from Scripps Institution of Ocean
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 SRTM_PLUS_CGI_URL = "https://topex.ucsd.edu/cgi-bin/get_srtm15.cgi"
@@ -22,7 +22,17 @@ SRTM_PLUS_CGI_URL = "https://topex.ucsd.edu/cgi-bin/get_srtm15.cgi"
 # SRTM Plus Module
 # =============================================================================
 @cli.cli_opts(help_text="SRTM15+ Global Bathymetry/Topography (Scripps/UCSD)")
-class SRTMPlus(core.FetchModule):
+class SRTMPlus(FetchModule):
+    name = "srtm_plus"
+    meta_category = "Topography"
+    meta_desc = "SRTM15+ Global Bathymetry/Topography (Scripps/UCSD)"
+    meta_agency = "SIO / UCSD"
+    meta_tags = ["srtm", "bathymetry", "topography", "global", "scripps"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://topex.ucsd.edu/WWW_html/srtm15_plus.html"}
+
     """Fetch SRTM15+ Global Bathymetry and Topography.
 
     Data is sourced from the Scripps Institution of Oceanography (UCSD).

@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.nominatim
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module queries nominatim for coordinates of places.
 
@@ -13,6 +13,7 @@ This module queries nominatim for coordinates of places.
 
 import logging
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import cli
 
@@ -22,7 +23,20 @@ NOMINATUM_URL = "https://nominatim.openstreetmap.org/search"
 
 
 @cli.cli_opts(help_text="Nominatum place queries", query="Query String")
-class Nominatim(core.FetchModule):
+class Nominatim(FetchModule):
+    name = "nominatim"
+    meta_category = "Reference"
+    meta_desc = "Geocoding service using OpenStreetMap data"
+    meta_agency = "OpenStreetMap Foundation"
+    meta_tags = ["geocode", "osm", "search", "coordinates", "place"]
+    meta_region = "Global"
+    meta_resolution = "N/A"
+    meta_license = "ODbL (Open Data Commons Open Database License)"
+    meta_urls = {
+        "home": "https://nominatim.org/",
+        "policy": "https://operations.osmfoundation.org/policies/nominatim/",
+    }
+
     """Fetch coordinates from OpenStreetMap's Nominatim service."""
 
     def __init__(self, query="boulder", **kwargs):

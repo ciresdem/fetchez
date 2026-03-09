@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.pipeline.focus
+fetchez.hooks.focus
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pipeline control hooks for artifact focus.
@@ -29,8 +29,9 @@ class FocusSink(FetchHook):
     """
 
     name = "focus_sink"
-    stage = "post"
-    category = "pipeline"
+    meta_desc = "Focus the pipeline to an 'artifact'"
+    meta_stage = "post"
+    meta_category = "pipeline"
 
     def __init__(self, target=None, **kwargs):
         super().__init__(**kwargs)

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 27 17" width="300" height="200">
+  <defs>
+    <style>
+      /* Softened ETOPO Palette */
+      .O { fill: #2B4C7E; } /* Deep Ocean */
+      .M { fill: #5482B4; } /* Mid Ocean */
+      .S { fill: #77A3C8; } /* Shallow */
+      .L { fill: #85B58D; } /* Lowland */
+      .F { fill: #B5C18E; } /* Foothills */
+      .H { fill: #D4BE9D; } /* Highlands */
+      .P { fill: #A88572; } /* Peaks */
+      .I { fill: #F4F7FA; } /* Ice  */
+
+      rect {
+          width: 4.8px;
+          height: 4.8px;
+          rx: 0.65px;
+          stroke: #000000;
+          stroke-width: 0.14px;
+          stroke-opacity: 0.425;
+      }
+
+    </style>
+  </defs>
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="0" y="0" class="L" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="5" y="0" class="M" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="10" y="0" class="F" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="15" y="0" class="H" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="20" y="0" class="M" />
+
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="0" y="5" class="O" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="5" y="5" class="L" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="10" y="5" class="H" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="15" y="5" class="M" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="20" y="5" class="F" />
+
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="0" y="10" class="M" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="5" y="10" class="O" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="10" y="10" class="M" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="15" y="10" class="I" />
+  <rect width="4.8px" height="4.8px" rx="0.65px" x="20" y="10" class="I" />
+</svg>

@@ -12,7 +12,7 @@ Fetch National Geodetic Survey (NGS) Monuments (Survey Marks) from NOAA.
 """
 
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 NGS_SEARCH_URL = "https://geodesy.noaa.gov/api/nde/bounds?"
@@ -25,7 +25,17 @@ NGS_SEARCH_URL = "https://geodesy.noaa.gov/api/nde/bounds?"
     help_text="NOAA NGS Survey Monuments",
     datum="Preferred Datum for metadata (e.g., 'orthoHt', 'geoidHt'). Note: API fetches all available data.",
 )
-class NGS(core.FetchModule):
+class NGS(FetchModule):
+    name = "ngs"
+    meta_category = "Geodesy"
+    meta_desc = "National Geodetic Survey (NGS) Monuments"
+    meta_agency = "NOAA"
+    meta_tags = ["ngs", "monuments", "survey", "benchmarks", "geodesy", "control"]
+    meta_region = "USA"
+    meta_resolution = "Point Data"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://geodesy.noaa.gov/"}
+
     """Fetch NGS Survey Monuments (Datasheets).
 
     The National Geodetic Survey (NGS) provides information about survey marks

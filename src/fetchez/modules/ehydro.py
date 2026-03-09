@@ -17,6 +17,7 @@ import datetime
 from typing import Optional
 from urllib.parse import urlencode
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,17 @@ EHYDRO_BASE_URL = "https://services7.arcgis.com/n1YM8pTrFmm7L4hs/arcgis/rest/ser
     min_year="Filter surveys after this year (YYYY)",
     max_year="Filter surveys before this year (YYYY)",
 )
-class eHydro(core.FetchModule):
+class eHydro(FetchModule):
+    name = "ehydro"
+    meta_category = "Bathymetry"
+    meta_desc = "USACE eHydro Navigation Surveys"
+    meta_agency = "USACE"
+    meta_tags = ["ehydro", "usace", "bathymetry", "navigation", "channels", "army"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Various (High-Res)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://navigation.usace.army.mil/Survey/Hydro"}
+
     """Fetch USACE eHydro bathymetric data.
 
     The eHydro dataset supports the USACE navigation mission by providing

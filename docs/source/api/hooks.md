@@ -9,10 +9,3 @@ Hooks allow you to intercept, filter, and modify data before, during or after th
    :undoc-members:
    :show-inheritance:
 ```
-
-```{eval-rst}
-.. automodule:: fetchez.hooks.registry
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```

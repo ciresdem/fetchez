@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.path
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Generic module to treat local files like remote ones.
 Useful for injecting local data into the processing pipeline (dlim).
@@ -13,7 +13,7 @@ Useful for injecting local data into the processing pipeline (dlim).
 """
 
 import os
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 
@@ -22,7 +22,17 @@ from fetchez import cli
     paths="List of input file paths",
     path="Single input file path (legacy)",
 )
-class LocalDataset(core.FetchModule):
+class LocalDataset(FetchModule):
+    name = "file"
+    meta_category = "Local Data"
+    meta_desc = "Explicitly pass specific local files (No spatial filtering)"
+    meta_agency = "Local"
+    meta_resolution = "N/A"
+    meta_tags = ["local", "file"]
+    meta_region = "Global"
+    meta_license = "MIT (Fetchez Core)"
+    meta_urls: dict[str, str] = {}
+
     """Register local files into the fetchez pipeline."""
 
     def __init__(self, paths=None, path=None, **kwargs):

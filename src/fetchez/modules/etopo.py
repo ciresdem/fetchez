@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.etopo
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Fetch ETOPO 2022 Global Relief Model data from NOAA NCEI.
 
@@ -24,6 +24,7 @@ is requested but not found for a specific tile.
 import logging
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import fred
 from fetchez import cli
 
@@ -72,12 +73,22 @@ NETCDF_BASE_URLS = {
 # =============================================================================
 @cli.cli_opts(
     help_text="ETOPO 2022 Global Relief Model",
-    resolution="Resolution: '15s' (Tiled), '30s' (Global), '60s' (Global). Default: 15s",
+    meta_resolution="Resolution: '15s' (Tiled), '30s' (Global), '60s' (Global). Default: 15s",
     datatype="Data Type: 'bed', 'surface', 'bed_sid', 'surface_sid'. Default: bed",
     format="File Format: 'gtif' or 'netcdf'. Default: gtif",
     update="Force update of the local index (FRED)",
 )
-class ETOPO(core.FetchModule):
+class ETOPO(FetchModule):
+    name = "etopo"
+    meta_category = "Topography"
+    meta_desc = "ETOPO 2022 Global Relief Model (15s, 30s, 60s)"
+    meta_agency = "NOAA NCEI"
+    meta_tags = ["topography", "bathymetry", "elevation", "global", "etopo", "relief"]
+    meta_region = "Global"
+    meta_resolution = "15s (~450m) to 60s (~1.8km)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.ncei.noaa.gov/products/etopo-global-relief-model"}
+
     """Fetch ETOPO 2022 data.
 
     Automatically handles fallback from 'bed' to 'surface' for non-ice regions.

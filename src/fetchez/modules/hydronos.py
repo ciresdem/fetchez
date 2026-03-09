@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.hydronos
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch NOS Hydrographic Surveys (BAGs and XYZ soundings) from NOAA.
 
@@ -17,6 +17,7 @@ import logging
 from typing import Optional, Dict
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import cli
 
@@ -37,7 +38,21 @@ NOS_DATA_URL = "https://data.ngdc.noaa.gov/platforms/ocean/nos/coast/"
     min_year="Filter by minimum survey year",
     max_year="Filter by maximum survey year",
 )
-class HydroNOS(core.FetchModule):
+class HydroNOS(FetchModule):
+    name = "bag"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA NOS Bathymetric Attributed Grids (BAG)"
+
+    name = "nos_hydro"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA NOS Hydrographic Surveys (BAG & XYZ)"
+    meta_agency = "NOAA NOS"
+    meta_tags = ["bathymetry", "hydrography", "nos", "noaa", "bag", "soundings"]
+    meta_region = "USA / Coastal"
+    meta_resolution = "Varies (0.5m - 30m)"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://www.ngdc.noaa.gov/mgg/bathymetry/hydro.html"}
+
     """Fetch NOAA National Ocean Service (NOS) Hydrographic Surveys.
 
     This module queries the NOS Hydrographic Data Base (NOSHDB).

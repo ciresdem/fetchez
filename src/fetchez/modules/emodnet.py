@@ -14,7 +14,7 @@ Supports retrieval via WCS (default) or ERDDAP.
 
 from typing import Optional
 from urllib.parse import urlencode
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 EMODNET_WCS_URL = "https://ows.emodnet-bathymetry.eu/wcs?"
@@ -33,9 +33,19 @@ RES_115M = 0.00104166666666667
     want_erddap="Use ERDDAP source instead of WCS",
     erddap_format="Format for ERDDAP download (nc, asc, csv, etc.) [Default: nc]",
     layer="Data Layer: 'mean' (Depth), 'std' (Error), 'source' (Source ID), 'quality'",
-    resolution="Override WCS resolution (in degrees). Default is ~0.001 (115m).",
+    meta_resolution="Override WCS resolution (in degrees). Default is ~0.001 (115m).",
 )
-class EMODNet(core.FetchModule):
+class EMODNet(FetchModule):
+    name = "emodnet"
+    meta_category = "Bathymetry"
+    meta_desc = "EMODnet Bathymetry (Europe)"
+    meta_agency = "EU / EMODnet"
+    meta_tags = ["bathymetry", "europe", "emodnet", "wcs", "erddap"]
+    meta_region = "Europe"
+    meta_resolution = "~115m (1/16 arc-min)"
+    meta_license = "Open Data"
+    meta_urls = {"home": "https://portal.emodnet-bathymetry.eu/"}
+
     """Fetch Digital Terrain Model data from EMODnet Bathymetry.
 
     EMODnet Bathymetry provides a high-resolution bathymetry for European sea basins.

@@ -3,7 +3,7 @@
 
 """
 fetchez.modules.bluetopo
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Fetch NOAA BlueTopo bathymetric data.
 
@@ -34,6 +34,7 @@ except ImportError:
     ogr = None
 
 from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,17 @@ BLUETOPO_PREFIX = "BlueTopo"
     unc_weights="Use uncertainty weights (Downstream processing flag)",
     keep_index="Keep the downloaded tile index file after running",
 )
-class BlueTopo(core.FetchModule):
+class BlueTopo(FetchModule):
+    name = "bluetopo"
+    meta_category = "Bathymetry"
+    meta_desc = "NOAA BlueTopo (National Bathymetric Source)"
+    meta_agency = "NOAA OCS"
+    meta_tags = ["bathymetry", "noaa", "bluetopo", "nbs", "ocean", "elevation"]
+    meta_region = "USA"
+    meta_resolution = "Variable"
+    meta_license = "Public Domain"
+    meta_urls = {"home": "https://nauticalcharts.noaa.gov/data/bluetopo.html"}
+
     """
     Fetch NOAA BlueTopo Data.
 

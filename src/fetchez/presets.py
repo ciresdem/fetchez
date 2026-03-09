@@ -44,14 +44,14 @@ def load_user_presets():
 def hook_list_from_preset(preset_def):
     """Convert yaml definition to list of Hook Objects."""
 
-    from fetchez.hooks.registry import HookRegistry
+    from fetchez.registry import HookRegistry
 
     hooks = []
     for h_def in preset_def.get("hooks", []):
         name = h_def.get("name")
         kwargs = h_def.get("args", {})
 
-        hook_cls = HookRegistry.get_hook(name)
+        hook_cls = HookRegistry.get_class(name)
         if hook_cls:
             try:
                 hooks.append(hook_cls(**kwargs))

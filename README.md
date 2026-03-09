@@ -1,24 +1,30 @@
-# 🌍 Fetchez
+<!-- <p align="center"> -->
+<!-- 	<a href="https://github.com/continuous-dems"> -->
+<!-- 		<img src="https://github.com/continuous-dems/fetchez/blob/modules/docs/source/_static/continuous_dems_logo.svg" height="80" alt="Continuous DEMs Logo"> -->
+<!-- 	</a> -->
+<!-- </p> -->
+<h1 align="center">Fetchez</h1>
+<p align="center"><strong>Fetch geospatial data with ease.</strong></p>
 
-**Fetch geospatial data with ease.**
+<p align="center">
+  <a href="https://github.com/continuous-dems/fetchez"><img src="https://img.shields.io/badge/version-0.5.0-blue.svg" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.12+-yellow.svg" alt="Python"></a>
+  <a href="https://badge.fury.io/py/fetchez"><img src="https://badge.fury.io/py/fetchez.svg" alt="PyPI version"></a>
+  <a href="https://cudem.zulip.org"><img src="https://img.shields.io/badge/zulip-join_chat-brightgreen.svg" alt="Project Chat"></a>
+</p>
 
-*Fetchez Les Données*
+**Fetchez** is a lightweight, modular, and highly extendable Python framework designed to orchestrate geospatial data engineering workflows.
 
-[![Version](https://img.shields.io/badge/version-0.4.2-blue.svg)](https://github.com/continuous-dems/fetchez)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/)
-[![PyPI version](https://badge.fury.io/py/fetchez.svg)](https://badge.fury.io/py/fetchez)
-[![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://cudem.zulip.org)
-
-**Fetchez** is a lightweight, modular and highly extendable Python library and command-line tool designed to discover and retrieve geospatial data from a wide variety of public repositories. Originally part of the [CUDEM](https://github.com/continuous-dems/cudem) project, Fetchez is now a standalone tool capable of retrieving Bathymetry, Topography, Imagery, and Oceanographic data (and more!) from sources like NOAA, USGS, NASA, and the European Space Agency.
+Originally developed as the core fetching engine for the [CUDEM](https://github.com/ciresdem/cudem) project, Fetchez has evolved into a standalone ETL platform. It seamlessly retrieves Bathymetry, Topography, Imagery, and Oceanographic data from dozens of global repositories (NOAA, USGS, Copernicus, ESA) and processes it on the fly.
 
 ---
 
 ### ❓ Why Fetchez?
 
-Geospatial data access is fragmented. You often need one script to scrape a website for tide stations, another to download LiDAR from an S3 bucket, and a third to parse a local directory of shapefiles.
+Geospatial data engineering is traditionally fragmented. You often need one script to query an API, another tool to download the files, a GIS application to clip the data, and complex shell scripts to tie it all together.
 
-**Fetchez unifies it all.**
+**Fetchez unifies the entire pipeline.**
 
 * **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
@@ -28,7 +34,7 @@ Geospatial data access is fragmented. You often need one script to scrape a webs
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
-* **Extendable Design**: Through hooks, presets, recipes, schemas and extensions, `fetchez` can be endlessly expanded to perform specific tasks.
+* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources and domain schemas.
 
 ---
 
@@ -44,7 +50,7 @@ Fetch Copernicus topography and NOAA multibeam bathymetry for a specific boundin
 ### CLI
 
 ```bash
-fetchez -R loc:"Miami, FL" copernicus multibeam --audit:file=miami_audit.json
+fetchez -R loc:"Miami, FL" copernicus multibeam --audit-log miami_audit.json
 ```
 
 Or run a full processing pipeline from a YAML recipe:
@@ -59,7 +65,7 @@ fetchez recipes/my_dem_project.yaml
 import fetchez
 
 # Fetch Electronic Nautical Chart data from NOAA
-files = fetchez.get(region=[-120, -118, 33, 34], "charts", hooks=['unzip', 'fn_filter:match=.000', 'audit'])
+files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000', 'audit'])
 ```
 
 ---

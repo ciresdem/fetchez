@@ -20,10 +20,12 @@ import signal
 from typing import Dict, Optional, Any
 
 from . import utils
-from . import registry
 from . import spatial
 from . import core
+from . import presets
+from . import config
 from . import __version__
+from .registry import ModuleRegistry, HookRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -47,21 +49,18 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
     return decorator
 
 
-def print_banner_orbit():
-    # C, B, G, R = "\033[36m", "\033[34m", "\033[32m", "\033[0m"
-    print("""
-    [ F E T C H E Z ]
-    """)
+def setup_logging(quiet=False, verbose=False):
+    if quiet:
+        log_level = logging.WARNING
+    elif verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
 
-
-print_welcome_banner = print_banner_orbit  # alias for when we randomly change it
-
-
-def setup_logging(verbose=False):
-    log_level = logging.INFO if verbose else logging.WARNING
-
-    logger = logging.getLogger()
+    logger = logging.getLogger("fetchez")
     logger.setLevel(log_level)
+
+    logger.propagate = False
 
     if logger.hasHandlers():
         logger.handlers.clear()
@@ -180,42 +179,51 @@ def get_module_cli_desc(m: Dict) -> str:
     grouped_modules: Dict[Any, Any] = {}
 
     for key, val in m.items():
+        if key in val.get("aliases", []):
+            continue
+
         cat = val.get("category", "Generic")
         if cat not in grouped_modules:
             grouped_modules[cat] = []
 
         desc = val.get("desc", f"Fetch data from {key}")
-        grouped_modules[cat].append((key, desc))
+        agency = val.get("agency", "")
+
+        grouped_modules[cat].append((key, desc, agency))
 
     rows = []
     existing_cats = [c for c in CATEGORY_ORDER if c in grouped_modules]
     remaining_cats = sorted([c for c in grouped_modules if c not in CATEGORY_ORDER])
 
     for cat in existing_cats + remaining_cats:
-        rows.append(f"\n\033[1;4m{cat}\033[0m")
-        for name, desc in sorted(grouped_modules[cat], key=lambda x: x[0]):
-            rows.append(f"  \033[1m{name:<18}\033[0m : {desc}")
+        rows.append(f"\n{utils.colorize(f'[ {cat} ]', utils.CYAN)}")
+
+        for name, desc, agency in sorted(grouped_modules[cat], key=lambda x: x[0]):
+            name_padded = f"{name:<18}"
+            agency_str = f"[{agency}]" if agency else ""
+            agency_padded = f"{agency_str:<12}"
+
+            rows.append(
+                f"  \033[1m{name_padded}\033[0m "
+                f"{utils.colorize(agency_padded, utils.YELLOW)} : {desc}"
+            )
 
     return "\n".join(rows)
 
 
 class PrintModulesAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        print_welcome_banner()
         print(f"""
-        Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
-
-        {get_module_cli_desc(registry.FetchezRegistry._modules)}
-        """)
+Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
+{get_module_cli_desc(ModuleRegistry.get_registry())}
+""")
         sys.exit(0)
 
 
 def print_module_info(mod_key):
     """Pretty-print module metadata."""
 
-    from .registry import FetchezRegistry
-
-    meta = FetchezRegistry.get_info(mod_key)
+    meta = ModuleRegistry.get_info(mod_key)
     if not meta:
         logger.error(f"Module {mod_key} not found.")
         return
@@ -234,6 +242,24 @@ def print_module_info(mod_key):
         print("\n  Links:")
         for k, v in meta["urls"].items():
             print(f"    {k:<10}: {v}")
+    print(f"{'-' * 40}\n")
+
+
+def print_hook_info(hook_key):
+    """Pretty-print module metadata."""
+
+    meta = HookRegistry.get_info(hook_key)
+    if not meta:
+        logger.error(f"Hook {hook_key} not found.")
+        return
+
+    print(f"\n🪝 {utils.CYAN}HOOK: {hook_key.upper()}{utils.RESET}")
+    print(f"{'-' * 40}")
+    print(f"  Description : {meta.get('desc')}")
+    print(f"  Stage       : {meta.get('stage')}")
+    print(f"  Type        : {meta.get('category')}")
+    print(f"  Origin      : {meta.get('mod')}\n")
+
     print(f"{'-' * 40}\n")
 
 
@@ -284,8 +310,6 @@ def parse_hook_arg(arg_str):
 def init_hooks(hook_list_strs):
     """Convert a list of strings ['pipe', 'unzip:force=true'] into initialized Hook objects."""
 
-    from .hooks.registry import HookRegistry
-
     active_instances = []
     if not hook_list_strs:
         return active_instances
@@ -293,7 +317,7 @@ def init_hooks(hook_list_strs):
     for h_str in hook_list_strs:
         name, kwargs = parse_hook_arg(h_str)
 
-        HookCls = HookRegistry.get_hook(name)
+        HookCls = HookRegistry.get_class(name)
         if HookCls:
             try:
                 instance = HookCls(**kwargs)
@@ -321,7 +345,10 @@ def get_parser():
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
     parser = argparse.ArgumentParser(
-        description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
+        # description=f"{utils.CYAN}%(prog)s{utils.RESET} ({__version__}) :: Discover and Fetch remote geospatial data",
+        description=utils._cli_logo(
+            "fetchez", "Fetch geospatial data with ease.", __version__
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,
         usage=_usage,
@@ -329,7 +356,7 @@ def get_parser():
 Examples:
   fetchez -R -105/-104/39/40 srtm_plus
   fetchez -R loc:"Boulder, CO" copernicus --datatype=1
-  fetchez charts --hook unzip --hook filename_filter:match=.000 --pipe-path
+  fetchez -R loc:seattle -H4 charts --hook unzip --hook filename_filter:match=.000 --pipe-path
   fetchez --search bathymetry
 
 CUDEM home page: <http://cudem.colorado.edu>
@@ -351,21 +378,18 @@ CUDEM home page: <http://cudem.colorado.edu>
 
     disc_grp = parser.add_argument_group("Discovery & Metadata")
     disc_grp.add_argument(
-        "-m",
-        "--modules",
+        "--list-modules",
         nargs=0,
         action=PrintModulesAction,
         help="List all available data modules.",
     )
     disc_grp.add_argument(
-        "-s",
-        "--search",
+        "--search-modules",
         metavar="TERM",
         help="Search modules by tag, agency, or description.",
     )
     disc_grp.add_argument(
-        "-i",
-        "--info",
+        "--module-info",
         metavar="MODULE",
         help="Show detailed metadata for a specific module.",
     )
@@ -373,7 +397,7 @@ CUDEM home page: <http://cudem.colorado.edu>
         "-h", "--help", action="store_true", help="Show this help message and exit."
     )
     disc_grp.add_argument(
-        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
     exec_grp = parser.add_argument_group("Execution Control")
@@ -400,17 +424,17 @@ CUDEM home page: <http://cudem.colorado.edu>
         metavar="N",
         help="Number of retry attempts per file (default: 5).",
     )
-    # exec_grp.add_argument(
-    #     "-z",
-    #     "--no_check_size",
-    #     action="store_true",
-    #     help="Skip remote file size check if local file exists.",
-    # )
     exec_grp.add_argument(
         "-q",
         "--quiet",
         action="store_true",
         help="Suppress progress bars and status messages.",
+    )
+    exec_grp.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Enable verbose (DEBUG) logging.",
     )
 
     preset_grp = parser.add_argument_group("Pipeline Shortcuts (Hook Presets)")
@@ -464,7 +488,6 @@ CUDEM home page: <http://cudem.colorado.edu>
         action="store_true",
         help="Generate a default ~/.fetchez/presets.yaml file.",
     )
-    # adv_grp.add_argument('--init-presets', action='store_true', help="Export active presets to ./fetchez_presets_template.json (template for customization).")
 
     return parser
 
@@ -480,18 +503,9 @@ def fetchez_cli():
 
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
-    registry.FetchezRegistry.load_user_plugins()
-    registry.FetchezRegistry.load_installed_plugins()
+    ModuleRegistry.load_all()
+    HookRegistry.load_all()
 
-    from .hooks.registry import HookRegistry
-    from . import presets
-    from . import config
-
-    HookRegistry.load_builtins()
-    HookRegistry.load_user_plugins()
-
-    # user_presets = presets.load_user_presets()
-    # user_presets = config.load_user_config().get('presets', {})
     user_presets = presets.get_global_presets()
     user_mod_presets = config.load_user_config("presets").get("modules", {})
 
@@ -503,7 +517,7 @@ def fetchez_cli():
     ):
         from . import recipe
 
-        setup_logging(True)
+        setup_logging()
 
         project_file = sys.argv[1]
         recipe = recipe.Recipe.from_file(project_file)
@@ -516,37 +530,42 @@ def fetchez_cli():
     fixed_argv = spatial.fix_argparse_region(sys.argv[1:])
     global_args, remaining_argv = parser.parse_known_args(fixed_argv)
 
-    # check_size = not global_args.no_check_size
-
     # level = logging.WARNING if global_args.quiet else logging.INFO
     # I like sending logging to stderr, and anyway we want this with --pipe-path
     # logging.basicConfig(level=level, format='[ %(levelname)s ] %(name)s: %(message)s', stream=sys.stderr)
     setup_logging(
-        not global_args.quiet
-    )  # this prevents logging from distorting tqdm and leaving partial tqdm bars everywhere...
+        quiet=global_args.quiet, verbose=getattr(global_args, "verbose", False)
+    )
 
     if global_args.init_presets:
         presets.init_presets()
         sys.exit(0)
 
-    if global_args.info:
-        print_module_info(global_args.info)
+    # --- MODULE INFO ---
+    if global_args.module_info:
+        print(
+            utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
+        )
+        print_module_info(global_args.module_info)
         sys.exit(0)
 
-    if global_args.search:
-        results = registry.FetchezRegistry.search_modules(global_args.search)
+    if global_args.search_modules:
+        print(
+            utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
+        )
+        results = ModuleRegistry.search_modules(global_args.search_modules)
 
         if not results:
-            logger.warning(f'No modules found matching "{global_args.search}"')
+            logger.warning(f'No modules found matching "{global_args.search_modules}"')
             sys.exit(0)
 
         print(
-            f'\nSearch results for "{utils.colorize(global_args.search, utils.CYAN)}":'
+            f'\nSearch results for "{utils.colorize(global_args.search_modules, utils.CYAN)}":'
         )
         print("-" * 60)
 
         for mod_key in results:
-            info = registry.FetchezRegistry.get_info(mod_key)
+            info = ModuleRegistry.get_info(mod_key)
             desc = info.get("desc", "No description")
             agency = info.get("agency", "")
 
@@ -563,40 +582,30 @@ def fetchez_cli():
 
     # --- HOOK INFO ---
     if global_args.hook_info:
-        from fetchez.hooks.registry import HookRegistry
-
-        hook_cls = HookRegistry.get_hook(global_args.hook_info)
-        if hook_cls:
-            print(f"\n🪝  Hook: {hook_cls.name}")
-            print(f"    Stage: {hook_cls.stage}")
-            print(f"    Type:  {hook_cls.category}")
-            print(f"    Origin: {hook_cls.__module__}\n")
-
-            import inspect
-
-            doc = inspect.getdoc(hook_cls)
-            if doc:
-                print(doc)
-            else:
-                print("(No documentation available for this hook)")
-            print("\n")
-        else:
-            print(f"❌ Hook '{global_args.hook_info}' not found.")
-            print("   Run 'fetchez --list-hooks' to see available options.")
-
+        print(
+            utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
+        )
+        print_hook_info(global_args.hook_info)
         sys.exit(0)
 
     if hasattr(global_args, "list_hooks") and global_args.list_hooks:
+        print(
+            utils._cli_logo("fetchez", "Fetch geospatial data with ease.", __version__)
+        )
         print("\nAvailable Hooks:")
         print("=" * 60)
 
-        # Group by category
+        # Group by category using the parsed registry metadata
         grouped_hooks = {}
-        for name, cls_obj in HookRegistry._hooks.items():
-            cat = getattr(cls_obj, "category", "uncategorized").lower()
+        for name, meta in HookRegistry.get_registry().items():
+            # Skip aliases so we don't print duplicate entries
+            if name in meta.get("aliases", []):
+                continue
+
+            cat = meta.get("category", "uncategorized")
             if cat not in grouped_hooks:
                 grouped_hooks[cat] = []
-            grouped_hooks[cat].append((name, cls_obj))
+            grouped_hooks[cat].append((name, meta))
 
         # Define display order
         cat_order = [
@@ -615,11 +624,12 @@ def fetchez_cli():
             # Format header: [ Metadata ]
             print(f"\n{utils.CYAN}[ {cat.title()} ]{utils.RESET}")
 
-            for name, cls_obj in sorted(grouped_hooks[cat], key=lambda x: x[0]):
-                desc = getattr(cls_obj, "desc", "No description")
+            for name, meta in sorted(grouped_hooks[cat], key=lambda x: x[0]):
+                # Grab the cleaned metadata directly from the dictionary
+                desc = meta.get("desc", "No description provided.")
+                mod_path = meta.get("mod", "")
 
                 # Determine the origin of the hook
-                mod_path = getattr(cls_obj, "__module__", "")
                 if mod_path:
                     origin = mod_path.split(".")[0].capitalize()
                 else:
@@ -640,7 +650,7 @@ def fetchez_cli():
         # global_hook_objs = init_hooks(global_args.hook)
         global_hook_objs.extend(init_hooks(global_args.hook))
 
-    # --- Process Shortcuts ---
+    # --- Process Default Presets ---
     for name, defs in user_presets.items():
         arg_attr = name.replace("-", "_")
 
@@ -650,16 +660,16 @@ def fetchez_cli():
             global_hook_objs.extend(chain)
 
     if global_args.list:
-        from .hooks.builtins.pipeline.dryrun import DryRun
-        from .hooks.builtins.metadata.list_entries import ListEntries
+        from .hooks.dryrun import DryRun
+        from .hooks.list_entries import ListEntries
 
         global_hook_objs.append(ListEntries())
         if not any(h.name == "dryrun" for h in global_hook_objs):
             global_hook_objs.append(DryRun())
 
     if global_args.inventory:
-        from .hooks.builtins.metadata.inventory import Inventory
-        from .hooks.builtins.pipeline.dryrun import DryRun
+        from .hooks.inventory import Inventory
+        from .hooks.dryrun import DryRun
 
         fmt = global_args.inventory
         global_hook_objs.append(Inventory(format=fmt))
@@ -667,14 +677,14 @@ def fetchez_cli():
             global_hook_objs.append(DryRun())
 
     if global_args.pipe_path:
-        from .hooks.builtins.pipeline.pipe import PipeOutput
+        from .hooks.pipe import PipeOutput
 
         global_hook_objs.append(PipeOutput())
 
     if global_args.audit_log:
-        from .hooks.builtins.metadata.checksum import Checksum
-        from .hooks.builtins.metadata.enrich import MetadataEnrich
-        from .hooks.builtins.metadata.audit import Audit
+        from .hooks.checksum import Checksum
+        from .hooks.enrich import MetadataEnrich
+        from .hooks.audit import Audit
 
         global_hook_objs.append(Checksum(algo="md5"))
         global_hook_objs.append(MetadataEnrich())
@@ -682,7 +692,7 @@ def fetchez_cli():
 
     # --- Parse out modules/commands ---
     module_keys = {}
-    for key, val in registry.FetchezRegistry._modules.items():
+    for key, val in ModuleRegistry.get_registry().items():
         module_keys[key] = key
         for alias in val.get("aliases", []):
             module_keys[alias] = key
@@ -740,11 +750,6 @@ def fetchez_cli():
                 else:
                     current_cmd = "file"
                     current_args = [f"--paths={arg}"]
-                # current_cmd = "file"
-                # if current_args:
-                #     current_args[0] += f",{arg}"
-                # else:
-                #     current_args = [f"--paths={arg}"]
 
     if current_cmd:
         commands.append((current_cmd, current_args))
@@ -757,8 +762,8 @@ def fetchez_cli():
             commands[0][1].append("--help")
 
     if not commands:
-        logger.error("You must select at least one module")
         parser.print_help()
+        logger.error("You must select at least one module")
         sys.exit(0)
 
     if not global_args.region:
@@ -775,7 +780,7 @@ def fetchez_cli():
     usable_modules = []
     for mod_key, mod_argv in commands:
         # LOAD MODULE HERE
-        mod_cls = registry.FetchezRegistry.load_module(mod_key)
+        mod_cls = ModuleRegistry.get_class(mod_key)
         if mod_cls is None:
             logger.error(f"Could not load module: {mod_key}")
             continue

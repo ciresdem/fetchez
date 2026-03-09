@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.pipeline.fn_filter
+fetchez.hooks.fn_filter
 ~~~~~~~~~~~~~
 
 Filter the filenames to be used in the pipeline.
@@ -25,9 +25,9 @@ class FilenameFilter(FetchHook):
     """Filter the pipeline results by filename pattern."""
 
     name = "filename_filter"
-    desc = "Filter results by filename. Usage: --hook fn_filter:match=.tif"
-    stage = "file"
-    category = "pipeline"
+    meta_desc = "Filter results by filename. Usage: --hook fn_filter:match=.tif"
+    meta_stage = "file"
+    meta_category = "pipeline"
 
     def __init__(self, match=None, exclude=None, regex=False, **kwargs):
         """

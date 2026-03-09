@@ -16,7 +16,7 @@ import logging
 import datetime
 import urllib.parse
 import posixpath
-from fetchez.core import FetchModule
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,28 @@ logger = logging.getLogger(__name__)
     cloud_cover="(min/max) cloud cover",
 )
 class EarthAccess(FetchModule):
+    name = "earthaccess"
+    meta_category = "Generic"
+    meta_desc = "NASA Earth Science Data via EarthAccess"
+    meta_agency = "NASA"
+    meta_tags = [
+        "nasa",
+        "cmr",
+        "harmony",
+        "satellite",
+        "earth-science",
+        "remote-sensing",
+        "nsidc",
+    ]
+    meta_region = "Global"
+    meta_resolution = "Varies"
+    meta_license = "NASA Data and Information Policy (Open)"
+    meta_urls = {
+        "home": "https://earthdata.nasa.gov/",
+        "search": "https://search.earthdata.nasa.gov/",
+        "git": "https://github.com/nsidc/earthaccess",
+    }
+
     """Fetch NASA Earth Data using the `earthaccess` library.
 
     This module leverages the official NSIDC `earthaccess` library to search

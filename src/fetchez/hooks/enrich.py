@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.builtins.metadata.enrich
+fetchez.hooks.enrich
 ~~~~~~~~~~~~~
 
 Enrich the entry with some metadata
@@ -28,9 +28,9 @@ class MetadataEnrich(FetchHook):
     """
 
     name = "enrich"
-    desc = "Add file timestamps and mime-types to metadata."
-    stage = "file"
-    category = "metadata"
+    meta_desc = "Add file timestamps and mime-types to metadata."
+    meta_stage = "file"
+    meta_category = "metadata"
 
     def run(self, entries):
         for mod, entry in entries:

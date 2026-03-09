@@ -16,18 +16,17 @@ Usage:
     files = fetchez.get("nos_hydro", region=[-120, -118, 33, 34], year=2020)
 
     # Advanced (With Hooks)
-    files = fetchez.get(region=[-120, -118, 33, 34] "charts", hooks=['unzip', 'fn_filter:match=.000'])
+    files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000'])
 """
 
 import os
 import logging
 from typing import List, Optional, Dict, Any
 
+from .utils import parse_hook_string
 from .core import run_fetchez
-from .registry import FetchezRegistry
-from .hooks.registry import HookRegistry
 from .spatial import parse_region
-# from .cli import setup_logging
+from .registry import ModuleRegistry, HookRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -35,19 +34,18 @@ logger = logging.getLogger(__name__)
 def search(term: Optional[str] = None) -> Dict[Any, Any]:
     """Search available modules by tag, description, or name."""
 
-    FetchezRegistry.load_user_plugins()
-    FetchezRegistry.load_installed_plugins()
+    ModuleRegistry.load_all()
 
     if not term:
-        return FetchezRegistry._modules
+        return ModuleRegistry.get_registry()
 
-    results = FetchezRegistry.search_modules(term)
+    results = ModuleRegistry.search_modules(term)
     if not results:
         return {}
 
     found_results = {}
     for mod_key in results:
-        meta = FetchezRegistry.get_info(mod_key)
+        meta = ModuleRegistry.get_info(mod_key)
         found_results.update({mod_key: meta})
     return found_results
 
@@ -74,11 +72,10 @@ def get(
         A list of absolute paths to the downloaded files.
     """
 
-    FetchezRegistry.load_user_plugins()
-    FetchezRegistry.load_installed_plugins()
-    HookRegistry.load_builtins()
+    ModuleRegistry.load_all()
+    HookRegistry.load_all()
 
-    ModCls = FetchezRegistry.load_module(module)
+    ModCls = ModuleRegistry.get_class(module)
     if not ModCls:
         raise ValueError(f"Unknown module: {module}")
 
@@ -87,8 +84,8 @@ def get(
     active_hooks = []
     if hooks:
         for h_str in hooks:
-            name, h_kwargs = _parse_hook_string(h_str)
-            HookCls = HookRegistry.get_hook(name)
+            name, h_kwargs = parse_hook_string(h_str)
+            HookCls = HookRegistry.get_class(name)
             if HookCls:
                 active_hooks.append(HookCls(**h_kwargs))
             else:
@@ -123,35 +120,3 @@ def get(
                 downloaded_files.append(os.path.abspath(fn))
 
     return downloaded_files
-
-
-def _parse_hook_string(h_str):
-    """Helper to parse 'hook:arg=val' strings."""
-
-    if ":" in h_str:
-        name, rest = h_str.split(":", 1)
-        parts = rest.split(",")
-    else:
-        name = h_str
-        parts = []
-
-    kwargs = {}
-    for p in parts:
-        if "=" in p:
-            k, v = p.split("=", 1)
-            if v.lower() == "true":
-                v = True
-            elif v.lower() == "false":
-                v = False
-            else:
-                try:
-                    if "." in v:
-                        v = float(v)
-                    else:
-                        v = int(v)
-                except Exception:
-                    pass
-            kwargs[k] = v
-        else:
-            kwargs[p] = True
-    return name, kwargs

@@ -11,7 +11,7 @@ Fetch HydroLAKES Global Lake Polygons.
 :license: MIT, see LICENSE for more details.
 """
 
-from fetchez import core
+from fetchez.modules import FetchModule
 from fetchez import cli
 
 HYDROLAKES_SHP_URL = (
@@ -29,7 +29,17 @@ HYDROLAKES_GDB_URL = (
     help_text="HydroLAKES Global Polygons",
     format="File format: 'shp' (Shapefile) or 'gdb' (GeoDatabase). Default: shp",
 )
-class HydroLAKES(core.FetchModule):
+class HydroLAKES(FetchModule):
+    name = "hydrolakes"
+    meta_category = "Hydrography"
+    meta_desc = "HydroLAKES Global Shoreline Polygons"
+    meta_agency = "HydroSHEDS"
+    meta_tags = ["lakes", "hydrography", "polygons", "global", "hydrosheds"]
+    meta_region = "Global"
+    meta_resolution = "Vector"
+    meta_license = "CC-BY 4.0"
+    meta_urls = {"home": "https://www.hydrosheds.org/products/hydrolakes"}
+
     """Fetch HydroLAKES global shoreline polygons.
 
     HydroLAKES provides the shoreline polygons for all global lakes
