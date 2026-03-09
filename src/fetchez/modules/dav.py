@@ -40,7 +40,7 @@ DAV_API_URL = "https://coast.noaa.gov/dataviewer/api/v1/search/missions"
 DAV_HEADERS = {"Content-Type": "application/json"}
 
 try:
-    from fetchez.modules.builtins.tnm import TheNationalMap
+    from fetchez.modules.tnm import TheNationalMap
 
     HAS_TNM = True
 except ImportError:

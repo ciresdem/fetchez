@@ -18,7 +18,7 @@ import importlib
 import importlib.util
 import inspect
 import logging
-from typing import Dict, Any, Type
+from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
@@ -31,10 +31,11 @@ class PluginRegistry:
     """Base class for dynamically discovering and registering plugins."""
 
     # These must be defined by the subclasses
-    base_class: Type = None
+    base_class: Optional[Type] = None
     builtin_pkg: str = ""
     entry_point_group: str = ""
     user_folder: str = ""
+    _registry: Dict[Any, Any] = {}
 
     @classmethod
     def get_registry(cls) -> Dict[str, Any]:
