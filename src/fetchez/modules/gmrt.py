@@ -157,7 +157,7 @@ class GMRT(FetchModule):
                 url=req.url,
                 dst_fn=outf,
                 data_type="gmrt",
-                srs="epsg:4326", # vertical is mss
+                srs="epsg:4326",  # vertical is mss
                 bounds=self.gmrt_region,  # (w, e, s, n)
                 resolution=self.res,  # e.g., 'max' or '30m'
                 date=utils.this_date(),  # e.g., '2025' (GMRT is a synthesis)
