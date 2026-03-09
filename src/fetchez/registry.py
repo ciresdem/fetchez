@@ -35,15 +35,15 @@ class PluginRegistry:
     builtin_pkg: str = ""
     entry_point_group: str = ""
     user_folder: str = ""
-    #_registry = {}
 
     @classmethod
     def get_registry(cls) -> Dict[str, Any]:
-        """Lazy initialization of the class-level registry dictionary."""
+        """Initialization of the class-level registry dictionary."""
 
         if not hasattr(cls, "_registry"):
-            cls._registry = {}
-        return cls._registry
+            setattr(cls, "_registry", {})
+
+        return getattr(cls, "_registry")
 
     @classmethod
     def load_builtins(cls):
