@@ -75,6 +75,8 @@ class FetchModule:
         if self.region is None or not spatial.region_valid_p(self.region):
             self.region = (-180, 180, -90, 90)
 
+        self.silent = logger.getEffectiveLevel() > logging.INFO
+
     @property
     def hooks(self):
         """Combine internal and external hooks in the correct execution order."""
