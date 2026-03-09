@@ -3,7 +3,7 @@
 The most common contribution is adding support for a new data source. Because Fetchez uses dynamic discovery, you do not need to register your module in any central files!
 
 1.  **Create the Module File:**
-    Create a new Python file in `src/fetchez/moduless` (e.g., `mydata.py`).
+    Create a new Python file in `src/fetchez/modules/` (e.g., `mydata.py`).
 
 2.  **Inherit from FetchModule:**
     Your class must inherit from `fetchez.modules.FetchModule`. You must define the `meta_` class attributes so the CLI and API can discover and index your module. Be sure to include all the relevant metadata for posterity and discoverability.
