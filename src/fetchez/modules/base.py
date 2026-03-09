@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+fetchez.modules.base
+~~~~~~~~~~~~~~~~~~~~~~
+
+This holds the FetchModule super class
+
+:copyright: (c) 2010-2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
+"""
+
+import os
+import logging
+import urllib.parse
+from typing import List, Dict, Any
+
+from fetchez import spatial
+from fetchez import utils
+from fetchez.core import Fetch
+
+logger = logging.getLogger(__name__)
+
+
+class FetchModule:
+    """Base class for all Fetchez data modules."""
+
+    # --- Registry Metadata (Override these in subclasses) ---
+    name = "base_module"
+    meta_category = "Generic"
+    meta_desc = "Base module class."
+    meta_agency = "Unknown"
+    meta_tags: List[Any] = []
+    meta_aliases: List[Any] = []
+    meta_urls: Dict[Any, Any] = {}
+
+    def __init__(
+        self,
+        src_region=None,
+        hook=None,
+        outdir=None,
+        min_year=None,
+        max_year=None,
+        weight=1.0,
+        uncertainty=0.0,
+        params=None,
+        **kwargs,
+    ):
+        self.region = src_region
+        self.outdir = outdir
+        self.params = params or {}
+        self.status = 0
+        self.results = []
+
+        # Determine base output directory using the module's registered name
+        if self.outdir is None:
+            self._outdir = os.path.join(os.getcwd(), self.name)
+        else:
+            self._outdir = os.path.join(self.outdir, self.name)
+
+        self.min_year = utils.int_or(min_year)
+        self.max_year = utils.int_or(max_year)
+        self.weight = float(weight)
+        self.uncertainty = float(uncertainty)
+
+        # Default Headers (Can be overridden in subclass)
+        self.headers = {"User-Agent": "fetchez/0.5.0"}
+
+        self.internal_hooks = []
+        self.external_hooks = hook if hook else []
+
+        # Default to the whole world if the region is invalid or missing.
+        # Note: This will result in massive downloads for global datasets!
+        if self.region is None or not spatial.region_valid_p(self.region):
+            self.region = (-180, 180, -90, 90)
+
+    @property
+    def hooks(self):
+        """Combine internal and external hooks in the correct execution order."""
+        return self.internal_hooks + self.external_hooks
+
+    def add_hook(self, hook_obj):
+        """Add a hook instance at runtime."""
+        if hasattr(hook_obj, "run"):
+            self.external_hooks.append(hook_obj)
+        else:
+            logger.warning(
+                f"Hook {hook_obj} does not appear to be a valid FetchHook class."
+            )
+
+    def run(self):
+        """Override this method in a subclass to populate `self.results`."""
+        raise NotImplementedError("Subclasses must implement the `run` method.")
+
+    def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
+        """Standardized method for fetching a single result entry."""
+        try:
+            parsed_url = urllib.parse.urlparse(entry["url"])
+            if parsed_url.scheme == "ftp":
+                status = Fetch(url=entry["url"], headers=self.headers).fetch_ftp_file(
+                    entry["dst_fn"]
+                )
+            else:
+                status = Fetch(
+                    url=entry["url"],
+                    headers=self.headers,
+                ).fetch_file(
+                    entry["dst_fn"],
+                    check_size=check_size,
+                    tries=retries,
+                    verbose=verbose,
+                )
+        except Exception as e:
+            logger.debug(f"Fetch failed for {entry['url']}: {e}")
+            status = -1
+
+        return status
+
+    def add_entry_to_results(self, url, dst_fn, data_type, **kwargs):
+        """Add fetch entries to `results`.
+
+        At minimum, `url`, `dst_fn` and `data_type` are required.
+        Any additional keyword arguments will be added to the entry dictionary.
+        """
+        if utils.str_or(dst_fn) is not None:
+            # Only join with outdir if dst_fn isn't already an absolute path
+            if not os.path.isabs(dst_fn):
+                dst_fn = os.path.join(self._outdir, dst_fn)
+
+        entry = {"url": url, "dst_fn": dst_fn, "data_type": data_type}
+        entry.update(kwargs)
+        self.results.append(entry)
+
+
+# =============================================================================
+# Core/Test Modules
+# =============================================================================
+
+
+class HttpDataset(FetchModule):
+    """Fetch an HTTP/HTTPS file directly from a URL."""
+
+    name = "url_fetcher"
+    meta_category = "Generic"
+    meta_desc = "Fetch a file directly from a URL."
+    meta_resolution = "N/A"
+    meta_license = "N/A"
+
+    def __init__(self, url=None, **kwargs):
+        super().__init__(**kwargs)
+        self.url = url
+
+    def run(self):
+        if self.url:
+            self.add_entry_to_results(self.url, os.path.basename(self.url), "https")
+
+
+class Scratch(FetchModule):
+    """Scratch module that populates results directly from arguments."""
+
+    name = "scratch"
+    meta_category = "Reference"
+    meta_desc = "Testing module that injects direct arguments into the pipeline."
+    meta_resolution = "N/A"
+    meta_license = "N/A"
+
+    def __init__(self, url=None, path=None, datatype=None, **kwargs):
+        super().__init__(**kwargs)
+        self.url = url
+        self.path = path
+        self.datatype = datatype
+
+    def run(self):
+        if self.url and self.path and self.datatype:
+            self.add_entry_to_results(self.url, self.path, self.datatype)
