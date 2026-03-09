@@ -331,7 +331,7 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
 def region_from_place(query: str, centered: bool = True) -> Optional[Region]:
     """Resolve 'loc:PlaceName' to a bounding box."""
 
-    from .modules.builtins.nominatim import Nominatim
+    from .modules.nominatim import Nominatim
 
     clean_q = query.split(":", 1)[1] if ":" in query else query
     nom = Nominatim(query=clean_q)
