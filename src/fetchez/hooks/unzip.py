@@ -27,9 +27,9 @@ class Unzip(FetchHook):
     """Automatically extract/decompress files after download."""
 
     name = "unzip"
-    desc = "Extract .zip, .tar, .tar.gz, and .gz files."
-    stage = "file"
-    category = "file-op"
+    meta_desc = "Extract .zip, .tar, .tar.gz, and .gz files."
+    meta_stage = "file"
+    meta_category = "file-op"
 
     def __init__(self, remove=False, overwrite=False, **kwargs):
         """Decompress and/or extract data from archives.
