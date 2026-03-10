@@ -13,7 +13,6 @@ custom recipe mutators.
 :license: MIT, see LICENSE for more details.
 """
 
-from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
