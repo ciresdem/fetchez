@@ -17,9 +17,8 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry
+from .registry import ModuleRegistry, HookRegistry, SchemaRegistry
 from .utils import TqdmLoggingHandler
-from .schema import SchemaRegistry
 from . import config
 from . import presets
 from . import __version__ as fetchez_version
@@ -182,6 +181,9 @@ class Recipe:
 
     def run(self):
         """Execute the recipe!"""
+
+        ModuleRegistry.load_all()
+        SchemaRegistry.load_all()
 
         if not self.config:
             return

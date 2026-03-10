@@ -22,7 +22,7 @@ from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
-from fetchez.schema import BaseSchema
+from fetchez.schemas import BaseSchema
 
 logger = logging.getLogger(__name__)
 
@@ -225,3 +225,22 @@ class SchemaRegistry(PluginRegistry):
     builtin_pkg = "fetchez.schemas"
     entry_point_group = "fetchez.schemas"
     user_folder = "schemas"
+
+    @classmethod
+    def apply_schema(cls, config):
+        """Looks for a schema in the config and applies its rules."""
+
+        schema_name = config.get("domain", {}).get("schema")
+
+        if schema_name:
+            schema_name = schema_name.lower()
+            if schema_name in cls.get_registry():
+                logger.info(f"Applying '{schema_name}' schema rules to recipe...")
+                SchemaCls = cls.get_class(schema_name)
+                return SchemaCls.apply(config)
+            else:
+                logger.warning(
+                    f"Schema '{schema_name}' requested but not registered. Ignoring."
+                )
+
+        return config

@@ -2,7 +2,7 @@ Schema Registry
 ===============
 
 ```{eval-rst}
-.. automodule:: fetchez.schema
+.. automodule:: fetchez.schemas
    :members:
    :undoc-members:
    :show-inheritance:

@@ -12,6 +12,6 @@ modules
 hooks
 spatial
 recipe
-schema
+schemas
 fred
 ```
