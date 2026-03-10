@@ -25,7 +25,7 @@ class FocusSink(FetchHook):
     its outputs in `entry['artifacts'][hook_name] = output_path`.
 
     Usage:
-      --hook focus_sink:target=simple_stack
+      --hook focus_sink:target=blended_checkpoint
     """
 
     name = "focus_sink"
@@ -44,11 +44,14 @@ class FocusSink(FetchHook):
 
         new_entries = []
         seen_paths = set()
+        found_target = False
 
         for mod, entry in entries:
             artifacts = entry.get("artifacts", {})
 
             if self.target in artifacts:
+                found_target = True
+
                 # Artifacts can be a single path or a list of paths
                 artifact_paths = artifacts[self.target]
                 if isinstance(artifact_paths, str):
@@ -60,13 +63,19 @@ class FocusSink(FetchHook):
 
                         focused_entry = {
                             "url": f"file://{path}",
-                            # "src_fn": entry.get("dst_fn"),
                             "dst_fn": path,
                             "status": 0,
                             "data_type": f"{self.target}_artifact",
                             "artifacts": artifacts,
                         }
                         new_entries.append((mod, focused_entry))
+
+        if not found_target:
+            logger.warning(
+                f"Artifact target '{self.target}' was not found in any pipeline entries! "
+                f"Ignoring focus request and passing original stream onward."
+            )
+            return entries
 
         logger.info(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
         return new_entries
