@@ -32,9 +32,9 @@ NCEI_DATA_URL = "https://data.ngdc.noaa.gov/platforms/"
 NCEI_SEARCH_URL = "https://gis.ngdc.noaa.gov/mapviewer-support/multibeam/files.groovy?"
 
 # MBDB (ArcGIS)
-#MBDB_FEATURES_URL = (
+# MBDB_FEATURES_URL = (
 #    "https://gis.ngdc.noaa.gov/arcgis/rest/services/multibeam_datasets/FeatureServer"
-#)
+# )
 MBDB_FEATURES_URL = (
     "https://gis.ngdc.noaa.gov/arcgis/rest/services/multibeam_files/MapServer"
 )
@@ -346,7 +346,7 @@ class MBDB(FetchModule):
         if self.region is None:
             return []
 
-        #self.where = "MBIO_FORMAT_ID=71"
+        # self.where = "MBIO_FORMAT_ID=71"
         w, e, s, n = self.region
         params = {
             "where": self.where,
@@ -361,7 +361,7 @@ class MBDB(FetchModule):
 
         logger.info("Querying MBDB ArcGIS Server...")
         req = core.Fetch(self._mb_features_query_url).fetch_req(params=params)
-        #print(req.text)
+        # print(req.text)
         if req is None:
             return []
 
