@@ -32,8 +32,11 @@ NCEI_DATA_URL = "https://data.ngdc.noaa.gov/platforms/"
 NCEI_SEARCH_URL = "https://gis.ngdc.noaa.gov/mapviewer-support/multibeam/files.groovy?"
 
 # MBDB (ArcGIS)
+#MBDB_FEATURES_URL = (
+#    "https://gis.ngdc.noaa.gov/arcgis/rest/services/multibeam_datasets/FeatureServer"
+#)
 MBDB_FEATURES_URL = (
-    "https://gis.ngdc.noaa.gov/arcgis/rest/services/multibeam_datasets/FeatureServer"
+    "https://gis.ngdc.noaa.gov/arcgis/rest/services/multibeam_files/MapServer"
 )
 
 # R2R
@@ -314,7 +317,7 @@ class MBDB(FetchModule):
     """
 
     def __init__(
-        self, where: str = "1=1", layer: int = 1, want_inf: bool = True, **kwargs
+        self, where: str = "1=1", layer: int = 0, want_inf: bool = True, **kwargs
     ):
         super().__init__(name="mbdb", **kwargs)
         self.where = where
@@ -343,6 +346,7 @@ class MBDB(FetchModule):
         if self.region is None:
             return []
 
+        #self.where = "MBIO_FORMAT_ID=71"
         w, e, s, n = self.region
         params = {
             "where": self.where,
@@ -357,6 +361,7 @@ class MBDB(FetchModule):
 
         logger.info("Querying MBDB ArcGIS Server...")
         req = core.Fetch(self._mb_features_query_url).fetch_req(params=params)
+        #print(req.text)
         if req is None:
             return []
 
@@ -365,47 +370,32 @@ class MBDB(FetchModule):
 
         for feature in features:
             attrs = feature.get("attributes", {})
-            download_url = attrs.get("DOWNLOAD_URL")
+            data_file = attrs.get("DATA_FILE")
 
-            if not download_url:
+            if not data_file:
                 continue
 
-            # Scrape the download page for MB files
-            # This is heavy, but necessary as MBDB only gives directory links
-            page = core.Fetch(download_url).fetch_html()
-            if page is None:
-                continue
+            # data_file is .raw.gz, we want .fbt
+            fbt_file = data_file.rsplit(".", 1)[0] + ".fbt"
+            inf_file = data_file.rsplit(".", 1)[0] + ".inf"
+            download_url = f"{NCEI_DATA_URL}{fbt_file}"
+            inf_url = f"{NCEI_DATA_URL}{inf_file}"
 
-            # Look for /MB/ links using lxml
-            mb_links = page.xpath('//a[contains(@href, "/MB/")]/@href')
-
-            for mb in mb_links:
-                # Resolve URL
-                # If relative, join with download_url base.
-                # Usually absolute in NCEI indexes though.
-                if "http" not in mb:
-                    mb = os.path.join(download_url, mb)
-
-                # Check spatial bounds via INF to filter within the survey
-                # (Since survey bbox covers entire cruise, but we only want files in our ROI)
-                inf_url, inf_region = self.check_inf_region(mb)
-
-                if inf_region and spatial.regions_intersect_p(inf_region, self.region):
-                    self.add_entry_to_results(
-                        url=mb,
-                        dst_fn=os.path.basename(mb),
-                        data_type="mbs",
-                        agency="NOAA NCEI",
-                        license="Public Domain",
-                    )
-
-                    if self.want_inf:
-                        self.add_entry_to_results(
-                            url=inf_url,
-                            dst_fn=os.path.basename(inf_url),
-                            data_type="mb_inf",
-                            agency="NOAA NCEI",
-                        )
+            self.add_entry_to_results(
+                url=download_url,
+                dst_fn=os.path.basename(download_url),
+                data_type="mbs",
+                agency="NOAA NCEI",
+                license="Public Domain",
+            )
+            if self.want_inf:
+                # Add Metadata File
+                self.add_entry_to_results(
+                    url=inf_url,
+                    dst_fn=os.path.basename(inf_url),
+                    data_type="mb_inf",
+                    agency="NOAA NCEI",
+                )
         return self
 
 
