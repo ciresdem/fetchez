@@ -862,7 +862,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
             with tqdm(
                 total=total_files,
                 unit="file",
-                desc="Fetching",
+                desc="Fetchez",
                 position=0,
                 leave=False,
                 disable=silent,
