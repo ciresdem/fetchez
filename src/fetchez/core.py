@@ -795,7 +795,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
     # --- Module Pre-Hooks ---
     for mod in modules:
-        mod_pre = [h for h in mod.hooks if h.stage == "pre"]
+        mod_pre = [h for h in mod.hooks if h.stage == "manifest"]
         if not mod_pre:
             continue
 
@@ -809,7 +809,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
                 utils._log_hook_history(local_entries, hook)
             except Exception as e:
-                logger.error(f'Module "{mod.name}" pre-hook "{hook.name}" failed: {e}')
+                logger.error(
+                    f'Module "{mod.name}" manifest-hook "{hook.name}" failed: {e}'
+                )
 
         # Update the mod.results
         mod.results = [e for m, e in local_entries]
@@ -832,7 +834,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
             all_entries.append((mod, entry))
 
     # --- Global Pre-Hooks ---
-    global_pre = [h for h in global_hooks if h.stage == "pre"]
+    global_pre = [h for h in global_hooks if h.stage == "manifest"]
     for hook in global_pre:
         try:
             result = hook.run(all_entries)
@@ -841,7 +843,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
             utils._log_hook_history(all_entries, hook)
         except Exception as e:
-            logger.error(f'Global pre-hook "{hook.name}" failed: {e}')
+            logger.error(f'Global manifest-hook "{hook.name}" failed: {e}')
 
     total_files = len(all_entries)
     if total_files == 0:
@@ -862,7 +864,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
             with tqdm(
                 total=total_files,
                 unit="file",
-                desc="Fetching",
+                desc="Fetchez",
                 position=0,
                 leave=False,
                 disable=silent,
@@ -960,7 +962,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
             results_by_mod[owner_mod].append((owner_mod, entry))
 
     for mod in modules:
-        mod_post = [h for h in mod.hooks if h.stage == "post"]
+        mod_post = [h for h in mod.hooks if h.stage == "collection"]
         if mod_post and results_by_mod[mod]:
             current_mod_entries = results_by_mod[mod]
             for hook in mod_post:
@@ -971,7 +973,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                     utils._log_hook_history(current_mod_entries, hook)
                 except Exception as e:
                     logger.error(
-                        f'Module "{mod.name}" post-hook "{hook.name}" failed: {e}'
+                        f'Module "{mod.name}" collection-hook "{hook.name}" failed: {e}'
                     )
             results_by_mod[mod] = current_mod_entries
 
@@ -981,7 +983,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
         flat_results.extend(mod_entries)
 
     # Global-level Post-Hooks
-    global_post = [h for h in global_hooks if h.stage == "post"]
+    global_post = [h for h in global_hooks if h.stage == "collection"]
     for hook in global_post:
         try:
             flat_results = hook.run(flat_results)
@@ -989,7 +991,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                 flat_results = []
             utils._log_hook_history(flat_results, hook)
         except Exception as e:
-            logger.error(f'Global post-hook "{hook.name}" failed: {e}')
+            logger.error(f'Global collection-hook "{hook.name}" failed: {e}')
 
 
 # =============================================================================

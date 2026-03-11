@@ -6,12 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### ADDED
+- Add "lidarbc" fetchez modules (canada)
+
+
+### CHANGED
 - FetchModule is now in fetchez.modules
 - fetchez.registry combines all registries (modules/hooks for now)
 - Hooks are moved out of builtins to flat directory
 - Now load extensions/plugins automatically
-- Add "lidarbc" fetchez modules (canada)
 - Module metadata is prefixed with "meta_"
+- Stage names: "pre" -> "manifest"; "post" -> "collection"
+- Schema is now Schemas and uses global registry.
+
+### BUGFIX
+- Update to fbt reading, accounting for heading; fix!
 
 ## [0.4.3] - 2026-03-02
 - Breaks hooks into individual files, out of topical ones.

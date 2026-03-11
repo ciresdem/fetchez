@@ -7,9 +7,9 @@ Fetchez is designed to be highly extendable. Instead of just downloading files, 
 Fetchez includes a powerful **Hook System** that allows you to chain actions together. Hooks run in a pipeline, meaning the output of one hook (e.g., unzipping a file) becomes the input for the next (e.g., streaming and processing it).
 
 There are three stages in the Hook lifecycle:
-1. **PRE Stage:** Runs before any data is downloaded (e.g., filtering URLs, masking regions).
+1. **MANIFEST Stage:** (`pre` stage) Runs before any data is downloaded (e.g., filtering URLs, masking regions).
 2. **FILE Stage:** Runs on each individual file as it is downloaded (e.g., unzipping, converting formats, or piping to stdout).
-3. **POST Stage:** Runs after all files are downloaded (e.g., merging grids, calculating checksums).
+3. **COLLECTION Stage:** (`post` stage) Runs after all files are downloaded (e.g., merging grids, calculating checksums).
 
 Each hook defines it's default `stage`, which can be changed at any time.
 

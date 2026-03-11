@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def test_registry_integrity():
     """Ensure all core modules in the registry can be imported."""
 
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_builtins()
     modules = ModuleRegistry.get_registry()
 
     assert len(modules) > 0
@@ -30,7 +30,7 @@ def test_registry_integrity():
 def test_module_metadata_complete():
     """Ensure all core modules have the required metadata attributes defined."""
 
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_builtins()
     modules = ModuleRegistry.get_registry()
 
     # In the new registry, `meta_` is stripped from the keys in the dictionary!
@@ -53,7 +53,7 @@ def test_module_metadata_complete():
 
 
 def test_alias_resolution():
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_builtins()
 
     primary_cls = ModuleRegistry.get_class("lidarbc")
     alias_cls = ModuleRegistry.get_class("geobc")
@@ -66,7 +66,7 @@ def test_alias_resolution():
 def test_hook_registry_integrity():
     """Ensure all core hooks can be loaded and have required metadata."""
 
-    HookRegistry.load_all()
+    HookRegistry.load_builtins()
 
     hooks = HookRegistry.get_registry()
     assert len(hooks) > 0
@@ -91,15 +91,15 @@ def test_hook_registry_integrity():
 
 def test_hook_stage_mapping():
     class DummyHook(FetchHook):
-        meta_stage = "post"
+        meta_stage = "collection"
 
     # Defaults to the class meta_stage
     hook = DummyHook()
-    assert hook.stage == "post"
+    assert hook.stage == "collection"
 
     # Can be overridden by the user at runtime
-    hook_override = DummyHook(stage="pre")
-    assert hook_override.stage == "pre"
+    hook_override = DummyHook(stage="manifest")
+    assert hook_override.stage == "manifest"
 
 
 def test_optional_dependencies_are_protected():
