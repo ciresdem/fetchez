@@ -809,7 +809,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
                 utils._log_hook_history(local_entries, hook)
             except Exception as e:
-                logger.error(f'Module "{mod.name}" manifest-hook "{hook.name}" failed: {e}')
+                logger.error(
+                    f'Module "{mod.name}" manifest-hook "{hook.name}" failed: {e}'
+                )
 
         # Update the mod.results
         mod.results = [e for m, e in local_entries]

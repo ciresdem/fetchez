@@ -33,10 +33,7 @@ class FetchHook:
         raw_stage = stage or getattr(self.__class__, "meta_stage", "file")
 
         # Map legacy names to the new modern names
-        stage_aliases = {
-            "pre": "manifest",
-            "post": "collection"
-        }
+        stage_aliases = {"pre": "manifest", "post": "collection"}
 
         # Normalize and apply alias
         mapped_stage = stage_aliases.get(raw_stage.lower(), raw_stage.lower())
@@ -45,7 +42,7 @@ class FetchHook:
         if mapped_stage in ["manifest", "file", "collection"]:
             self.stage = mapped_stage
         else:
-            self.stage = "file" # Safe fallback
+            self.stage = "file"  # Safe fallback
 
     def __eq__(self, other):
         """Hooks are 'equal' if they are the same type and have identical dicts."""

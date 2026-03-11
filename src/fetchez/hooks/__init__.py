@@ -11,7 +11,6 @@ This init file also holds the FetchHook super class
 :license: MIT, see LICENSE for more details.
 """
 
-
 from .base import FetchHook
 
 __all__ = ["FetchHook"]
