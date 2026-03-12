@@ -163,8 +163,8 @@ class FetchModule:
                     continue
                 cache_dict[key] = clean_val
 
+        # logger.debug(f"\n--- {self.name} CACHE STATE ---")
         # import pprint
-        # print(f"\n--- {self.name} CACHE STATE ---")
         # pprint.pprint(cache_dict)
 
         state_str = json.dumps(cache_dict, sort_keys=True)
@@ -204,12 +204,26 @@ class FetchModule:
         self._original_run()
 
         if self.results:
+
+            def _json_fallback(obj):
+                """Safely serialize custom objects like Region."""
+
+                if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
+                    return list(obj)
+
+                return str(obj)
+
             try:
                 with open(cache_file, "w") as f:
-                    json.dump(self.results, f, indent=2)
+                    json.dump(self.results, f, indent=2, default=_json_fallback)
                 logger.debug(f"[{self.name}] Saved API results to cache.")
             except Exception as e:
                 logger.warning(f"[{self.name}] Failed to save cache: {e}")
+                if os.path.exists(cache_file):
+                    try:
+                        os.remove(cache_file)
+                    except Exception:
+                        pass
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
         """Standardized method for fetching a single result entry."""
