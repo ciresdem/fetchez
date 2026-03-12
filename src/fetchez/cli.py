@@ -634,11 +634,15 @@ def fetchez_cli():
                     origin = mod_path.split(".")[0].capitalize()
                 else:
                     origin = "User Plugin"
-
+                cat_stage = meta.get("stage", "file")
+                if cat_stage == "pre":
+                    cat_stage = "manifest"
+                if cat_stage == "post":
+                    cat_stage = "collection"
                 # Print with origin tag in yellow
                 print(
                     f"  {utils.colorize(name, utils.BOLD):<26} "
-                    f"{utils.colorize(f'[{origin}]', utils.YELLOW):<13} : {desc}"
+                    f"{utils.colorize(f'[{cat_stage}]', utils.YELLOW):<13} : {desc}"
                 )
 
         print()
