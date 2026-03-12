@@ -25,6 +25,7 @@ from . import core
 from . import presets
 from . import config
 from . import __version__
+from .recipe import Recipe
 from .registry import ModuleRegistry, HookRegistry
 
 logger = logging.getLogger(__name__)
@@ -402,6 +403,13 @@ CUDEM home page: <http://cudem.colorado.edu>
 
     exec_grp = parser.add_argument_group("Execution Control")
     exec_grp.add_argument(
+        "-r",
+        "--recipe",
+        type=str,
+        default=None,
+        help="The YAML Recipe file to process or URL/Keyword.",
+    )
+    exec_grp.add_argument(
         "-O",
         "--outdir",
         default=None,
@@ -508,21 +516,6 @@ def fetchez_cli():
 
     user_presets = presets.get_global_presets()
     user_mod_presets = config.load_user_config("presets").get("modules", {})
-
-    # Check if first arg exists and ends in .json or yaml. -- project file --
-    if (
-        len(sys.argv) > 1
-        and (sys.argv[1].endswith(".json") or sys.argv[1].endswith(".yaml"))
-        and os.path.isfile(sys.argv[1])
-    ):
-        from . import recipe
-
-        setup_logging()
-
-        project_file = sys.argv[1]
-        recipe = recipe.Recipe.from_file(project_file)
-        recipe.run()
-        sys.exit(0)
 
     parser = get_parser()
 
@@ -647,6 +640,14 @@ def fetchez_cli():
 
         print()
         sys.exit(0)
+
+    # --- Run a recipe.yaml ---
+    if hasattr(global_args, "recipe") and global_args.recipe:
+        project_file = global_args.recipe
+        if project_file.endswith(".yaml"):
+            recipe = Recipe.from_file(project_file)
+            recipe.run()
+            sys.exit(0)
 
     # --- Init Global Hook Shortcuts ---
     global_hook_objs = []
