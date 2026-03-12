@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### ADDED
 - Add "lidarbc" fetchez modules (canada)
-
+- Add .fetchez_cache to save module results for re-use
 
 ### CHANGED
 - FetchModule is now in fetchez.modules
