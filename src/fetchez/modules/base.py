@@ -14,6 +14,8 @@ This holds the FetchModule super class
 import os
 import logging
 import urllib.parse
+import json
+import hashlib
 from typing import List, Dict, Any
 
 from fetchez import spatial
@@ -45,6 +47,7 @@ class FetchModule:
         weight=1.0,
         uncertainty=0.0,
         params=None,
+        use_cache=True,
         **kwargs,
     ):
         self.region = src_region
@@ -52,8 +55,17 @@ class FetchModule:
         self.params = params or {}
         self.status = 0
         self.results = []
+        self.use_cache = use_cache
 
-        # Determine base output directory using the module's registered name
+        # Store the parameters used to invoke this module for hashing
+        self._init_kwargs = kwargs.copy()
+        self._init_kwargs.update({
+            "region": list(src_region) if src_region else None,
+            "min_year": min_year,
+            "max_year": max_year,
+            "params": self.params
+        })
+
         if self.outdir is None:
             self._outdir = os.path.join(os.getcwd(), self.name)
         else:
@@ -77,13 +89,18 @@ class FetchModule:
 
         self.silent = logger.getEffectiveLevel() > logging.INFO
 
+        self._original_run = self.run
+        self.run = self._cached_run
+
     @property
     def hooks(self):
         """Combine internal and external hooks in the correct execution order."""
+
         return self.internal_hooks + self.external_hooks
 
     def add_hook(self, hook_obj):
         """Add a hook instance at runtime."""
+
         if hasattr(hook_obj, "run"):
             self.external_hooks.append(hook_obj)
         else:
@@ -93,7 +110,97 @@ class FetchModule:
 
     def run(self):
         """Override this method in a subclass to populate `self.results`."""
+
         raise NotImplementedError("Subclasses must implement the `run` method.")
+
+    def _generate_cache_key(self):
+        """Generates a deterministic SHA-256 hash based on module properties."""
+
+        # BLACKLIST
+        ignored_keys = {
+            'outdir', 'hooks', 'results', 'status', 'use_cache',
+            'weight', 'uncertainty', 'name'
+        }
+
+        def _sanitize(val):
+            """Recursively strip out un-hashable objects."""
+
+            if isinstance(val, (str, int, float, bool, type(None))):
+                return val
+            if isinstance(val, (list, tuple)):
+                cleaned = [_sanitize(v) for v in val]
+                return [v for v in cleaned if v is not None]
+            if isinstance(val, dict):
+                cleaned = {str(k): _sanitize(v) for k, v in val.items()}
+                return {k: v for k, v in cleaned.items() if v is not None}
+
+            return None
+
+        cache_dict = {}
+        for key, val in self.__dict__.items():
+            if key.startswith('_') or key in ignored_keys:
+                continue
+
+            # Handle the region tuple safely
+            if key == 'region' and val is not None:
+                cache_dict[key] = list(val)
+                continue
+
+            clean_val = _sanitize(val)
+
+            # Only add to the hash state if the value survived sanitization
+            if clean_val is not None:
+                # Exclude completely empty lists/dicts to keep the hash clean
+                if isinstance(clean_val, (list, dict)) and not clean_val:
+                    continue
+                cache_dict[key] = clean_val
+
+        # import pprint
+        # print(f"\n--- {self.name} CACHE STATE ---")
+        # pprint.pprint(cache_dict)
+
+        state_str = json.dumps(cache_dict, sort_keys=True)
+        return hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+
+    # def _generate_cache_key(self):
+    #     """Generates a SHA-256 hash based on the module's parameters."""
+    #
+    #     state_str = json.dumps(self._init_kwargs, sort_keys=True, default=str)
+    #     return hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+
+    def _cached_run(self):
+        """Intercepts run() to check the cache before querying remote APIs."""
+
+        if not self.use_cache:
+            return self._original_run()
+
+        cache_dir = os.path.join(self._outdir, ".fetchez_cache")
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
+        cache_key = self._generate_cache_key()
+        cache_file = os.path.join(cache_dir, f"{self.name}_{cache_key}.json")
+
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r') as f:
+                    self.results = json.load(f)
+                logger.info(f"[{self.name}] Loaded {len(self.results)} results from cache.")
+                return
+            except Exception as e:
+                logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
+
+        logger.info(f"[{self.name}] Querying remote API...")
+        self._original_run()
+
+        if self.results:
+            try:
+                with open(cache_file, 'w') as f:
+                    json.dump(self.results, f, indent=2)
+                logger.debug(f"[{self.name}] Saved API results to cache.")
+            except Exception as e:
+                logger.warning(f"[{self.name}] Failed to save cache: {e}")
+
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
         """Standardized method for fetching a single result entry."""
@@ -138,8 +245,6 @@ class FetchModule:
 # =============================================================================
 # Core/Test Modules
 # =============================================================================
-
-
 class HttpDataset(FetchModule):
     """Fetch an HTTP/HTTPS file directly from a URL."""
 
