@@ -59,12 +59,14 @@ class FetchModule:
 
         # Store the parameters used to invoke this module for hashing
         self._init_kwargs = kwargs.copy()
-        self._init_kwargs.update({
-            "region": list(src_region) if src_region else None,
-            "min_year": min_year,
-            "max_year": max_year,
-            "params": self.params
-        })
+        self._init_kwargs.update(
+            {
+                "region": list(src_region) if src_region else None,
+                "min_year": min_year,
+                "max_year": max_year,
+                "params": self.params,
+            }
+        )
 
         if self.outdir is None:
             self._outdir = os.path.join(os.getcwd(), self.name)
@@ -118,8 +120,14 @@ class FetchModule:
 
         # BLACKLIST
         ignored_keys = {
-            'outdir', 'hooks', 'results', 'status', 'use_cache',
-            'weight', 'uncertainty', 'name'
+            "outdir",
+            "hooks",
+            "results",
+            "status",
+            "use_cache",
+            "weight",
+            "uncertainty",
+            "name",
         }
 
         def _sanitize(val):
@@ -138,11 +146,11 @@ class FetchModule:
 
         cache_dict = {}
         for key, val in self.__dict__.items():
-            if key.startswith('_') or key in ignored_keys:
+            if key.startswith("_") or key in ignored_keys:
                 continue
 
             # Handle the region tuple safely
-            if key == 'region' and val is not None:
+            if key == "region" and val is not None:
                 cache_dict[key] = list(val)
                 continue
 
@@ -160,7 +168,7 @@ class FetchModule:
         # pprint.pprint(cache_dict)
 
         state_str = json.dumps(cache_dict, sort_keys=True)
-        return hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+        return hashlib.sha256(state_str.encode("utf-8")).hexdigest()
 
     # def _generate_cache_key(self):
     #     """Generates a SHA-256 hash based on the module's parameters."""
@@ -183,9 +191,11 @@ class FetchModule:
 
         if os.path.exists(cache_file):
             try:
-                with open(cache_file, 'r') as f:
+                with open(cache_file, "r") as f:
                     self.results = json.load(f)
-                logger.info(f"[{self.name}] Loaded {len(self.results)} results from cache.")
+                logger.info(
+                    f"[{self.name}] Loaded {len(self.results)} results from cache."
+                )
                 return
             except Exception as e:
                 logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
@@ -195,12 +205,11 @@ class FetchModule:
 
         if self.results:
             try:
-                with open(cache_file, 'w') as f:
+                with open(cache_file, "w") as f:
                     json.dump(self.results, f, indent=2)
                 logger.debug(f"[{self.name}] Saved API results to cache.")
             except Exception as e:
                 logger.warning(f"[{self.name}] Failed to save cache: {e}")
-
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
         """Standardized method for fetching a single result entry."""
