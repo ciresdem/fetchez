@@ -179,9 +179,9 @@ class _Counters:
 
 class Class2XYZ(FetchHook):
     name = "class2xyz"
-    desc = "Extract LAS/LAZ points by classification and export to ASCII XYZ (X Y Z)."
-    stage = "file"
-    category = "lidar"
+    meta_desc = "Extract LAS/LAZ points by classification and export to ASCII XYZ (X Y Z)."
+    meta_stage = "file"
+    meta_category = "lidar"
 
     def __init__(
         self,
