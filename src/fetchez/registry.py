@@ -13,6 +13,7 @@ Fetchez Modules, Hooks, Schemas, and other plugins.
 """
 
 import os
+import sys
 import pkgutil
 import importlib
 import importlib.util
@@ -95,6 +96,7 @@ class PluginRegistry:
                         )
                         if spec and spec.loader:
                             mod = importlib.util.module_from_spec(spec)
+                            sys.modules[mod_name] = mod
                             spec.loader.exec_module(mod)
                             cls._register_from_module(mod)
                     except Exception as e:
