@@ -257,7 +257,9 @@ class Recipe:
         """Generates a terminal summary and a Markdown receipt sidecar file."""
 
         name = self.name
-        desc = self.config.get("project", {}).get("description", "No description provided.")
+        desc = self.config.get("project", {}).get(
+            "description", "No description provided."
+        )
         region = self.config.get("region", "Global")
 
         # Parse Modules for the receipt
@@ -268,7 +270,9 @@ class Recipe:
             args = mod.get("args", {})
             weight = args.get("weight", 1.0)
             datatype = args.get("datatype", "default")
-            modules_info.append(f"- **{m_name}** (Weight: {weight}, Datatype: {datatype})")
+            modules_info.append(
+                f"- **{m_name}** (Weight: {weight}, Datatype: {datatype})"
+            )
             mod_counts[m_name] = mod_counts.get(m_name, 0) + 1
 
         # Parse Global Hooks for the receipt
@@ -300,16 +304,18 @@ class Recipe:
             f.write("\n".join(hooks_info) + "\n")
 
         # Print Terminal Summary
-        print("\n" + "="*67)
+        print("\n" + "=" * 67)
         print(f"✅ RECIPE COMPLETE: {name}")
-        print("="*67)
+        print("=" * 67)
 
         # Truncate description for the terminal if it's super long
         short_desc = desc[:75] + "..." if len(desc) > 75 else desc
         print(f"Description: {short_desc}")
         print(f"Region:      {region}")
 
-        sources_str = ", ".join([f"{k} (x{v})" if v > 1 else k for k, v in mod_counts.items()])
+        sources_str = ", ".join(
+            [f"{k} (x{v})" if v > 1 else k for k, v in mod_counts.items()]
+        )
         print(f"Sources:     {sources_str}")
 
         print(f"\n💾 OUTPUTS SAVED TO: {self.base_dir}")
@@ -317,4 +323,4 @@ class Recipe:
             print(f"  ➔ {out}")
 
         print(f"\n📄 Full processing receipt saved to: {receipt_filename}")
-        print("="*67 + "\n")
+        print("=" * 67 + "\n")
