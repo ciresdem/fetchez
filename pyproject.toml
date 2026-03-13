@@ -134,3 +134,4 @@ extend-select = [  # Extend the default ruleset:
 [tool.ruff.lint.per-file-ignores]
 # Allow print() statements in CLI module where they are expected
 "src/fetchez/cli.py" = ["T201"]
+"src/fetchez/recipe.py" = ["T201"]
