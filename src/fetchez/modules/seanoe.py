@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 DOWNLOAD_URL = "https://www.seanoe.org/data/00742/85408/data/90469.nc"
+TIDAL_DATUMS_URL = "https://www.seanoe.org/data/01005/111620/data/125657.csv"
 
 
 HEADERS = {
@@ -49,6 +50,7 @@ class Seanoe(FetchModule):
         self.headers = HEADERS
 
     def run(self):
+        #if "fes2014" in product.lower():
         self.add_entry_to_results(
             url=DOWNLOAD_URL,
             dst_fn=self.FILENAME,
