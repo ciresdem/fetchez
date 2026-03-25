@@ -50,7 +50,6 @@ class Seanoe(FetchModule):
         self.headers = HEADERS
 
     def run(self):
-        #if "fes2014" in product.lower():
         self.add_entry_to_results(
             url=DOWNLOAD_URL,
             dst_fn=self.FILENAME,
