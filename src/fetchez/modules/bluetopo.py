@@ -44,12 +44,6 @@ BLUETOPO_BUCKET = "noaa-ocs-nationalbathymetry-pds"
 BLUETOPO_PREFIX = "BlueTopo"
 
 
-@cli.cli_opts(
-    help_text="NOAA BlueTopo Bathymetry (AWS S3)",
-    want_interpolation="Accept interpolated data (Downstream processing flag)",
-    unc_weights="Use uncertainty weights (Downstream processing flag)",
-    keep_index="Keep the downloaded tile index file after running",
-)
 class BlueTopo(FetchModule):
     name = "bluetopo"
     meta_category = "Bathymetry"
@@ -60,6 +54,12 @@ class BlueTopo(FetchModule):
     meta_resolution = "Variable"
     meta_license = "Public Domain"
     meta_urls = {"home": "https://nauticalcharts.noaa.gov/data/bluetopo.html"}
+
+    """NOAA BlueTopo Bathymetry (AWS S3)",
+
+    **Dependencies:**
+    - `fiona`: Required to parse the gpkg index (`pip install fiona`)
+    """
 
     def __init__(
         self,
@@ -96,13 +96,14 @@ class BlueTopo(FetchModule):
 
     def run(self):
         """Run the BlueTopo fetch module."""
+
         if not HAS_BOTO:
             logger.error('This module requires "boto3". Please install it to proceed.')
             return self
 
         if not HAS_FIONA:
             logger.error(
-                'This module requires "fiona" to parse the spatial index. Please install it.'
+                'This module requires "fiona" to parse the spatial index. Please install it via: pip install fiona'
             )
             return self
 

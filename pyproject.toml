@@ -115,6 +115,7 @@ module = [
     "botocore.*",
     "mercantile",
     "osgeo",
+    "fiona",
     "pyproj",
     "sentinelsat",
     "shapefile",
