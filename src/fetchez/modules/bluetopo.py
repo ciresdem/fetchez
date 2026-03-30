@@ -22,12 +22,14 @@ try:
     import boto3
     from botocore import UNSIGNED
     from botocore.client import Config
+
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
 
 try:
     import fiona
+
     HAS_FIONA = True
 except ImportError:
     HAS_FIONA = False
@@ -40,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 BLUETOPO_BUCKET = "noaa-ocs-nationalbathymetry-pds"
 BLUETOPO_PREFIX = "BlueTopo"
+
 
 @cli.cli_opts(
     help_text="NOAA BlueTopo Bathymetry (AWS S3)",
@@ -98,7 +101,9 @@ class BlueTopo(FetchModule):
             return self
 
         if not HAS_FIONA:
-            logger.error('This module requires "fiona" to parse the spatial index. Please install it.')
+            logger.error(
+                'This module requires "fiona" to parse the spatial index. Please install it.'
+            )
             return self
 
         if self.region is None:
@@ -114,12 +119,18 @@ class BlueTopo(FetchModule):
             logger.error("Could not locate BlueTopo tile index.")
             return self
 
-        self._bluetopo_index_fn = os.path.join(self._outdir, os.path.basename(self._bluetopo_index_url))
+        self._bluetopo_index_fn = os.path.join(
+            self._outdir, os.path.basename(self._bluetopo_index_url)
+        )
 
         try:
             if not os.path.exists(self._bluetopo_index_fn):
-                logger.info(f"Downloading index: {os.path.basename(self._bluetopo_index_fn)}...")
-                status = core.Fetch(self._bluetopo_index_url).fetch_file(self._bluetopo_index_fn)
+                logger.info(
+                    f"Downloading index: {os.path.basename(self._bluetopo_index_fn)}..."
+                )
+                status = core.Fetch(self._bluetopo_index_url).fetch_file(
+                    self._bluetopo_index_fn
+                )
                 if status != 0:
                     raise IOError("Failed to download BlueTopo index.")
 
@@ -141,13 +152,14 @@ class BlueTopo(FetchModule):
                 logger.info(f"Found {feature_count} intersecting tiles.")
 
                 for feature in intersecting_features:
-                    tile_name = feature['properties'].get("tile")
+                    tile_name = feature["properties"].get("tile")
                     if not tile_name:
                         continue
 
                     try:
                         r = s3.list_objects(
-                            Bucket=BLUETOPO_BUCKET, Prefix=f"{BLUETOPO_PREFIX}/{tile_name}"
+                            Bucket=BLUETOPO_BUCKET,
+                            Prefix=f"{BLUETOPO_PREFIX}/{tile_name}",
                         )
                         if "Contents" in r:
                             for obj in r["Contents"]:
@@ -163,7 +175,9 @@ class BlueTopo(FetchModule):
                                         license="Public Domain",
                                     )
                     except Exception as e:
-                        logger.warning(f"Failed to resolve file for tile {tile_name}: {e}")
+                        logger.warning(
+                            f"Failed to resolve file for tile {tile_name}: {e}"
+                        )
 
         except Exception as e:
             logger.error(f"BlueTopo Run Error: {e}")
