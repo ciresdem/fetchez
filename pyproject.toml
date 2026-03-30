@@ -36,7 +36,7 @@ keywords = ["Geospatial"]
 
 [project.optional-dependencies]
 aws = ["boto3"]
-vector = ["pyshp", "pyproj", "shapely"]
+vector = ["pyshp", "pyproj", "shapely", "fiona"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client"]
@@ -115,6 +115,7 @@ module = [
     "botocore.*",
     "mercantile",
     "osgeo",
+    "fiona",
     "pyproj",
     "sentinelsat",
     "shapefile",

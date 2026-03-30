@@ -5,11 +5,10 @@
 fetchez.modules.bluetopo
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fetch NOAA BlueTopo bathymetric data.
+Fetch NOAA BlueTopo bathymetric data directly from AWS S3.
 
 BlueTopo is a compilation of the nation's best available bathymetric data,
 created as part of the Office of Coast Survey's National Bathymetric Source project.
-Data is delivered as multi-band GeoTIFFs (Elevation, Uncertainty, Source).
 
 :copyright: (c) 2010 - 2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -29,13 +28,14 @@ except ImportError:
     HAS_BOTO = False
 
 try:
-    from osgeo import ogr
+    import fiona
+
+    HAS_FIONA = True
 except ImportError:
-    ogr = None
+    HAS_FIONA = False
 
 from fetchez import core
 from fetchez.modules import FetchModule
-from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
@@ -43,19 +43,10 @@ BLUETOPO_BUCKET = "noaa-ocs-nationalbathymetry-pds"
 BLUETOPO_PREFIX = "BlueTopo"
 
 
-# =============================================================================
-# BlueTopo Module
-# =============================================================================
-@cli.cli_opts(
-    help_text="NOAA BlueTopo Bathymetry (S3)",
-    want_interpolation="Accept interpolated data (Downstream processing flag)",
-    unc_weights="Use uncertainty weights (Downstream processing flag)",
-    keep_index="Keep the downloaded tile index file after running",
-)
 class BlueTopo(FetchModule):
     name = "bluetopo"
     meta_category = "Bathymetry"
-    meta_desc = "NOAA BlueTopo (National Bathymetric Source)"
+    meta_desc = "NOAA BlueTopo (National Bathymetric Source) via AWS S3"
     meta_agency = "NOAA OCS"
     meta_tags = ["bathymetry", "noaa", "bluetopo", "nbs", "ocean", "elevation"]
     meta_region = "USA"
@@ -63,14 +54,10 @@ class BlueTopo(FetchModule):
     meta_license = "Public Domain"
     meta_urls = {"home": "https://nauticalcharts.noaa.gov/data/bluetopo.html"}
 
-    """
-    Fetch NOAA BlueTopo Data.
+    """NOAA BlueTopo Bathymetry (AWS S3)",
 
-    This module downloads the BlueTopo Tile Scheme (GeoPackage) from the
-    public S3 bucket, performs a spatial query to find intersecting tiles,
-    and generates download links for the corresponding TIFFs.
-
-    Requires: 'boto3' and 'gdal/ogr' libraries.
+    **Dependencies:**
+    - `fiona`: Required to parse the gpkg index (`pip install fiona`)
     """
 
     def __init__(
@@ -90,24 +77,20 @@ class BlueTopo(FetchModule):
 
     def _get_s3_client(self):
         """Return an anonymous S3 client."""
-
         return boto3.client("s3", config=Config(signature_version=UNSIGNED))
 
     def _get_index_url(self, s3_client) -> Optional[str]:
         """Dynamically find the Tile Scheme index file URL from S3."""
-
         try:
             r = s3_client.list_objects(
                 Bucket=BLUETOPO_BUCKET,
                 Prefix=f"{BLUETOPO_PREFIX}/_BlueTopo_Tile_Scheme",
             )
-
             if "Contents" in r and len(r["Contents"]) > 0:
                 key = r["Contents"][0]["Key"]
                 return f"https://{BLUETOPO_BUCKET}.s3.amazonaws.com/{key}"
         except Exception as e:
             logger.error(f"Error finding BlueTopo index on S3: {e}")
-
         return None
 
     def run(self):
@@ -115,15 +98,15 @@ class BlueTopo(FetchModule):
 
         if not HAS_BOTO:
             logger.error('This module requires "boto3". Please install it to proceed.')
-            return
+            return self
+
+        if not HAS_FIONA:
+            logger.error(
+                'This module requires "fiona" to parse the spatial index. Please install it via: pip install fiona'
+            )
+            return self
 
         if self.region is None:
-            return []
-
-        if not ogr:
-            logger.error(
-                'BlueTopo requires "osgeo.ogr" (GDAL) to parse the tile index.'
-            )
             return self
 
         s3 = self._get_s3_client()
@@ -136,71 +119,65 @@ class BlueTopo(FetchModule):
             logger.error("Could not locate BlueTopo tile index.")
             return self
 
-        self._bluetopo_index_fn = os.path.basename(self._bluetopo_index_url)
+        self._bluetopo_index_fn = os.path.join(
+            self._outdir, os.path.basename(self._bluetopo_index_url)
+        )
 
         try:
             if not os.path.exists(self._bluetopo_index_fn):
-                logger.info(f"Downloading index: {self._bluetopo_index_fn}...")
+                logger.info(
+                    f"Downloading index: {os.path.basename(self._bluetopo_index_fn)}..."
+                )
                 status = core.Fetch(self._bluetopo_index_url).fetch_file(
                     self._bluetopo_index_fn
                 )
-
                 if status != 0:
                     raise IOError("Failed to download BlueTopo index.")
 
-            logger.info("Querying tile index...")
-            v_ds = ogr.Open(self._bluetopo_index_fn)
-            if v_ds is None:
-                raise IOError("Failed to open BlueTopo index (GeoPackage).")
-
-            layer = v_ds.GetLayer()
+            logger.info("Querying tile index with Fiona...")
 
             w, e, s, n = self.region
-            ring = ogr.Geometry(ogr.wkbLinearRing)
-            ring.AddPoint(w, s)
-            ring.AddPoint(w, n)
-            ring.AddPoint(e, n)
-            ring.AddPoint(e, s)
-            ring.AddPoint(w, s)
-            poly = ogr.Geometry(ogr.wkbPolygon)
-            poly.AddGeometry(ring)
+            bbox = (w, s, e, n)
 
-            layer.SetSpatialFilter(poly)
+            feature_count = 0
 
-            feature_count = layer.GetFeatureCount()
-            if feature_count == 0:
-                logger.info("No BlueTopo tiles found in this region.")
-                return self
+            with fiona.open(self._bluetopo_index_fn) as src:
+                intersecting_features = list(src.filter(bbox=bbox))
+                feature_count = len(intersecting_features)
 
-            logger.info(f"Found {feature_count} intersecting tiles.")
+                if feature_count == 0:
+                    logger.info("No BlueTopo tiles found in this region.")
+                    return self
 
-            for feature in layer:
-                tile_name = feature.GetField("tile")
+                logger.info(f"Found {feature_count} intersecting tiles.")
 
-                try:
-                    r = s3.list_objects(
-                        Bucket=BLUETOPO_BUCKET, Prefix=f"{BLUETOPO_PREFIX}/{tile_name}"
-                    )
+                for feature in intersecting_features:
+                    tile_name = feature["properties"].get("tile")
+                    if not tile_name:
+                        continue
 
-                    if "Contents" in r:
-                        for obj in r["Contents"]:
-                            key = obj["Key"]
-                            if key.endswith(".tiff"):
-                                data_link = (
-                                    f"https://{BLUETOPO_BUCKET}.s3.amazonaws.com/{key}"
-                                )
-                                self.add_entry_to_results(
-                                    url=data_link,
-                                    dst_fn=os.path.basename(key),
-                                    data_type="bluetopo_tiff",
-                                    agency="NOAA OCS",
-                                    title=tile_name,
-                                    license="Public Domain",
-                                )
-                except Exception as e:
-                    logger.warning(f"Failed to resolve file for tile {tile_name}: {e}")
-
-            v_ds = None
+                    try:
+                        r = s3.list_objects(
+                            Bucket=BLUETOPO_BUCKET,
+                            Prefix=f"{BLUETOPO_PREFIX}/{tile_name}",
+                        )
+                        if "Contents" in r:
+                            for obj in r["Contents"]:
+                                key = obj["Key"]
+                                if key.endswith(".tiff"):
+                                    data_link = f"https://{BLUETOPO_BUCKET}.s3.amazonaws.com/{key}"
+                                    self.add_entry_to_results(
+                                        url=data_link,
+                                        dst_fn=os.path.basename(key),
+                                        data_type="bluetopo_tiff",
+                                        agency="NOAA OCS",
+                                        title=tile_name,
+                                        license="Public Domain",
+                                    )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to resolve file for tile {tile_name}: {e}"
+                        )
 
         except Exception as e:
             logger.error(f"BlueTopo Run Error: {e}")
