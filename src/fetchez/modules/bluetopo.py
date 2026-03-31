@@ -43,6 +43,10 @@ BLUETOPO_BUCKET = "noaa-ocs-nationalbathymetry-pds"
 BLUETOPO_PREFIX = "BlueTopo"
 
 
+@cli.cli_opts(
+    help_text="NOAA BlueTopo (National Bathymetric Source)",
+    keep_index="Retain the bluetopo source index",
+)
 class BlueTopo(FetchModule):
     name = "bluetopo"
     meta_category = "Bathymetry"
