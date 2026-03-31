@@ -36,6 +36,7 @@ except ImportError:
 
 from fetchez import core
 from fetchez.modules import FetchModule
+from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
