@@ -304,6 +304,15 @@ def make_temp_fn(basename, temp_dir=None):
     return path
 
 
+def x360(x):
+    if x == 0:
+        return -180
+    elif x == 360:
+        return 180
+    else:
+        return ((x + 180) % 360) - 180
+
+
 # =============================================================================
 # Factory Module parsing (from cudem)
 # =============================================================================
@@ -477,9 +486,11 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         if member.endswith("/"):  # Skip directories
                             continue
 
-                        dest_fn = os.path.join(outdir, os.path.basename(member))
+                        dest_fn = os.path.join(outdir, member.replace("\\", "/"))
                         if tmp_fn:
                             dest_fn = make_temp_fn(member, temp_dir=outdir)
+                        elif not os.path.exists(os.path.dirname(dest_fn)):
+                            os.makedirs(os.path.dirname(dest_fn))
 
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
