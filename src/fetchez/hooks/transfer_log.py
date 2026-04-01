@@ -13,6 +13,7 @@ from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
 
+
 class TransferLog(FetchHook):
     """Write a clear summary of failed and successful downloads."""
 
@@ -64,7 +65,9 @@ class TransferLog(FetchHook):
             logger.info(f"Transfer log written to {self.filename}")
 
             if failures:
-                logger.warning(f"Pipeline finished with {len(failures)} failed downloads. Check {self.filename}.")
+                logger.warning(
+                    f"Pipeline finished with {len(failures)} failed downloads. Check {self.filename}."
+                )
 
         except Exception as e:
             logger.error(f"Failed to write transfer log: {e}")
