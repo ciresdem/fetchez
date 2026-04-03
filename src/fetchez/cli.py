@@ -684,7 +684,7 @@ def fetchez_cli():
         if getattr(global_args, "region", None):
             base_config["region"] = global_args.region
 
-        Recipe.from_dict(base_config).run()
+        Recipe.from_file(base_config).run()
         sys.exit(0)
 
     # if hasattr(global_args, "recipe") and global_args.recipe:

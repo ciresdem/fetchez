@@ -251,18 +251,29 @@ class SchemaRegistry(PluginRegistry):
 class RecipeRegistry:
     """A registry for discovering and loading YAML recipes."""
 
-    _registry = {}
+    #_registry = {}
     entry_point_group = "fetchez.recipes"
     user_folder = "recipes"
 
     @classmethod
     def get_registry(cls) -> Dict[str, Any]:
-        return cls._registry
+        """Initialization of the class-level registry dictionary."""
+
+        if not hasattr(cls, "_registry"):
+            setattr(cls, "_registry", {})
+
+        return getattr(cls, "_registry")
+
+    # @classmethod
+    # def get_registry(cls) -> Dict[str, Any]:
+    #     return cls._registry
 
     @classmethod
     def load_all(cls):
-        if cls._registry:
-            return
+
+        registry = cls.get_registry()
+        #if cls._registry:
+        #    return
 
         import importlib.metadata
         import importlib.resources
@@ -298,6 +309,7 @@ class RecipeRegistry:
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):
         import yaml
+        registry = cls.get_registry()
 
         try:
             config = yaml.safe_load(yaml_content)
@@ -310,7 +322,7 @@ class RecipeRegistry:
             )
             desc = config["project"].get("description", "No description available.")
 
-            cls._registry[name] = {
+            registry[name] = {
                 "name": name,
                 "desc": desc,
                 "config": config,
@@ -321,4 +333,5 @@ class RecipeRegistry:
 
     @classmethod
     def get_recipe(cls, name: str) -> Optional[Dict[str, Any]]:
-        return cls._registry.get(name)
+        registry = cls.get_registry()
+        return registry.get(name)
