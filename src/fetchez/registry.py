@@ -251,7 +251,7 @@ class SchemaRegistry(PluginRegistry):
 class RecipeRegistry:
     """A registry for discovering and loading YAML recipes."""
 
-    #_registry = {}
+    # _registry = {}
     entry_point_group = "fetchez.recipes"
     user_folder = "recipes"
 
@@ -271,9 +271,9 @@ class RecipeRegistry:
     @classmethod
     def load_all(cls):
 
-        registry = cls.get_registry()
-        #if cls._registry:
-        #    return
+        cls.get_registry()
+        # if cls._registry:
+        #     return
 
         import importlib.metadata
         import importlib.resources
@@ -309,6 +309,7 @@ class RecipeRegistry:
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):
         import yaml
+
         registry = cls.get_registry()
 
         try:
