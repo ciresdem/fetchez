@@ -246,3 +246,93 @@ class SchemaRegistry(PluginRegistry):
                 )
 
         return config
+
+
+class RecipeRegistry:
+    """A registry for discovering and loading YAML recipes."""
+
+    # _registry = {}
+    entry_point_group = "fetchez.recipes"
+    user_folder = "recipes"
+
+    @classmethod
+    def get_registry(cls) -> Dict[str, Any]:
+        """Initialization of the class-level registry dictionary."""
+
+        if not hasattr(cls, "_registry"):
+            setattr(cls, "_registry", {})
+
+        return getattr(cls, "_registry")
+
+    # @classmethod
+    # def get_registry(cls) -> Dict[str, Any]:
+    #     return cls._registry
+
+    @classmethod
+    def load_all(cls):
+
+        cls.get_registry()
+        # if cls._registry:
+        #     return
+
+        import importlib.metadata
+        import importlib.resources
+
+        try:
+            eps = importlib.metadata.entry_points(group=cls.entry_point_group)
+        except TypeError:
+            eps = importlib.metadata.entry_points().get(cls.entry_point_group, [])
+
+        for ep in eps:
+            pkg_name = ep.value
+            try:
+                for file_path in importlib.resources.files(pkg_name).iterdir():
+                    if file_path.name.endswith((".yaml", ".yml")):
+                        cls._register_yaml(
+                            file_path.read_text(encoding="utf-8"), str(file_path)
+                        )
+            except Exception as e:
+                logger.warning(f"Failed to load recipes from package {pkg_name}: {e}")
+
+        home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
+        if os.path.exists(home_dir):
+            for fn in os.listdir(home_dir):
+                if fn.endswith((".yaml", ".yml")):
+                    try:
+                        with open(
+                            os.path.join(home_dir, fn), "r", encoding="utf-8"
+                        ) as f:
+                            cls._register_yaml(f.read(), os.path.join(home_dir, fn))
+                    except Exception as e:
+                        logger.warning(f"Failed to load local recipe {fn}: {e}")
+
+    @classmethod
+    def _register_yaml(cls, yaml_content: str, file_path: str):
+        import yaml
+
+        registry = cls.get_registry()
+
+        try:
+            config = yaml.safe_load(yaml_content)
+            if not config or "project" not in config:
+                return
+
+            # Use the project name from the YAML, fallback to the filename
+            name = config["project"].get(
+                "name", os.path.basename(file_path).replace(".yaml", "")
+            )
+            desc = config["project"].get("description", "No description available.")
+
+            registry[name] = {
+                "name": name,
+                "desc": desc,
+                "config": config,
+                "path": file_path,
+            }
+        except Exception as e:
+            logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
+
+    @classmethod
+    def get_recipe(cls, name: str) -> Optional[Dict[str, Any]]:
+        registry = cls.get_registry()
+        return registry.get(name)

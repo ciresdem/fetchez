@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ADDED
 - Add "lidarbc" fetchez modules (canada)
 - Add .fetchez_cache to save module results for re-use
+- Add RecipeRegistry to registry.py
+- Add --list-recipes to cli
 
 ### CHANGED
 - FetchModule is now in fetchez.modules
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Module metadata is prefixed with "meta_"
 - Stage names: "pre" -> "manifest"; "post" -> "collection"
 - Schema is now Schemas and uses global registry.
+- Update to vdatum.geojson fred index of the vdatum module
 
 ### BUGFIX
 - Update to fbt reading, accounting for heading; fix!

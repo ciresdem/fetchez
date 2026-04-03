@@ -26,7 +26,7 @@ from . import presets
 from . import config
 from . import __version__
 from .recipe import Recipe
-from .registry import ModuleRegistry, HookRegistry
+from .registry import ModuleRegistry, HookRegistry, RecipeRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +407,12 @@ CUDEM home page: <http://cudem.colorado.edu>
         "--recipe",
         type=str,
         default=None,
-        help="The YAML Recipe file to process or URL/Keyword.",
+        help="The YAML Recipe file to process or Keyword.",
+    )
+    exec_grp.add_argument(
+        "--list-recipes",
+        action="store_true",
+        help="List all curated recipes available in the registry.",
     )
     exec_grp.add_argument(
         "-O",
@@ -641,13 +646,53 @@ def fetchez_cli():
         print()
         sys.exit(0)
 
-    # --- Run a recipe.yaml ---
-    if hasattr(global_args, "recipe") and global_args.recipe:
-        project_file = global_args.recipe
-        if project_file.endswith(".yaml"):
-            recipe = Recipe.from_file(project_file)
-            recipe.run()
-            sys.exit(0)
+    # --- Run/list a recipe.yaml ---
+    if getattr(global_args, "list_recipes", False):
+        RecipeRegistry.load_all()
+        registry = RecipeRegistry.get_registry()
+
+        print("\nAvailable Curated Recipes:")
+        print("=" * 60)
+        count = 0
+        for name, meta in sorted(registry.items()):
+            print(f"  {name:<25} - {meta['desc']}")
+            count += 1
+        print("=" * 60)
+        print(f"Total recipes found: {count}\n")
+        sys.exit(0)
+
+    if getattr(global_args, "recipe", None):
+        import yaml
+
+        RecipeRegistry.load_all()
+        target = global_args.recipe
+        base_config = None
+
+        if os.path.exists(target):
+            with open(target, "r", encoding="utf-8") as f:
+                base_config = yaml.safe_load(f)
+        else:
+            recipe_meta = RecipeRegistry.get_recipe(target)
+            if recipe_meta:
+                base_config = recipe_meta["config"]
+                logger.info(f"Loaded registered recipe: {target}")
+
+        if not base_config:
+            logger.error(f"Recipe '{target}' not found locally or in the registry.")
+            sys.exit(1)
+
+        if getattr(global_args, "region", None):
+            base_config["region"] = global_args.region
+
+        Recipe.from_file(base_config).run()
+        sys.exit(0)
+
+    # if hasattr(global_args, "recipe") and global_args.recipe:
+    #     project_file = global_args.recipe
+    #     if project_file.endswith(".yaml"):
+    #         recipe = Recipe.from_file(project_file)
+    #         recipe.run()
+    #         sys.exit(0)
 
     # --- Init Global Hook Shortcuts ---
     global_hook_objs = []
