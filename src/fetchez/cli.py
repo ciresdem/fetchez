@@ -410,9 +410,9 @@ CUDEM home page: <http://cudem.colorado.edu>
         help="The YAML Recipe file to process or Keyword.",
     )
     exec_grp.add_argument(
-        '--list-recipes',
-        action='store_true',
-        help="List all curated recipes available in the registry."
+        "--list-recipes",
+        action="store_true",
+        help="List all curated recipes available in the registry.",
     )
     exec_grp.add_argument(
         "-O",
@@ -651,7 +651,7 @@ def fetchez_cli():
         RecipeRegistry.load_all()
         registry = RecipeRegistry.get_registry()
 
-        print(f"\nAvailable Curated Recipes:")
+        print("\nAvailable Curated Recipes:")
         print("=" * 60)
         count = 0
         for name, meta in sorted(registry.items()):
@@ -678,9 +678,7 @@ def fetchez_cli():
                 logger.info(f"Loaded registered recipe: {target}")
 
         if not base_config:
-            logger.error(
-                f"Recipe '{target}' not found locally or in the registry."
-            )
+            logger.error(f"Recipe '{target}' not found locally or in the registry.")
             sys.exit(1)
 
         if getattr(global_args, "region", None):
