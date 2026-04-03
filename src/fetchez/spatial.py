@@ -223,6 +223,23 @@ class Region:
             return f"w{self.xmin}_e{self.xmax}_s{self.ymin}_n{self.ymax}".replace(
                 ".", "p"
             ).replace("-", "n")
+        elif format == "geojson":
+            geom = {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [self.xmin, self.ymin],
+                        [self.xmin, self.ymax],
+                        [self.xmax, self.ymax],
+                        [self.xmax, self.ymin],
+                        [self.xmin, self.ymin],
+                    ]
+                ],
+            }
+            return json.dumps(geom)
+        elif format == "wkt":
+            return f"POLYGON (({self.xmin} {self.ymin}, {self.xmin} {self.ymax}, {self.xmax} {self.ymax}, {self.xmax} {self.ymin}, {self.xmin} {self.ymin}))"
+
         return str(self)
 
     def to_shapely(self):
