@@ -26,28 +26,75 @@ from typing import List, Optional, Dict, Any
 from .utils import parse_hook_string
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry
+from .registry import ModuleRegistry, HookRegistry, RecipeRegistry, SchemaRegistry
 
 logger = logging.getLogger(__name__)
 
 
-def search(term: Optional[str] = None) -> Dict[Any, Any]:
-    """Search available modules by tag, description, or name."""
+def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]:
+    """Helper to load and search a specific registry."""
 
-    ModuleRegistry.load_all()
+    registry_cls.load_all()
+    full_reg = registry_cls.get_registry()
 
     if not term:
-        return ModuleRegistry.get_registry()
+        return full_reg
 
-    results = ModuleRegistry.search_modules(term)
-    if not results:
-        return {}
+    found = {}
+    term_lower = term.lower()
+    for name, meta in full_reg.items():
+        desc = meta.get("desc", getattr(meta, "meta_desc", ""))
+        tags = [t.lower() for t in getattr(meta, "meta_tags", [])]
 
-    found_results = {}
-    for mod_key in results:
-        meta = ModuleRegistry.get_info(mod_key)
-        found_results.update({mod_key: meta})
-    return found_results
+        if term_lower in name.lower() or term_lower in desc.lower() or term_lower in tags:
+            found[name] = meta
+
+    return found
+
+
+def list_modules() -> Dict[str, Any]:
+    return _search_registry(ModuleRegistry)
+
+
+def list_hooks() -> Dict[str, Any]:
+    return _search_registry(HookRegistry)
+
+
+def list_recipes() -> Dict[str, Any]:
+    return _search_registry(RecipeRegistry)
+
+
+def list_schemas() -> Dict[str, Any]:
+    return _search_registry(SchemaRegistry)
+
+
+def search(term: str) -> Dict[str, Dict[str, Any]]:
+    """Search across ALL Fetchez registries simultaneously."""
+    return {
+        "modules": _search_registry(ModuleRegistry, term),
+        "hooks": _search_registry(HookRegistry, term),
+        "recipes": _search_registry(RecipeRegistry, term),
+        "schemas": _search_registry(SchemaRegistry, term),
+    }
+
+
+# def search(term: Optional[str] = None) -> Dict[Any, Any]:
+#     """Search available modules by tag, description, or name."""
+
+#     ModuleRegistry.load_all()
+
+#     if not term:
+#         return ModuleRegistry.get_registry()
+
+#     results = ModuleRegistry.search_modules(term)
+#     if not results:
+#         return {}
+
+#     found_results = {}
+#     for mod_key in results:
+#         meta = ModuleRegistry.get_info(mod_key)
+#         found_results.update({mod_key: meta})
+#     return found_results
 
 
 def get(
@@ -120,3 +167,39 @@ def get(
                 downloaded_files.append(os.path.abspath(fn))
 
     return downloaded_files
+
+
+def run_recipe(target: str, region: Optional[str] = None) -> bool:
+    """Execute a YAML recipe.
+
+    'target' can be a local file path or the name of a registered recipe.
+    """
+
+    import yaml
+    from .recipe import Recipe
+
+    RecipeRegistry.load_all()
+    base_config = None
+
+    if os.path.exists(target):
+        with open(target, 'r', encoding="utf-8") as f:
+            base_config = yaml.safe_load(f)
+    else:
+        recipe_meta = RecipeRegistry.get_recipe(target)
+        if recipe_meta:
+            base_config = recipe_meta["config"]
+            logger.info(f"Loaded registered recipe: {target}")
+
+    if not base_config:
+        logger.error(f"Recipe '{target}' not found locally or in the registry.")
+        return False
+
+    if region:
+        base_config["region"] = region
+
+    try:
+        Recipe.from_file(base_config).run()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to run recipe '{target}': {e}")
+        return False
