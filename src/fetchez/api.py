@@ -46,7 +46,11 @@ def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]
         desc = meta.get("desc", getattr(meta, "meta_desc", ""))
         tags = [t.lower() for t in getattr(meta, "meta_tags", [])]
 
-        if term_lower in name.lower() or term_lower in desc.lower() or term_lower in tags:
+        if (
+            term_lower in name.lower()
+            or term_lower in desc.lower()
+            or term_lower in tags
+        ):
             found[name] = meta
 
     return found
@@ -182,7 +186,7 @@ def run_recipe(target: str, region: Optional[str] = None) -> bool:
     base_config = None
 
     if os.path.exists(target):
-        with open(target, 'r', encoding="utf-8") as f:
+        with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:
         recipe_meta = RecipeRegistry.get_recipe(target)
