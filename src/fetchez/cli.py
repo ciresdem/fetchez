@@ -358,7 +358,7 @@ Examples:
   fetchez -R -105/-104/39/40 srtm_plus
   fetchez -R loc:"Boulder, CO" copernicus --datatype=1
   fetchez -R loc:seattle -H4 charts --hook unzip --hook filename_filter:match=.000 --pipe-path
-  fetchez --search bathymetry
+  fetchez --search-modules bathymetry
 
 CUDEM home page: <http://cudem.colorado.edu>
         """,
@@ -385,15 +385,35 @@ CUDEM home page: <http://cudem.colorado.edu>
         help="List all available data modules.",
     )
     disc_grp.add_argument(
+        "--list-hooks", action="store_true", help="List all available hooks."
+    )
+    disc_grp.add_argument(
+        "--list-recipes",
+        action="store_true",
+        help="List all curated recipes available in the registry.",
+    )
+    disc_grp.add_argument(
         "--search-modules",
         metavar="TERM",
         help="Search modules by tag, agency, or description.",
     )
+    # disc_grp.add_argument(
+    #     "--search-hooks",
+    #     metavar="TERM",
+    #     help="Search hook by keyword.",
+    # )
     disc_grp.add_argument(
         "--module-info",
         metavar="MODULE",
         help="Show detailed metadata for a specific module.",
     )
+    disc_grp.add_argument(
+        "--hook-info",
+        metavar="HOOK_NAME",
+        type=str,
+        help="Print detailed documentation and arguments for a specific hook.",
+    )
+
     disc_grp.add_argument(
         "-h", "--help", action="store_true", help="Show this help message and exit."
     )
@@ -410,9 +430,9 @@ CUDEM home page: <http://cudem.colorado.edu>
         help="The YAML Recipe file to process or Keyword.",
     )
     exec_grp.add_argument(
-        "--list-recipes",
-        action="store_true",
-        help="List all curated recipes available in the registry.",
+        "--hook",
+        action="append",
+        help="Add a custom global hook (e.g. 'audit:file=log.txt').",
     )
     exec_grp.add_argument(
         "-O",
@@ -452,6 +472,11 @@ CUDEM home page: <http://cudem.colorado.edu>
 
     preset_grp = parser.add_argument_group("Pipeline Shortcuts (Hook Presets)")
     preset_grp.add_argument(
+        "--init-presets",
+        action="store_true",
+        help="Generate a default ~/.fetchez/presets.yaml file.",
+    )
+    preset_grp.add_argument(
         "-l",
         "--list",
         action="store_true",
@@ -481,26 +506,7 @@ CUDEM home page: <http://cudem.colorado.edu>
         help_text = defs.get("help", "Custom user preset.")
         preset_grp.add_argument(flag_name, action="store_true", help=help_text)
 
-    adv_grp = parser.add_argument_group("Advanced Configuration")
-    adv_grp.add_argument(
-        "--hook",
-        action="append",
-        help="Add a custom global hook (e.g. 'audit:file=log.txt').",
-    )
-    adv_grp.add_argument(
-        "--list-hooks", action="store_true", help="List all available hooks."
-    )
-    adv_grp.add_argument(
-        "--hook-info",
-        metavar="HOOK_NAME",
-        type=str,
-        help="Print detailed documentation and arguments for a specific hook.",
-    )
-    adv_grp.add_argument(
-        "--init-presets",
-        action="store_true",
-        help="Generate a default ~/.fetchez/presets.yaml file.",
-    )
+    # adv_grp = parser.add_argument_group("Advanced Configuration")
 
     return parser
 

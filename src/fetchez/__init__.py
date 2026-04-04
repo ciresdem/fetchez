@@ -24,6 +24,26 @@ from . import fred
 from . import core
 from . import spatial
 from . import registry
-from .api import search, get
+from .api import (
+    search,
+    get,
+    list_modules,
+    list_recipes,
+    list_hooks,
+    list_schemas,
+    run_recipe,
+)
 
-__all__ = ["core", "fred", "spatial", "registry", "search", "get"]
+__all__ = [
+    "core",
+    "fred",
+    "spatial",
+    "registry",
+    "search",
+    "get",
+    "list_modules",
+    "list_recipes",
+    "list_hooks",
+    "list_schemas",
+    "run_recipe",
+]
