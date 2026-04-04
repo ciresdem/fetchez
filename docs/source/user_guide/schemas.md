@@ -12,9 +12,8 @@ Add a `domain` block to the top of your YAML recipe:
 project:
   name: "My_Strict_Project"
 
-domain:
-  schema: "cudem" # Loads the rigorous CUDEM ruleset
-  region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
+schema: "cudem" # Loads the rigorous CUDEM ruleset
+region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
 ```
 
 *What happens under the hood?*
@@ -25,7 +24,7 @@ By specifying schema: "cudem", the engine intercepts your recipe. It automatical
 Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own schemas in Python:
 
 ```python
-from fetchez.schema import BaseSchema, SchemaRegistry
+from fetchez.schema import BaseSchema
 
 class WeatherSchema(BaseSchema):
     name = "wrf_weather"
@@ -35,5 +34,11 @@ class WeatherSchema(BaseSchema):
         config["region"] = [-180, 180, -90, 90] # Force global fetch
         return config
 
-SchemaRegistry.register(WeatherSchema)
+```
+
+Then register your project with fetchez in your `pyproject.toml`:
+
+```toml
+[project.entry-points."fetchez.schemas"]
+globato_hooks = "globato.schemas"
 ```
