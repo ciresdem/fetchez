@@ -20,7 +20,7 @@ region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
 
 By specifying schema: "cudem", the engine intercepts your recipe. It automatically calculates that a CUDEM tile requires a 6-cell overlap at 1/9th arc-second resolution. It expands your fetching bounding box, injects the correct EPSG codes into your gridding hooks, and appends a final raster_crop hook to snap the finished DEM perfectly back to your requested tile.
 
-## Extending Schemas (Plugins)
+## Extending Schemas (Plugins and Extensions)
 Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own schemas in Python:
 
 ```python
@@ -40,5 +40,5 @@ Then register your project with fetchez in your `pyproject.toml`:
 
 ```toml
 [project.entry-points."fetchez.schemas"]
-globato_hooks = "globato.schemas"
+my_project_schemas = "my_project.schemas"
 ```

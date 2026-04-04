@@ -105,3 +105,13 @@ Hooks are the specialized tools that intercept and process your data. It is crit
 * **Module Hooks** (`modules.hooks`): Only execute on the files fetched by that specific module. For example, you might only want to run the unzip hook on USGS data, but leave Copernicus files as tarballs.
 
 * **Global Hooks** (`global_hooks`): Execute on the entire, aggregated dataset from all modules simultaneously.
+
+## Extending Recipes (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own recipes either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.RecipeRegistry`
+
+In your project, make a directory called 'recipes'; add any YAML recipes to that directory and register them with `fetchez` in your `pyproject.toml`:
+
+```toml
+[project.entry-points."fetchez.recipes"]
+my_project_recipes = "my_project.recipes"
+```
