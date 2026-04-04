@@ -323,8 +323,9 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
 
             if HAS_SHAPELY:
                 b = shape(geom).bounds  # (minx, miny, maxx, maxy)
-                min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
-                max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
+                # min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
+                # max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
+                min_x, min_y, max_x, max_y = b
                 valid = True
 
             elif "coordinates" in geom:
@@ -336,6 +337,7 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
                     min_x, min_y = min(min_x, min(xs)), min(min_y, min(ys))
                     max_x, max_y = max(max_x, max(xs)), max(max_y, max(ys))
                     valid = True
+                xs, ys = [], []
 
             if valid:
                 regions.append(Region(min_x, max_x, min_y, max_y))

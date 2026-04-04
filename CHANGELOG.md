@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### BUGFIX
+- spatial region parsing of geojson files, returns all regions.
 
 ## [0.5.2] - 2026-05-02
 ### ADDED
