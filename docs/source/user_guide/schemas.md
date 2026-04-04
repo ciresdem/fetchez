@@ -6,7 +6,7 @@ Fetchez includes a **Schema Engine** that can automatically mutate your YAML rec
 
 ## Using a Schema
 
-Add a `domain` block to the top of your YAML recipe:
+Add a `schema` argument to the top of your YAML recipe:
 
 ```yaml
 project:
