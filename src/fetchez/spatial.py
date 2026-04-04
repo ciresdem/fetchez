@@ -337,9 +337,10 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
                     max_x, max_y = max(max_x, max(xs)), max(max_y, max(ys))
                     valid = True
 
-        if valid:
-            regions.append(Region(min_x, max_x, min_y, max_y))
-            return regions
+            if valid:
+                regions.append(Region(min_x, max_x, min_y, max_y))
+
+        return regions
     except Exception as e:
         logger.warning(f"Failed to parse GeoJSON {fn}: {e}")
     return None
