@@ -219,10 +219,15 @@ class Region:
         elif style == "bbox":
             return f"{self.xmin},{self.ymin},{self.xmax},{self.ymax}"
         elif style == "fn":
+            ns = 's' if self.ymax < 0 else 'n'
+            ew = 'e' if self.xmin > 0 else 'w'
+            return (f'{ns}{abs(int(self.ymax)):02d}x{abs(int(self.ymax * 100)) % 100:02d}_'
+                    f'{ew}{abs(int(self.xmin)):03d}x{abs(int(self.xmin * 100)) % 100:02d}')
+        elif style == "fn2":
             # filename safe string
             return f"w{self.xmin}_e{self.xmax}_s{self.ymin}_n{self.ymax}".replace(
                 ".", "p"
-            ).replace("-", "n")
+            ).replace("-", "")
         elif format == "geojson":
             geom = {
                 "type": "Polygon",
