@@ -114,6 +114,7 @@ def test_optional_dependencies_are_protected():
         "earthaccess",
         "pystac",
         "pystac_client",
+        "fiona",
     }
 
     mod_dir = os.path.dirname(fetchez.modules.__file__)
