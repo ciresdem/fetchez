@@ -219,10 +219,17 @@ class Region:
         elif style == "bbox":
             return f"{self.xmin},{self.ymin},{self.xmax},{self.ymax}"
         elif style == "fn":
+            ns = "s" if self.ymax < 0 else "n"
+            ew = "e" if self.xmin > 0 else "w"
+            return (
+                f"{ns}{abs(int(self.ymax)):02d}x{abs(int(self.ymax * 100)) % 100:02d}_"
+                f"{ew}{abs(int(self.xmin)):03d}x{abs(int(self.xmin * 100)) % 100:02d}"
+            )
+        elif style == "fn2":
             # filename safe string
             return f"w{self.xmin}_e{self.xmax}_s{self.ymin}_n{self.ymax}".replace(
                 ".", "p"
-            ).replace("-", "n")
+            ).replace("-", "")
         elif format == "geojson":
             geom = {
                 "type": "Polygon",
@@ -323,8 +330,9 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
 
             if HAS_SHAPELY:
                 b = shape(geom).bounds  # (minx, miny, maxx, maxy)
-                min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
-                max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
+                # min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
+                # max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
+                min_x, min_y, max_x, max_y = b
                 valid = True
 
             elif "coordinates" in geom:
@@ -336,10 +344,12 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
                     min_x, min_y = min(min_x, min(xs)), min(min_y, min(ys))
                     max_x, max_y = max(max_x, max(xs)), max(max_y, max(ys))
                     valid = True
+                xs, ys = [], []
 
-        if valid:
-            regions.append(Region(min_x, max_x, min_y, max_y))
-            return regions
+            if valid:
+                regions.append(Region(min_x, max_x, min_y, max_y))
+
+        return regions
     except Exception as e:
         logger.warning(f"Failed to parse GeoJSON {fn}: {e}")
     return None

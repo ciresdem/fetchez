@@ -495,7 +495,6 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
-
                         extracted_paths.append(dest_fn)
                         logger.info(f"Extracted: {member} to {dest_fn}")
     else:
@@ -504,7 +503,6 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
             if pattern == os.path.basename(src_file):
                 extracted_paths.append(src_file)
                 break
-
     return extracted_paths
 
 
