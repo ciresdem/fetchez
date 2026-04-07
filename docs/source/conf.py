@@ -91,7 +91,7 @@ html_theme_options = {
 # html_logo = "_static/logo.png"
 html_title = "Fetchez Documentation"
 # #html_logo = "_static/fetchez_logo_micro.svg"
-html_logo = "_static/continuous_dems_logo.svg"
+html_logo = "_static/continuous_dems_logo_mini.svg"
 
 # -- Autodoc Options ---------------------------------------------------------
 # Ensure methods are documented

@@ -472,15 +472,15 @@ CUDEM home page: <http://cudem.colorado.edu>
 
     preset_grp = parser.add_argument_group("Pipeline Shortcuts (Hook Presets)")
     preset_grp.add_argument(
-        "--init-presets",
-        action="store_true",
-        help="Generate a default ~/.fetchez/presets.yaml file.",
-    )
-    preset_grp.add_argument(
         "-l",
         "--list",
         action="store_true",
         help="List discovered URLs to stdout (Pre-Hook).",
+    )
+    preset_grp.add_argument(
+        "--init-presets",
+        action="store_true",
+        help="Generate a default ~/.fetchez/presets.yaml file.",
     )
     preset_grp.add_argument(
         "--inventory",

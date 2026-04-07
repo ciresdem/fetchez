@@ -82,11 +82,16 @@ class TqdmLoggingHandler(logging.Handler):
 def _cli_logo(name="fetchez", desc="", version=""):
     """Prints a colored ANSI block representation of the Fetchez logo."""
 
+    # logo = f"""
+    # {LOW}  {RST}{MID}  {RST}{FOOT}  {RST}{HIGH}  {RST}{MID}  {RST}
+    # {OCEAN}  {RST}{LOW}  {RST}{HIGH}  {RST}{MID}  {RST}{FOOT}  {RST}   {colorize(name, MAGENTA)} {version}
+    # {MID}  {RST}{OCEAN}  {RST}{MID}  {RST}{ICE}  {RST}{ICE}  {RST}   {colorize(desc, ITALIC)}
+    # """
     logo = f"""
-    {LOW}  {RST}{MID}  {RST}{FOOT}  {RST}{HIGH}  {RST}{MID}  {RST}
-    {OCEAN}  {RST}{LOW}  {RST}{HIGH}  {RST}{MID}  {RST}{FOOT}  {RST}   {colorize(name, MAGENTA)} {version}
-    {MID}  {RST}{OCEAN}  {RST}{MID}  {RST}{ICE}  {RST}{ICE}  {RST}   {colorize(desc, ITALIC)}
+    {LOW}  {RST}{MID}  {RST}{FOOT}  {RST}  {colorize(name, MAGENTA)} {version}
+    {OCEAN}  {RST}{ICE}  {RST}{HIGH}  {RST}  {colorize(desc, ITALIC)}
     """
+
     return logo
 
 
