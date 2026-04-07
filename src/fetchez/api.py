@@ -6,7 +6,8 @@ fetchez.api
 ~~~~~~~~~~~
 High-level Python Interface for Fetchez.
 
-Usage:
+Usage::
+
     import fetchez
 
     # Search
