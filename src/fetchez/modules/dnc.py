@@ -51,11 +51,9 @@ class DNC(FetchModule):
             "geojson": "application/json",
             "shape-zip": "SHAPE-ZIP",
             "shp": "SHAPE-ZIP",
-            "csv": "csv",
         }
         out_fmt = format_map.get(self.fmt.lower(), "application/json")
         ext = "zip" if "zip" in out_fmt.lower() else "geojson"
-        if out_fmt == "csv": ext = "csv"
 
         bbox_str = f"{w},{s},{e},{n},EPSG:4326"
         params = {
