@@ -174,7 +174,7 @@ class Tides(FetchModule):
             return {}
 
         w, e, s, n = self.region
-        logger.info(f"Fetching active NOAA stations for region...")
+        logger.info("Fetching active NOAA stations for region...")
 
         # Find stations
         params = {
@@ -187,16 +187,16 @@ class Tides(FetchModule):
             "f": "json",
         }
         resp = requests.get(STATION_SEARCH_URL, params=params)
-        features = resp.json().get('features', [])
+        features = resp.json().get("features", [])
 
         stations_data = {}
         datum = f"&datum={self.datum.upper()}" if self.datum is not None else ""
         # Query the Datums API for each found station
         logger.info(f"Retrieving datums for {len(features)} stations...")
         for feat in features:
-            attrs = feat.get('attributes', {})
-            stn_id = attrs.get('id')
-            geom = feat.get('geometry', {})
+            attrs = feat.get("attributes", {})
+            stn_id = attrs.get("id")
+            geom = feat.get("geometry", {})
 
             if not stn_id:
                 continue
@@ -210,10 +210,10 @@ class Tides(FetchModule):
                     datum_dict = {d["name"]: d["value"] for d in datums_list}
 
                     stations_data[stn_id] = {
-                        "name": attrs.get('name'),
-                        "lon": geom.get('x'),
-                        "lat": geom.get('y'),
-                        "datums": datum_dict
+                        "name": attrs.get("name"),
+                        "lon": geom.get("x"),
+                        "lat": geom.get("y"),
+                        "datums": datum_dict,
                     }
 
                     out_fn = f"tides_stations_{stn_id}.json"
@@ -233,7 +233,7 @@ class Tides(FetchModule):
     def run(self):
         """Run the TIDES fetching module."""
 
-        if self.mode == 'datums':
+        if self.mode == "datums":
             self.get_datums_in_region()
         if self.station:
             self._run_data_fetch()

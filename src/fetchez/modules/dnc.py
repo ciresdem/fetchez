@@ -17,10 +17,11 @@ logger = logging.getLogger(__name__)
 
 DNC_WFS_URL = "https://geoint.nrlssc.navy.mil/dnc/wfs/BathyServices"
 
+
 @cli.cli_opts(
     help_text="NRL Digital Nautical Chart (DNC) Bathymetry WFS",
     layer="WFS Layer Name (e.g., 'BathyServices:soundings')",
-    fmt="Output format: 'json' (GeoJSON) or 'shape-zip' (Shapefile) (default: 'json')"
+    fmt="Output format: 'json' (GeoJSON) or 'shape-zip' (Shapefile) (default: 'json')",
 )
 class DNC(FetchModule):
     name = "dnc"
@@ -63,7 +64,7 @@ class DNC(FetchModule):
             "TYPENAME": self.layer,
             "BBOX": bbox_str,
             "OUTPUTFORMAT": out_fmt,
-            "SRSNAME": "EPSG:4326"
+            "SRSNAME": "EPSG:4326",
         }
 
         full_url = f"{DNC_WFS_URL}?{urlencode(params)}"
