@@ -15,9 +15,11 @@ Supports two modes:
 :license: MIT, see LICENSE for more details.
 """
 
+import logging
+import requests
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
 from fetchez.modules import FetchModule
 from fetchez import cli
 
@@ -26,6 +28,11 @@ STATION_SEARCH_URL = "https://mapservices.weather.noaa.gov/static/rest/services/
 
 # Service for fetching data (CO-OPS API)
 DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
+
+# Metadata (CO-OPS API)
+DATUMS_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/"
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -39,6 +46,7 @@ DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
     datum="Vertical Datum (MLLW, MSL, NAVD88, STND). Default: MLLW",
     product="Product (water_level, predictions, air_temperature, wind). Default: water_level",
     interval="Data Interval (h, hilo). Default: h (Hourly) for data, None for 6-min.",
+    mode="Module Mode: 'search' (GeoJSON), 'data' (Time-Series), or 'datums' (Offsets). Default: auto-detect.",
 )
 class Tides(FetchModule):
     name = "tides"
@@ -72,6 +80,7 @@ class Tides(FetchModule):
         datum: str = "MLLW",
         product: str = "water_level",
         interval: Optional[str] = None,
+        mode: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(name="tides", **kwargs)
@@ -81,6 +90,7 @@ class Tides(FetchModule):
         self.datum = datum
         self.product = product
         self.interval = interval
+        self.mode = mode
 
     def _run_station_search(self):
         """Search for stations in the region."""
@@ -116,6 +126,7 @@ class Tides(FetchModule):
 
     def _run_data_fetch(self):
         """Fetch time-series data for a station."""
+
         if not self.start_date or not self.end_date:
             # Default to last 24 hours if not specified
             now = datetime.utcnow()
@@ -155,9 +166,75 @@ class Tides(FetchModule):
             title=f"Station {self.station} Data",
         )
 
+    def get_datums_in_region(self) -> Dict[str, dict]:
+        """Directly returns a dictionary of station datums for the current region."""
+
+        if not self.region:
+            logger.error("A region bounding box is required to fetch datums.")
+            return {}
+
+        w, e, s, n = self.region
+        logger.info(f"Fetching active NOAA stations for region...")
+
+        # Find stations
+        params = {
+            "outFields": "id,name",
+            "geometry": f"{w},{s},{e},{n}",
+            "geometryType": "esriGeometryEnvelope",
+            "spatialRel": "esriSpatialRelIntersects",
+            "inSR": 4326,
+            "outSR": 4326,
+            "f": "json",
+        }
+        resp = requests.get(STATION_SEARCH_URL, params=params)
+        features = resp.json().get('features', [])
+
+        stations_data = {}
+        datum = f"&datum={self.datum.upper()}" if self.datum is not None else ""
+        # Query the Datums API for each found station
+        logger.info(f"Retrieving datums for {len(features)} stations...")
+        for feat in features:
+            attrs = feat.get('attributes', {})
+            stn_id = attrs.get('id')
+            geom = feat.get('geometry', {})
+
+            if not stn_id:
+                continue
+
+            datum_url = f"{DATUMS_API_URL}{stn_id}/datums.json?units=metric{datum}"
+            try:
+                d_resp = requests.get(datum_url, timeout=5)
+                if d_resp.status_code == 200:
+                    datums_list = d_resp.json().get("datums", [])
+                    # Flatten the datums list into a simple dictionary { 'MSL': 1.5, 'MLLW': 0.2 }
+                    datum_dict = {d["name"]: d["value"] for d in datums_list}
+
+                    stations_data[stn_id] = {
+                        "name": attrs.get('name'),
+                        "lon": geom.get('x'),
+                        "lat": geom.get('y'),
+                        "datums": datum_dict
+                    }
+
+                    out_fn = f"tides_stations_{stn_id}.json"
+                    self.add_entry_to_results(
+                        url=datum_url,
+                        dst_fn=out_fn,
+                        data_type="json",
+                        agency="NOAA CO-OPS",
+                        title=f"Station {self.station} Datums",
+                    )
+
+            except Exception as e:
+                logger.debug(f"Failed to fetch datums for {stn_id}: {e}")
+
+        return stations_data
+
     def run(self):
         """Run the TIDES fetching module."""
 
+        if self.mode == 'datums':
+            self.get_datums_in_region()
         if self.station:
             self._run_data_fetch()
         elif self.region:
