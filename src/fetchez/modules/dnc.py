@@ -77,7 +77,7 @@ class DNC(FetchModule):
         self.add_entry_to_results(
             url=full_url,
             dst_fn=out_fn,
-            data_type="geojson" if ext == "geojson" else "vector",
+            data_type="dnc_geojson" if ext == "geojson" else "dnc_vector",
             agency="NRL",
             title=f"DNC WFS {self.layer}",
         )
