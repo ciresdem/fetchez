@@ -206,7 +206,6 @@ class Tides(FetchModule):
                 d_resp = requests.get(datum_url, timeout=5)
                 if d_resp.status_code == 200:
                     datums_list = d_resp.json().get("datums", [])
-                    # Flatten the datums list into a simple dictionary { 'MSL': 1.5, 'MLLW': 0.2 }
                     datum_dict = {d["name"]: d["value"] for d in datums_list}
 
                     stations_data[stn_id] = {
