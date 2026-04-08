@@ -7,17 +7,20 @@ fetchez.modules.tides
 
 Fetch NOAA Tides & Currents data (CO-OPS).
 
-Supports two modes:
+Supports three modes:
 1. Station Discovery (Spatial): Find stations within a bounding box.
 2. Data Retrieval (Station ID): Fetch time-series data (water levels, predictions).
+3. Datum Retrieval (Spatial): Fetch tidal datum infomation within a bounding box.
 
 :copyright: (c) 2010 - 2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
 """
 
+import logging
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
+from fetchez.core import Fetch
 from fetchez.modules import FetchModule
 from fetchez import cli
 
@@ -26,6 +29,11 @@ STATION_SEARCH_URL = "https://mapservices.weather.noaa.gov/static/rest/services/
 
 # Service for fetching data (CO-OPS API)
 DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
+
+# Metadata (CO-OPS API)
+DATUMS_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/"
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -39,6 +47,7 @@ DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
     datum="Vertical Datum (MLLW, MSL, NAVD88, STND). Default: MLLW",
     product="Product (water_level, predictions, air_temperature, wind). Default: water_level",
     interval="Data Interval (h, hilo). Default: h (Hourly) for data, None for 6-min.",
+    mode="Module Mode: 'search' (GeoJSON), 'data' (Time-Series), or 'datums' (Offsets). Default: auto-detect.",
 )
 class Tides(FetchModule):
     name = "tides"
@@ -72,6 +81,7 @@ class Tides(FetchModule):
         datum: str = "MLLW",
         product: str = "water_level",
         interval: Optional[str] = None,
+        mode: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(name="tides", **kwargs)
@@ -81,6 +91,7 @@ class Tides(FetchModule):
         self.datum = datum
         self.product = product
         self.interval = interval
+        self.mode = mode
 
     def _run_station_search(self):
         """Search for stations in the region."""
@@ -116,6 +127,7 @@ class Tides(FetchModule):
 
     def _run_data_fetch(self):
         """Fetch time-series data for a station."""
+
         if not self.start_date or not self.end_date:
             # Default to last 24 hours if not specified
             now = datetime.utcnow()
@@ -141,8 +153,6 @@ class Tides(FetchModule):
             params["interval"] = self.interval
 
         full_url = f"{DATA_API_URL}{urlencode(params)}"
-
-        # Output: tides_8518750_water_level_20230101_20230107.csv
         out_fn = (
             f"tides_{self.station}_{self.product}_{self.start_date}_{self.end_date}.csv"
         )
@@ -155,9 +165,75 @@ class Tides(FetchModule):
             title=f"Station {self.station} Data",
         )
 
+    def get_datums_in_region(self) -> Dict[str, dict]:
+        """Directly returns a dictionary of station datums for the current region."""
+
+        if not self.region:
+            logger.error("A region bounding box is required to fetch datums.")
+            return {}
+
+        w, e, s, n = self.region
+        logger.info("Fetching active NOAA stations for region...")
+
+        params = {
+            "outFields": "id,name",
+            "geometry": f"{w},{s},{e},{n}",
+            "geometryType": "esriGeometryEnvelope",
+            "spatialRel": "esriSpatialRelIntersects",
+            "inSR": 4326,
+            "outSR": 4326,
+            "f": "json",
+        }
+        resp = Fetch(STATION_SEARCH_URL).fetch_req(params=params)
+        if resp is not None:
+            features = resp.json().get("features", [])
+
+        stations_data = {}
+        datum = f"&datum={self.datum.upper()}" if self.datum is not None else ""
+
+        logger.info(f"Retrieving datums for {len(features)} stations...")
+        for feat in features:
+            attrs = feat.get("attributes", {})
+            stn_id = attrs.get("id")
+            geom = feat.get("geometry", {})
+
+            if not stn_id:
+                continue
+
+            datum_url = f"{DATUMS_API_URL}{stn_id}/datums.json?units=metric{datum}"
+            try:
+                d_resp = Fetch(datum_url).fetch_req(timeout=5)
+                if d_resp is not None:
+                    if d_resp.status_code == 200:
+                        datums_list = d_resp.json().get("datums", [])
+                        datum_dict = {d["name"]: d["value"] for d in datums_list}
+
+                        stations_data[stn_id] = {
+                            "name": attrs.get("name"),
+                            "lon": geom.get("x"),
+                            "lat": geom.get("y"),
+                            "datums": datum_dict,
+                        }
+
+                        out_fn = f"tides_stations_{stn_id}.json"
+                        self.add_entry_to_results(
+                            url=datum_url,
+                            dst_fn=out_fn,
+                            data_type="json",
+                            agency="NOAA CO-OPS",
+                            title=f"Station {self.station} Datums",
+                        )
+
+            except Exception as e:
+                logger.debug(f"Failed to fetch datums for {stn_id}: {e}")
+
+        return stations_data
+
     def run(self):
         """Run the TIDES fetching module."""
 
+        if self.mode == "datums":
+            self.get_datums_in_region()
         if self.station:
             self._run_data_fetch()
         elif self.region:

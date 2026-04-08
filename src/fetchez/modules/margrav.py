@@ -92,7 +92,7 @@ class MarGrav(FetchModule):
         self.add_entry_to_results(
             url=full_url,
             dst_fn=out_fn,
-            data_type="xyz",
+            data_type="margrav_xyz",
             agency="SIO / UCSD",
             title="Marine Gravity Model (Regional)",
         )
