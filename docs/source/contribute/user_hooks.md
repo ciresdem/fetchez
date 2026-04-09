@@ -1,5 +1,5 @@
 # 🪝 Developing User Hooks
-Hooks allow you to inject custom processing into the fetch pipeline. You can write hooks to process files immediately after they are downloaded, or to run setup/teardown tasks.
+Hooks allow you to inject custom processing into the `fetchez` pipeline. You can write hooks to process files immediately after they are downloaded, or to run setup/teardown tasks.
 
 ## How it Works
 
@@ -13,6 +13,7 @@ Create a file named `~/.fetchez/hooks/audit_log.py` to log every download to a f
 ```python
 import os
 from fetchez.hooks import FetchHook
+
 
 class AuditLog(FetchHook):
     # This name is used in the CLI: --hook audit
@@ -101,4 +102,4 @@ If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Clou
 
 You can use the modules section to create specialized shortcuts for specific datasets.
 
-For example, you often use fetchez dav (NOAA Digital Coast) but only want to check if data exists without downloading gigabytes of lidar. Now, you can create a preset that filters for "footprint" files only by writing a series of hooks and then combining them into a preset. Then, when you run `fetchez dav --help`, you will see your custom `--footprint-only` flag listed under "DAV Presets", but it won't clutter the menu for other modules.
+For example, you often use `fetchez dav` (NOAA Digital Coast) but only want to check if data exists without downloading gigabytes of lidar. Now, you can create a preset that filters for "footprint" files only by writing a series of hooks and then combining them into a preset. Then, when you run `fetchez dav --help`, you will see your custom `--footprint-only` flag listed under "DAV Presets", but it won't clutter the menu for other modules.

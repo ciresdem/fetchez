@@ -75,7 +75,7 @@ html_theme_options = {
         },
     ],
     "logo": {
-        "text": "Fetchez Documentation",
+        "text": "Fetchez",
     },
     "secondary_sidebar_items": [],
 }
