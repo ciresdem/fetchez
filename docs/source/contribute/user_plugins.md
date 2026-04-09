@@ -57,7 +57,7 @@ Once you save the file, simply run:
 ```bash
 
 # Check if it loaded
-	fetchez --search my_checkpoints
+fetchez --search my_checkpoints
 
 # or see all plugins
 fetchez --search plugin
