@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-globato.modules.local_fs
+fetchez.modules.local_fs
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Recursively crawl local directories, spatially filter files using .inf sidecars.
@@ -17,6 +17,7 @@ import glob
 import logging
 
 from fetchez.modules import FetchModule
+from fetchez.spatial import Region, regions_intersect
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,6 @@ logger = logging.getLogger(__name__)
     datatype="Data type tag for downstream hooks (default: 'raster').",
 )
 class LocalFS(FetchModule):
-
     name = "local_fs"
     meta_desc = "Crawl, spatially filter, and process local directories of data."
     meta_agency = "Fetchez"
@@ -43,20 +43,19 @@ class LocalFS(FetchModule):
     def __init__(self, path=".", ext=".tif", datatype="raster", **kwargs):
         super().__init__(name="local_fs", **kwargs)
         self.path = os.path.abspath(path)
-        self.ext = ext if ext.startswith('.') else f".{ext}"
+        self.ext = ext if ext.startswith(".") else f".{ext}"
         self.datatype = datatype
 
     def _read_inf(self, inf_path):
         """Attempt to parse an existing .inf file for spatial bounds."""
 
         try:
-            with open(inf_path, 'r') as f:
+            with open(inf_path, "r") as f:
                 data = json.load(f)
                 if all(k in data for k in ["min_x", "max_x", "min_y", "max_y"]):
-                    return Region.from_list([
-                        data["min_x"], data["max_x"],
-                        data["min_y"], data["max_y"]
-                    ])
+                    return Region.from_list(
+                        [data["min_x"], data["max_x"], data["min_y"], data["max_y"]]
+                    )
         except Exception:
             pass
         return None
@@ -79,12 +78,12 @@ class LocalFS(FetchModule):
                 file_region = self._read_inf(inf_path)
 
             if file_region:
-                if spatial.regions_intersect(self.region, file_region):
+                if regions_intersect(self.region, file_region):
                     self.add_entry_to_results(
                         url=f"file://{filepath}",
                         dst_fn=filepath,
                         data_type=self.datatype,
-                        status=0
+                        status=0,
                     )
                     matched_files += 1
 
@@ -93,7 +92,7 @@ class LocalFS(FetchModule):
                     url=f"file://{filepath}",
                     dst_fn=filepath,
                     data_type=self.datatype,
-                    status=0
+                    status=0,
                 )
                 matched_files += 1
 

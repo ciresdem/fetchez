@@ -405,9 +405,9 @@ def parse_hook_string(hook_str, default_name=None):
 
         if "=" in part:
             k, v = part.split("=", 1)
-            if v.lower() in ['true', 'yes']:
+            if v.lower() in ["true", "yes"]:
                 v = True
-            elif v.lower() in ['false', 'no']:
+            elif v.lower() in ["false", "no"]:
                 v = False
             else:
                 try:
@@ -431,14 +431,14 @@ def parse_source_string(source_str, default_hooks=None):
     Example: "copernicus:datatype=3+unzip+range_z:min_z=0"
     """
 
-    parts = source_str.split('+')
+    parts = source_str.split("+")
     mod_part = parts[0]
     hook_parts = parts[1:]
 
     # Parse the module arguments
-    if ':' in mod_part:
-        mod_name, rest = mod_part.split(':', 1)
-        arg_parts = rest.split(',')
+    if ":" in mod_part:
+        mod_name, rest = mod_part.split(":", 1)
+        arg_parts = rest.split(",")
     else:
         mod_name = mod_part
         arg_parts = []
@@ -446,14 +446,19 @@ def parse_source_string(source_str, default_hooks=None):
     args = {}
     for p in arg_parts:
         p = p.strip()
-        if not p: continue
-        if '=' in p:
-            k, v = p.split('=', 1)
-            if v.lower() in ['true', 'yes']: v = True
-            elif v.lower() in ['false', 'no']: v = False
+        if not p:
+            continue
+        if "=" in p:
+            k, v = p.split("=", 1)
+            if v.lower() in ["true", "yes"]:
+                v = True
+            elif v.lower() in ["false", "no"]:
+                v = False
             else:
-                try: v = float(v) if '.' in v else int(v)
-                except ValueError: pass
+                try:
+                    v = float(v) if "." in v else int(v)
+                except ValueError:
+                    pass
             args[k] = v
         else:
             args[p] = True
@@ -461,11 +466,11 @@ def parse_source_string(source_str, default_hooks=None):
     # Auto-detect local files and directories
     if os.path.exists(mod_name):
         if os.path.isfile(mod_name):
-            args['paths'] = os.path.abspath(mod_name)
-            mod_name = 'file'
+            args["paths"] = os.path.abspath(mod_name)
+            mod_name = "file"
         elif os.path.isdir(mod_name):
-            args['path'] = os.path.abspath(mod_name)
-            mod_name = 'local_fs'
+            args["path"] = os.path.abspath(mod_name)
+            mod_name = "local_fs"
 
     mod_dict = {"module": mod_name, "hooks": default_hooks or []}
     if args:
