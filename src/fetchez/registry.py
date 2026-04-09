@@ -232,8 +232,7 @@ class SchemaRegistry(PluginRegistry):
     def apply_schema(cls, config):
         """Looks for a schema in the config and applies its rules."""
 
-        schema_name = config.get("domain", {}).get("schema")
-
+        schema_name = config.get("schema")
         if schema_name:
             schema_name = schema_name.lower()
             if schema_name in cls.get_registry():

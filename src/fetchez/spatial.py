@@ -230,6 +230,18 @@ class Region:
             return f"w{self.xmin}_e{self.xmax}_s{self.ymin}_n{self.ymax}".replace(
                 ".", "p"
             ).replace("-", "")
+        elif style == "delivery":
+            import datetime
+
+            ns = "s" if self.ymax < 0 else "n"
+            ew = "e" if self.xmin > 0 else "w"
+            year = datetime.datetime.now().year
+
+            coord_str = (
+                f"{ns}{abs(int(self.ymax)):02d}x{abs(int(self.ymax * 100)) % 100:02d}_"
+                f"{ew}{abs(int(self.xmin)):03d}x{abs(int(self.xmin * 100)) % 100:02d}"
+            )
+            return f"{coord_str}_{year}_v1"
         elif format == "geojson":
             geom = {
                 "type": "Polygon",
