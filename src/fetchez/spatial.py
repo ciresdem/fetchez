@@ -232,6 +232,7 @@ class Region:
             ).replace("-", "")
         elif style == "delivery":
             import datetime
+
             ns = "s" if self.ymax < 0 else "n"
             ew = "e" if self.xmin > 0 else "w"
             year = datetime.datetime.now().year
