@@ -139,6 +139,8 @@ class Region:
             return False
         return True
 
+    is_valid = valid_p
+
     # --- Manipulation ---
     def copy(self):
         return Region(self.xmin, self.xmax, self.ymin, self.ymax, srs=self.srs)
@@ -580,9 +582,6 @@ def regions_reduce(region_a: Region, region_b: Region) -> Region:
         region_c.xmax = _get_overlap(region_a.xmax, region_b.xmax, min)
         region_c.ymin = _get_overlap(region_a.ymin, region_b.ymin, max)
         region_c.ymax = _get_overlap(region_a.ymax, region_b.ymax, min)
-
-        region_c.zmin = _merge_optional(region_a.zmin, region_b.zmin, max)
-        region_c.zmax = _merge_optional(region_a.zmax, region_b.zmax, min)
 
     return region_c
 

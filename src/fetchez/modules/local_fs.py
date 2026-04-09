@@ -17,7 +17,7 @@ import glob
 import logging
 
 from fetchez.modules import FetchModule
-from fetchez.spatial import Region, regions_intersect
+from fetchez.spatial import Region, regions_intersect_p
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class LocalFS(FetchModule):
                 file_region = self._read_inf(inf_path)
 
             if file_region:
-                if regions_intersect(self.region, file_region):
+                if regions_intersect_p(self.region, file_region):
                     self.add_entry_to_results(
                         url=f"file://{filepath}",
                         dst_fn=filepath,
