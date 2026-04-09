@@ -14,6 +14,7 @@ The most common contribution is adding support for a new data source. Because Fe
 
     @cli.cli_opts(help_text="Fetch data from MyData Source")
     class MyData(FetchModule):
+
 		name = "mydata"
         meta_category = "Topography"
         meta_desc = "Short summary of the dataset (e.g., Global Lidar Synthesis)"
@@ -58,9 +59,11 @@ Fetchez aims to keep its core footprint small. If your new module or plugin requ
 
 	try:
 		import boto3
+
 		HAS_BOTO = True
 	except ImportError:
 		HAS_BOTO = False
+
 
 	@cli.cli_opts(help_text="Fetch data from AWS")
 	class MyS3Fetcher(FetchModule):

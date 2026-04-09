@@ -77,7 +77,7 @@ html_theme_options = {
     "logo": {
         "text": "Fetchez",
     },
-    # "secondary_sidebar_items": [],
+    "secondary_sidebar_items": [],
 }
 
 # html_context = {
