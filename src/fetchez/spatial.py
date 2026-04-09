@@ -113,6 +113,10 @@ class Region:
     def height(self):
         return abs(self.ymax - self.ymin) if self.valid_p() else 0
 
+    @property
+    def xy_region(self):
+        return [self.xmin, self.xmax, self.ymin, self.ymax]
+
     # --- Validation ---
     def valid_p(self, check_xy: bool = True) -> bool:
         """Check if region is valid."""
@@ -552,3 +556,44 @@ def buffer_region(r, p=5):
         return Region.from_list(r).buffer(p)
     else:
         return None
+
+
+def regions_reduce(region_a: Region, region_b: Region) -> Region:
+    """Combine two regions and find their minimum overlapping region."""
+
+    region_c = Region()
+
+    if region_a.is_valid() and region_b.is_valid():
+        # Helper to get the inner bounds (max of mins, min of maxes)
+        def _get_overlap(val_a, val_b, func):
+            if val_a is not None and val_b is not None:
+                return func(val_a, val_b)
+            return None
+
+        # Helper to merge optional fields (using first available)
+        def _merge_optional(val_a, val_b, func):
+            if val_a is not None and val_b is not None:
+                return func(val_a, val_b)
+            return val_a if val_a is not None else val_b
+
+        region_c.xmin = _get_overlap(region_a.xmin, region_b.xmin, max)
+        region_c.xmax = _get_overlap(region_a.xmax, region_b.xmax, min)
+        region_c.ymin = _get_overlap(region_a.ymin, region_b.ymin, max)
+        region_c.ymax = _get_overlap(region_a.ymax, region_b.ymax, min)
+
+        region_c.zmin = _merge_optional(region_a.zmin, region_b.zmin, max)
+        region_c.zmax = _merge_optional(region_a.zmax, region_b.zmax, min)
+
+    return region_c
+
+
+def regions_intersect_p(region_a: Region, region_b: Region) -> bool:
+    """Check if two regions intersect."""
+
+    if region_a.is_valid() and region_b.is_valid():
+        reduced_region = regions_reduce(region_a, region_b)
+        # Check if the overlap is valid
+        if any(reduced_region.xy_region) and not reduced_region.is_valid():
+            return False
+
+    return True

@@ -385,7 +385,100 @@ def fmod2dict(fmod: str, dict_args: Optional[Dict[str, Any]] = None) -> Dict[str
     return dict_args
 
 
-def parse_hook_string(h_str):
+def parse_hook_string(hook_str, default_name=None):
+    """Parses 'name:key=val,key2=val2' into a dictionary for recipes and pipelines."""
+
+    if ":" in hook_str:
+        name, rest = hook_str.split(":", 1)
+        parts = rest.split(",")
+    else:
+        name = hook_str
+        parts = []
+
+    name = name if name else default_name
+
+    args = {}
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+
+        if "=" in part:
+            k, v = part.split("=", 1)
+            if v.lower() in ['true', 'yes']:
+                v = True
+            elif v.lower() in ['false', 'no']:
+                v = False
+            else:
+                try:
+                    v = float(v) if "." in v else int(v)
+                except ValueError:
+                    pass
+            args[k] = v
+        else:
+            args[part] = True
+
+    hook = {"name": name}
+    if args:
+        hook["args"] = args
+    return hook
+
+
+def parse_source_string(source_str, default_hooks=None):
+    """Parses a source string into a Fetchez module dictionary.
+    Supports local file auto-detection and chaining hooks via '+'.
+
+    Example: "copernicus:datatype=3+unzip+range_z:min_z=0"
+    """
+
+    parts = source_str.split('+')
+    mod_part = parts[0]
+    hook_parts = parts[1:]
+
+    # Parse the module arguments
+    if ':' in mod_part:
+        mod_name, rest = mod_part.split(':', 1)
+        arg_parts = rest.split(',')
+    else:
+        mod_name = mod_part
+        arg_parts = []
+
+    args = {}
+    for p in arg_parts:
+        p = p.strip()
+        if not p: continue
+        if '=' in p:
+            k, v = p.split('=', 1)
+            if v.lower() in ['true', 'yes']: v = True
+            elif v.lower() in ['false', 'no']: v = False
+            else:
+                try: v = float(v) if '.' in v else int(v)
+                except ValueError: pass
+            args[k] = v
+        else:
+            args[p] = True
+
+    # Auto-detect local files and directories
+    if os.path.exists(mod_name):
+        if os.path.isfile(mod_name):
+            args['paths'] = os.path.abspath(mod_name)
+            mod_name = 'file'
+        elif os.path.isdir(mod_name):
+            args['path'] = os.path.abspath(mod_name)
+            mod_name = 'local_fs'
+
+    mod_dict = {"module": mod_name, "hooks": default_hooks or []}
+    if args:
+        mod_dict["args"] = args
+
+    # Parse and append chained hooks using the unified hook parser
+    for h_str in hook_parts:
+        mod_dict["hooks"].append(parse_hook_string(h_str))
+
+    return mod_dict
+
+
+def parse_hook_string_(h_str):
     """Helper to parse 'hook:arg=val' strings."""
 
     if ":" in h_str:

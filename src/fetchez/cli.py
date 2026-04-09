@@ -316,7 +316,9 @@ def init_hooks(hook_list_strs):
         return active_instances
 
     for h_str in hook_list_strs:
-        name, kwargs = parse_hook_arg(h_str)
+        parsed = utils.parse_hook_string(h_str)
+        name = parsed["name"]
+        kwargs = parsed.get("args", {})
 
         HookCls = HookRegistry.get_class(name)
         if HookCls:
