@@ -5,15 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-### Added
+## [0.5.3] - 2026-04-09
+### ADDED
+- Added parse_source_string and parse_hook_string in utils
+- Added spatial.regions_intersect from cudem.regions
 
-### Changed
+### CHANGED
+- re-arranged cli help
 
 ### BUGFIX
 - spatial region parsing of geojson files, returns all regions.
 
-## [0.5.2] - 2026-05-02
+## [0.5.2] - 2026-04-02
 ### ADDED
 - Add "lidarbc" fetchez modules (canada)
 - Add .fetchez_cache to save module results for re-use
