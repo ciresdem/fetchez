@@ -1,0 +1,17 @@
+name: "🗺️ Experience report"
+description: |
+  Help us improve by sharing your unfiltered experiences, wins, and struggles
+
+labels:
+  - "experience report"
+
+body:
+  - type: "textarea"
+    attributes:
+      label: "Description"
+      description: |
+        Provide detailed feedback on your user experience, including successes,
+        challenges, and suggestions for improvement. Your insights will inform
+        our development roadmap and focus community efforts.
+    validations:
+      required: true
