@@ -101,9 +101,7 @@ class HydroNOS(FetchModule):
         req = core.Fetch(self._nos_query_url).fetch_req(params=params)
 
         if req is None:
-            logger.info('req is none')
             return self
-        logger.info(req.url)
         try:
             response = req.json()
         except json.JSONDecodeError:
