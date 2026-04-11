@@ -35,7 +35,7 @@ NOS_DATA_URL = "https://data.ngdc.noaa.gov/platforms/ocean/nos/coast/"
 @cli.cli_opts(
     help_text="NOAA NOS Hydrographic Surveys (BAG & XYZ)",
     datatype='Data type to fetch: "bag" (Bathymetric Attributed Grid) or "xyz" (Soundings)',
-    layer="ArcGIS Layer ID: 0 (BAGs only) or 1 (All Digital Data) [Default: 1]",
+    layer="ArcGIS Layer ID: 0 (All Soundings) [Default: 0]",
     survey_id="Filter by specific Survey ID (e.g. H12345)",
     min_year="Filter by minimum survey year",
     max_year="Filter by maximum survey year",
