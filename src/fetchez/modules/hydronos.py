@@ -23,7 +23,9 @@ from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
-NOS_DYNAMIC_URL = "https://gis.ngdc.noaa.gov/arcgis/rest/services/web_mercator/nos_hydro_dynamic/MapServer"
+# Depreciated
+# NOS_DYNAMIC_URL = "https://gis.ngdc.noaa.gov/arcgis/rest/services/web_mercator/nos_hydro_dynamic/MapServer"
+NOS_DYNAMIC_URL = "https://services2.arcgis.com/C8EMgrsFcRFL6LrL/arcgis/rest/services/NOS_Hydro_Surveys/FeatureServer"
 NOS_DATA_URL = "https://data.ngdc.noaa.gov/platforms/ocean/nos/coast/"
 
 
@@ -33,16 +35,12 @@ NOS_DATA_URL = "https://data.ngdc.noaa.gov/platforms/ocean/nos/coast/"
 @cli.cli_opts(
     help_text="NOAA NOS Hydrographic Surveys (BAG & XYZ)",
     datatype='Data type to fetch: "bag" (Bathymetric Attributed Grid) or "xyz" (Soundings)',
-    layer="ArcGIS Layer ID: 0 (BAGs only) or 1 (All Digital Data) [Default: 1]",
+    layer="ArcGIS Layer ID: 0 (All Soundings) [Default: 0]",
     survey_id="Filter by specific Survey ID (e.g. H12345)",
     min_year="Filter by minimum survey year",
     max_year="Filter by maximum survey year",
 )
 class HydroNOS(FetchModule):
-    name = "bag"
-    meta_category = "Bathymetry"
-    meta_desc = "NOAA NOS Bathymetric Attributed Grids (BAG)"
-
     name = "nos_hydro"
     meta_category = "Bathymetry"
     meta_desc = "NOAA NOS Hydrographic Surveys (BAG & XYZ)"
@@ -56,16 +54,12 @@ class HydroNOS(FetchModule):
     """Fetch NOAA National Ocean Service (NOS) Hydrographic Surveys.
 
     This module queries the NOS Hydrographic Data Base (NOSHDB).
-
-    Layers:
-      0: Surveys with BAGs available.
-      1: Surveys with any digital sounding data (BAG or XYZ).
     """
 
     def __init__(
         self,
         where: str = "1=1",
-        layer: int = 1,
+        layer: int = 0,
         datatype: Optional[str] = None,
         survey_id: Optional[str] = None,
         exclude_survey_id: Optional[str] = None,
@@ -108,7 +102,6 @@ class HydroNOS(FetchModule):
 
         if req is None:
             return self
-
         try:
             response = req.json()
         except json.JSONDecodeError:
