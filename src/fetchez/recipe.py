@@ -17,10 +17,8 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry, SchemaRegistry
+from .registry import ModuleRegistry, HookRegistry, SchemaRegistry, PresetRegistry
 from .utils import TqdmLoggingHandler
-from . import config
-from . import presets
 from . import __version__ as fetchez_version
 
 logger = logging.getLogger(__name__)
@@ -129,14 +127,14 @@ class Recipe:
             return []
 
         HookRegistry.load_all()
-        hook_presets = presets.get_global_presets()
-        hook_mod_presets = config.load_user_config("presets").get("modules", {})
+        PresetRegistry.load_all()
 
         active_hooks = []
         for h in hook_defs:
             name = h.get("name")
             is_preset = h.get("preset")
             raw_kwargs = h.get("args", {})
+
             kwargs = {}
             for k, v in raw_kwargs.items():
                 if k in [
@@ -153,27 +151,43 @@ class Recipe:
                 else:
                     kwargs[k] = v
 
-            # Check for global and mod-specific presets from ~/.fetchez/presets.yaml
+            # --- PRESET EXPANSION ---
             if is_preset:
-                try:
-                    hook_def = hook_presets.get(is_preset, {})
-                    if hook_def:
-                        chain = presets.hook_list_from_preset(hook_def)
-                        active_hooks.extend(chain)
-                    if mod:
-                        mod_hooks = hook_mod_presets.get(mod, {}).get("presets", {})
-                        hook_def = mod_hooks.get(is_preset, {})
-                        if hook_def:
-                            chain = presets.hook_list_from_preset(hook_def)
-                            active_hooks.extend(chain)
-                except Exception as e:
-                    logger.error(
-                        f"could not load preset {is_preset} into the recipe: {e}"
-                    )
+                preset_def = PresetRegistry.get_preset(is_preset)
+
+                if preset_def:
+                    import copy
+
+                    preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
+
+                    # TARGETED ARGUMENT INJECTION
+                    for inner_hook in preset_hooks:
+                        h_name = inner_hook.get("name")
+
+                        # If the user passed a dictionary of args specifically for this hook
+                        if h_name in kwargs and isinstance(kwargs[h_name], dict):
+                            inner_hook.setdefault("args", {}).update(kwargs[h_name])
+
+                    # Recursively parse the expanded hooks
+                    expanded_hooks = self._init_hooks(preset_hooks, mod=mod)
+                    active_hooks.extend(expanded_hooks)
+                else:
+                    logger.error(f"Preset '{is_preset}' not found in registry.")
+
+            # --- STANDARD HOOK INITIALIZATION ---
             else:
                 HookCls = HookRegistry.get_class(name)
                 if HookCls:
-                    active_hooks.append(HookCls(**kwargs))
+                    import inspect
+
+                    sig = inspect.signature(HookCls.__init__)
+                    valid_kwargs = {
+                        k: v
+                        for k, v in kwargs.items()
+                        if k in sig.parameters or "kwargs" in str(sig.parameters)
+                    }
+
+                    active_hooks.append(HookCls(**valid_kwargs))
                 else:
                     logger.warning(f"Hook '{name}' missing.")
 
