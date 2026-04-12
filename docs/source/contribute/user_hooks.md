@@ -54,52 +54,50 @@ Submit a Pull Request adding your file to fetchez/modules/ or fetchez/hooks.
 ## 🔗 Developing & Sharing Presets
 Presets (or "Macros") are the easiest way to share complex data engineering workflows without writing Python code. They allow you to bundle multiple processing steps into a single, shareable YAML snippet.
 
-### The Preset Configuration File
+### The Preset Structure
+Presets are standalone `.yaml` files placed in `~/.fetchez/presets/`. You can quickly see all active presets on your system by running `fetchez --list-presets`.
 
-Presets are stored in `~/.fetchez/presets.yaml`. You can generate a valid template using `fetchez --init-presets`.
+A preset requires a `name`, a `description`, and a list of `hooks` and their arguments.
 
-The file has two main sections:
-
-* Global Presets: Macros available for every module.
-
-* Module Presets: Macros that only appear when using a specific module.
-
-presets.yaml Example
-
+`~/.fetchez/presets/clean_download.yaml`
 ```yaml
-presets:
-  audit-full:
-    help: Generate SHA256 hashes, enrichment, and a full JSON audit log.
-    hooks:
-    - name: checksum
-      args:
-        algo: sha256
-    - name: enrich
-    - name: audit
-      args:
-        file: audit_full.json
-  clean-download:
-    help: Unzip files and remove the original archive.
-    hooks:
-    - name: unzip
-      args:
-        remove: 'true'
+name: clean-download
+description: "Unzip files and remove the original archive."
+hooks:
+  - name: unzip
+    args:
+      remove: true
 ```
 
-***Best Practices for Sharing***
+### Module-Specific Overrides
+Sometimes you build a macro that is only relevant to one specific dataset. For example, if you use the multibeam module, you might want a shortcut to only download the .inf metadata files.
 
-If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Cloud Optimized GeoTIFF Conversion", or whatever), you can share it easily!
+You can restrict a preset so it only appears in the CLI menu for a specific module by adding the target_module key!
 
-* Test your preset: Ensure the hooks run in the correct order (e.g., unzip before filter).
+`~/.fetchez/presets/inf_only.yaml`
 
-* Add a Help String: The "help" field in the YAML is displayed in the CLI when users run `fetchez --help`. Make it descriptive if you can!
+```yaml
+name: inf-only
+target_module: "multibeam"
+description: "Fetch only .inf metadata sidecar files."
+hooks:
+  - name: filename_filter
+    args: 
+      match: ".inf"
+      stage: "pre"
+```
+Now, --inf-only will show up when you run fetchez multibeam --help, but it won't clutter the global menu!
 
-* Share the YAML: You can post your YAML snippet in a GitHub Issue or Discussion or on our [Zulip chat](https://cudem.zulipchat.com/).
+### Best Practices for Sharing
+If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Cloud Optimized GeoTIFF Conversion"), you can share it easily!
 
-* Contribute to Core: If a preset is universally useful, you can propose adding it to the `init_presets()` function in `fetchez/presets.py` via a Pull Request.
+**Share the YAML:** You can post your .yaml file in a GitHub Issue, a Gist, or on our Zulip chat. Users just drop it into their ~/.fetchez/presets/ folder.
 
-***Module-Specific Overrides***
+**Bundle in a Python Package:** If you are building a Python package that extends Fetchez (like globato), you can distribute presets automatically! Just place your YAML files in a package directory and register them in your pyproject.toml:
 
-You can use the modules section to create specialized shortcuts for specific datasets.
+```Ini, TOML
+[project.entry-points."fetchez.presets"]
+my_custom_presets = "my_package.presets"
+```
 
-For example, you often use `fetchez dav` (NOAA Digital Coast) but only want to check if data exists without downloading gigabytes of lidar. Now, you can create a preset that filters for "footprint" files only by writing a series of hooks and then combining them into a preset. Then, when you run `fetchez dav --help`, you will see your custom `--footprint-only` flag listed under "DAV Presets", but it won't clutter the menu for other modules.
+**Contribute to Core:** If a preset is universally useful, you can propose adding it directly to the fetchez/presets/ core directory via a Pull Request.a
