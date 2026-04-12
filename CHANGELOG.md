@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added PresetRegistry into registry
+
+### CHANGED
+- Update recipe.py to use the new PresetRegistry
+- Update nos_hydro for new API
+
 ## [0.5.3] - 2026-04-09
 ### ADDED
 - Added parse_source_string and parse_hook_string in utils
