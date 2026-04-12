@@ -352,7 +352,7 @@ def init_presets():
     default_config = {
         "presets": {
             "audit-full": {
-                "help": "Generate SHA256 hashes, enrichment, and a full JSON audit log.",
+                "description": "Generate SHA256 hashes, enrichment, and a full JSON audit log.",
                 "hooks": [
                     {"name": "checksum", "args": {"algo": "sha256"}},
                     {"name": "enrich"},
@@ -360,12 +360,12 @@ def init_presets():
                 ],
             },
             "clean-download": {
-                "help": "Unzip files and remove the original archive.",
+                "description": "Unzip files and remove the original archive.",
                 "hooks": [{"name": "unzip", "args": {"remove": "true"}}],
             },
             "inf_only": {
                 "target_module": "multibeam",
-                "help": "multibeam Only: Fetch only inf files",
+                "description": "multibeam Only: Fetch only inf files",
                 "hooks": [
                     {
                         "name": "filename_filter",
@@ -559,7 +559,7 @@ CUDEM home page: <http://cudem.colorado.edu>
     for name, defs in PresetRegistry.get_registry().items():
         if not defs.get("target_module"):
             flag_name = f"--{name}"
-            help_text = defs.get("help", "Custom user preset.")
+            help_text = defs.get("description", "Custom user preset.")
             preset_grp.add_argument(flag_name, action="store_true", help=help_text)
 
     # adv_grp = parser.add_argument_group("Advanced Configuration")
