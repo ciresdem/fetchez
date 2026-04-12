@@ -50,37 +50,27 @@ fetchez copernicus --audit-full
 ```
 
 ### How to create a Preset:
+Presets are simply YAML files that live in your ~/.fetchez/presets/ directory. fetchez automatically scans this folder and turns any valid YAML file into a CLI flag!
 
-* **Initialize your config:** Run this command to generate a starter configuration file at `~/.fetchez/presets.yaml`:
-
-```bash
-fetchez --init-presets
-```
-
-* **Define your workflow:** Edit the `YAML` file to create a named preset. A preset is just a list of hooks with arguments.
+1. Create a file: ~/.fetchez/presets/audit_full.yaml
+2. Define your workflow:
 
 ```yaml
-presets:
-  audit-full:
-    help: Generate SHA256 hashes, enrichment, and a full JSON audit log.
-    hooks:
-    - name: checksum
-      args:
-        algo: sha256
-    - name: enrich
-    - name: audit
-      args:
-        file: audit_full.json
-  clean-download:
-    help: Unzip files and remove the original archive.
-    hooks:
-    - name: unzip
-      args:
-        remove: 'true'
+name: audit-full
+description: "Generate SHA256 hashes, enrichment, and a full JSON audit log."
+hooks:
+
+name: checksum
+args: { algo: sha256 }
+
+name: enrich
+
+name: audit
+args: { file: audit_full.json }
 ```
 
 **Run it:** Your new preset automatically appears as a CLI flag in `fetchez`!
 
 ```bash
-fetchez charts --audit-full --clean-download
+fetchez charts --audit-full
 ```

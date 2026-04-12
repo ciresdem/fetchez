@@ -22,11 +22,9 @@ from typing import Dict, Optional, Any
 from . import utils
 from . import spatial
 from . import core
-from . import presets
-from . import config
 from . import __version__
 from .recipe import Recipe
-from .registry import ModuleRegistry, HookRegistry, RecipeRegistry
+from .registry import ModuleRegistry, HookRegistry, RecipeRegistry, PresetRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -335,16 +333,67 @@ def init_hooks(hook_list_strs):
     return active_instances
 
 
+def init_presets():
+    """Generate a default presets.yaml file."""
+
+    import yaml
+    from . import config
+
+    config_dir = config.CONFIG_PATH
+    config_file = os.path.join(config_dir, "presets.yaml")
+
+    if os.path.exists(config_file):
+        logger.warning(f"Config file already exists at: {config_file}")
+        return
+
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir, exist_ok=True)
+
+    default_config = {
+        "presets": {
+            "audit-full": {
+                "description": "Generate SHA256 hashes, enrichment, and a full JSON audit log.",
+                "hooks": [
+                    {"name": "checksum", "args": {"algo": "sha256"}},
+                    {"name": "enrich"},
+                    {"name": "audit", "args": {"file": "audit_full.json"}},
+                ],
+            },
+            "clean-download": {
+                "description": "Unzip files and remove the original archive.",
+                "hooks": [{"name": "unzip", "args": {"remove": "true"}}],
+            },
+            "inf_only": {
+                "target_module": "multibeam",
+                "description": "multibeam Only: Fetch only inf files",
+                "hooks": [
+                    {
+                        "name": "filename_filter",
+                        "args": {"match": ".inf", "stage": "pre"},
+                    },
+                ],
+            },
+        },
+    }
+
+    try:
+        with open(config_file, "w") as f:
+            f.write("# Fetchez User Configuration & Presets\n")
+            f.write("# Define your custom workflow macros here.\n\n")
+            yaml.dump(default_config, f, sort_keys=False, default_flow_style=False)
+
+        logger.info(f"Created default configuration at: {config_file}")
+        logger.info("Edit this file to add your own workflow presets.")
+    except Exception as e:
+        logger.error(f"Could not create presets config: {e}")
+
+
 # =============================================================================
 # Command-line Interface(s) (CLI)
 #
 # `get_parser` here was extracted so we can auto-document the cli with Sphinx.
 # =============================================================================
 def get_parser():
-    from . import presets
-
-    user_presets = presets.get_global_presets()
-
     _usage = "%(prog)s [-R REGION] [OPTIONS] MODULE [MODULE-OPTS]..."
 
     parser = argparse.ArgumentParser(
@@ -388,6 +437,9 @@ CUDEM home page: <http://cudem.colorado.edu>
     )
     disc_grp.add_argument(
         "--list-hooks", action="store_true", help="List all available hooks."
+    )
+    disc_grp.add_argument(
+        "--list-presets", action="store_true", help="List all available hook presets."
     )
     disc_grp.add_argument(
         "--list-recipes",
@@ -503,10 +555,12 @@ CUDEM home page: <http://cudem.colorado.edu>
     )
 
     # User presets
-    for name, defs in user_presets.items():
-        flag_name = f"--{name}"
-        help_text = defs.get("help", "Custom user preset.")
-        preset_grp.add_argument(flag_name, action="store_true", help=help_text)
+    PresetRegistry.load_all()
+    for name, defs in PresetRegistry.get_registry().items():
+        if not defs.get("target_module"):
+            flag_name = f"--{name}"
+            help_text = defs.get("description", "Custom user preset.")
+            preset_grp.add_argument(flag_name, action="store_true", help=help_text)
 
     # adv_grp = parser.add_argument_group("Advanced Configuration")
 
@@ -526,9 +580,10 @@ def fetchez_cli():
 
     ModuleRegistry.load_all()
     HookRegistry.load_all()
+    PresetRegistry.load_all()
 
-    user_presets = presets.get_global_presets()
-    user_mod_presets = config.load_user_config("presets").get("modules", {})
+    # user_presets = presets.get_global_presets()
+    # user_mod_presets = config.load_user_config("presets").get("modules", {})
 
     parser = get_parser()
 
@@ -544,7 +599,7 @@ def fetchez_cli():
     )
 
     if global_args.init_presets:
-        presets.init_presets()
+        init_presets()
         sys.exit(0)
 
     # --- MODULE INFO ---
@@ -654,6 +709,19 @@ def fetchez_cli():
         print()
         sys.exit(0)
 
+    if getattr(global_args, "list_presets", False):
+        registry = PresetRegistry.get_registry()
+
+        print("\nAvailable Curated Presets:")
+        print("=" * 60)
+        count = 0
+        for name, meta in sorted(registry.items()):
+            print(f"  {name:<25} - {meta.get('description', 'Imported Preset')}")
+            count += 1
+        print("=" * 60)
+        print(f"Total presets found: {count}\n")
+        sys.exit(0)
+
     # --- Run/list a recipe.yaml ---
     if getattr(global_args, "list_recipes", False):
         RecipeRegistry.load_all()
@@ -709,13 +777,15 @@ def fetchez_cli():
         global_hook_objs.extend(init_hooks(global_args.hook))
 
     # --- Process Default Presets ---
-    for name, defs in user_presets.items():
-        arg_attr = name.replace("-", "_")
-
-        # load presets
-        if getattr(global_args, arg_attr, False):
-            chain = presets.hook_list_from_preset(defs)
-            global_hook_objs.extend(chain)
+    for preset_name, preset_def in PresetRegistry.get_registry().items():
+        cli_arg_name = preset_name.replace("-", "_")
+        if getattr(global_args, cli_arg_name, False):
+            for hook_def in preset_def.get("hooks", []):
+                h_name = hook_def.get("name")
+                h_kwargs = hook_def.get("args", {})
+                HookCls = HookRegistry.get_class(h_name)
+                if HookCls:
+                    global_hook_objs.append(HookCls(**h_kwargs))
 
     if global_args.list:
         from .hooks.dryrun import DryRun
@@ -868,22 +938,17 @@ def fetchez_cli():
         )
 
         active_presets = getattr(mod_cls, "presets", {}).copy()
-        active_presets.update(presets.get_module_presets(mod_key))
-        if mod_key in user_mod_presets:
-            user_mod_presets = user_mod_presets[mod_key].get("presets", {})
-            # User presets overwrite built-in presets
-            active_presets.update(user_mod_presets)
+        for preset_name, preset_def in PresetRegistry.get_registry().items():
+            # Only attach if this preset is explicitly targeted at this module
+            if preset_def.get("target_module") == mod_key:
+                active_presets.update({preset_name: preset_def})
 
         if active_presets:
             mod_preset_grp = mod_parser.add_argument_group(f"{mod_key} Presets")
-
-            for pname, pdef in active_presets.items():
-                flag_name = f"--{pname}"
-                help_text = pdef.get("help", f"Apply {mod_key} preset: {pname}")
-
-                mod_preset_grp.add_argument(
-                    flag_name, action="store_true", help=help_text
-                )
+            for preset_name, preset_def in active_presets.items():
+                help_text = preset_def.get("help", f"Apply {preset_name} preset.")
+                flag = f"--{preset_name.replace('_', '-')}"
+                mod_preset_grp.add_argument(flag, action="store_true", help=help_text)
 
         _populate_subparser(mod_parser, mod_cls)
         mod_args_ns = mod_parser.parse_args(mod_argv)
@@ -902,10 +967,12 @@ def fetchez_cli():
         for pname, pdef in active_presets.items():
             arg_attr = pname.replace("-", "_")
             if getattr(mod_args_ns, arg_attr, False):
-                chain = presets.hook_list_from_preset({"hooks": pdef["hooks"]})
-                mod_kwargs["hook"].extend(chain)
-
-            mod_kwargs.pop(arg_attr, None)
+                for hook_def in pdef.get("hooks", []):
+                    h_name = hook_def.get("name")
+                    h_kwargs = hook_def.get("args", {})
+                    HookCls = HookRegistry.get_class(h_name)
+                    if HookCls:
+                        mod_kwargs["hook"].append(HookCls(**h_kwargs))
 
         usable_modules.append((mod_cls, mod_kwargs))
 

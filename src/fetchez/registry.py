@@ -340,6 +340,7 @@ class RecipeRegistry:
 class PresetRegistry:
     """A registry for discovering and loading hook Presets (Macros)."""
 
+    builtin_pkg = "fetchez.presets"
     entry_point_group = "fetchez.presets"
     user_folder = "presets"
 
@@ -372,17 +373,21 @@ class PresetRegistry:
             except Exception as e:
                 logger.warning(f"Failed to load presets from package {pkg_name}: {e}")
 
+        builtin_module = importlib.import_module(cls.builtin_pkg)
+        builtin_path = builtin_module.__path__
         home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
-        if os.path.exists(home_dir):
-            for fn in os.listdir(home_dir):
-                if fn.endswith((".yaml", ".yml")):
-                    try:
-                        with open(
-                            os.path.join(home_dir, fn), "r", encoding="utf-8"
-                        ) as f:
-                            cls._register_yaml(f.read(), os.path.join(home_dir, fn))
-                    except Exception as e:
-                        logger.warning(f"Failed to load local preset {fn}: {e}")
+        builtin_path.append(home_dir)
+        for fdir in builtin_path:
+            if os.path.exists(fdir):
+                for fn in os.listdir(fdir):
+                    if fn.endswith((".yaml", ".yml")):
+                        try:
+                            with open(
+                                os.path.join(fdir, fn), "r", encoding="utf-8"
+                            ) as f:
+                                cls._register_yaml(f.read(), os.path.join(fdir, fn))
+                        except Exception as e:
+                            logger.warning(f"Failed to load preset {fn}: {e}")
 
         legacy_file = os.path.expanduser("~/.fetchez/presets.yaml")
         if os.path.exists(legacy_file):
@@ -415,3 +420,23 @@ class PresetRegistry:
     @classmethod
     def get_preset(cls, name: str) -> Optional[Dict[str, Any]]:
         return cls.get_registry().get(name)
+
+    @classmethod
+    def hook_list_from_preset(cls, preset_def):
+        """Convert yaml definition to list of Hook Objects."""
+
+        hooks = []
+        for h_def in preset_def.get("hooks", []):
+            name = h_def.get("name")
+            kwargs = h_def.get("args", {})
+
+            hook_cls = HookRegistry.get_class(name)
+            if hook_cls:
+                try:
+                    hooks.append(hook_cls(**kwargs))
+                except Exception as exception:
+                    logger.error(f"Failed to init preset hook '{name}': {exception}")
+            else:
+                logger.warning(f"Preset hook '{name}' not found.")
+
+        return hooks
