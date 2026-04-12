@@ -205,6 +205,113 @@ class PluginRegistry:
         return results
 
 
+class YamlRegistry:
+    """A registry for discovering and loading yaml configuration files (recipes and hook presets)."""
+
+    # These must be defined by the subclasses
+    base_class: Optional[Type] = None
+    builtin_pkg: str = ""
+    entry_point_group: str = ""
+    user_folder: str = ""
+
+    @classmethod
+    def get_registry(cls) -> Dict[str, Any]:
+
+        if not hasattr(cls, "_registry"):
+            setattr(cls, "_registry", {})
+        return getattr(cls, "_registry")
+
+    @classmethod
+    def load_all(cls):
+        cls.get_registry()
+        import importlib.metadata
+        import importlib.resources
+
+        try:
+            eps = importlib.metadata.entry_points(group=cls.entry_point_group)
+        except TypeError:
+            eps = importlib.metadata.entry_points().get(cls.entry_point_group, [])
+
+        for ep in eps:
+            pkg_name = ep.value
+            try:
+                for file_path in importlib.resources.files(pkg_name).iterdir():
+                    if file_path.name.endswith((".yaml", ".yml")):
+                        cls._register_yaml(
+                            file_path.read_text(encoding="utf-8"), str(file_path)
+                        )
+            except Exception as e:
+                logger.warning(f"Failed to load yamls from package {pkg_name}: {e}")
+
+        builtin_module = importlib.import_module(cls.builtin_pkg)
+        builtin_path = builtin_module.__path__
+        home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
+        builtin_path.append(home_dir)
+        for fdir in builtin_path:
+            if os.path.exists(fdir):
+                for fn in os.listdir(fdir):
+                    if fn.endswith((".yaml", ".yml")):
+                        try:
+                            with open(
+                                os.path.join(fdir, fn), "r", encoding="utf-8"
+                            ) as f:
+                                cls._register_yaml(f.read(), os.path.join(fdir, fn))
+                        except Exception as e:
+                            logger.warning(f"Failed to load yaml {fn}: {e}")
+
+        # legacy_file = os.path.expanduser("~/.fetchez/presets.yaml")
+        # if os.path.exists(legacy_file):
+        #     try:
+        #         with open(legacy_file, "r", encoding="utf-8") as f:
+        #             cls._register_yaml(f.read(), legacy_file, is_legacy=True)
+        #     except Exception:
+        #         pass
+
+    @classmethod
+    def _register_yaml(cls, yaml_content: str, file_path: str, is_legacy=False):
+        import yaml
+
+        registry = cls.get_registry()
+
+        try:
+            config = yaml.safe_load(yaml_content)
+            if not config:
+                return
+
+            if is_legacy or "presets" in config:
+                for p_name, p_def in config.get("presets", {}).items():
+                    registry[p_name] = p_def
+            else:
+                if "name" in config and "hooks" in config:
+                    registry[config["name"]] = config
+        except Exception as e:
+            logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
+
+    @classmethod
+    def get_yaml(cls, name: str) -> Optional[Dict[str, Any]]:
+        return cls.get_registry().get(name)
+
+    # @classmethod
+    # def hook_list_from_preset(cls, preset_def):
+    #     """Convert yaml definition to list of Hook Objects."""
+
+    #     hooks = []
+    #     for h_def in preset_def.get("hooks", []):
+    #         name = h_def.get("name")
+    #         kwargs = h_def.get("args", {})
+
+    #         hook_cls = HookRegistry.get_class(name)
+    #         if hook_cls:
+    #             try:
+    #                 hooks.append(hook_cls(**kwargs))
+    #             except Exception as exception:
+    #                 logger.error(f"Failed to init preset hook '{name}': {exception}")
+    #         else:
+    #             logger.warning(f"Preset hook '{name}' not found.")
+
+    #     return hooks
+
+
 # =============================================================================
 # The Registries
 # =============================================================================
@@ -245,6 +352,87 @@ class SchemaRegistry(PluginRegistry):
                 )
 
         return config
+
+
+class RecipeRegistry_(YamlRegistry):
+    """A registry for discovering and loading YAML recipes."""
+
+    # _registry = {}
+    builtin_pkg = "fetchez.recipes"
+    entry_point_group = "fetchez.recipes"
+    user_folder = "recipes"
+
+    @classmethod
+    def _register_yaml(cls, yaml_content: str, file_path: str):
+        import yaml
+
+        registry = cls.get_registry()
+
+        try:
+            config = yaml.safe_load(yaml_content)
+            if not config or "project" not in config:
+                return
+
+            # Use the project name from the YAML, fallback to the filename
+            name = config["project"].get(
+                "name", os.path.basename(file_path).replace(".yaml", "")
+            )
+            desc = config["project"].get("description", "No description available.")
+
+            registry[name] = {
+                "name": name,
+                "desc": desc,
+                "config": config,
+                "path": file_path,
+            }
+        except Exception as e:
+            logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
+
+
+class PresetRegistry_(YamlRegistry):
+    builtin_pkg = "fetchez.presets"
+    entry_point_group = "fetchez.presets"
+    user_folder = "presets"
+
+    @classmethod
+    def _register_yaml(cls, yaml_content: str, file_path: str, is_legacy=False):
+        import yaml
+
+        registry = cls.get_registry()
+
+        try:
+            config = yaml.safe_load(yaml_content)
+            if not config:
+                return
+
+            if is_legacy or "presets" in config:
+                for p_name, p_def in config.get("presets", {}).items():
+                    registry[p_name] = p_def
+            else:
+                if "name" in config and "hooks" in config:
+                    registry[config["name"]] = config
+        except Exception as e:
+            logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
+
+    @classmethod
+    def hook_list_from_preset(cls, preset_def):
+        """Convert yaml definition to list of Hook Objects."""
+
+        hooks = []
+        for h_def in preset_def.get("hooks", []):
+            name = h_def.get("name")
+            kwargs = h_def.get("args", {})
+
+            hook_cls = HookRegistry.get_class(name)
+            if hook_cls:
+                try:
+                    hooks.append(hook_cls(**kwargs))
+                except Exception as exception:
+                    logger.error(f"Failed to init preset hook '{name}': {exception}")
+            else:
+                logger.warning(f"Preset hook '{name}' not found.")
+
+        return hooks
 
 
 class RecipeRegistry:
