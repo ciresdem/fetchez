@@ -82,7 +82,7 @@ target_module: "multibeam"
 description: "Fetch only .inf metadata sidecar files."
 hooks:
   - name: filename_filter
-    args: 
+    args:
       match: ".inf"
       stage: "pre"
 ```
