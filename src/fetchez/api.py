@@ -27,7 +27,7 @@ from typing import List, Optional, Dict, Any
 from .utils import parse_hook_string
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry, RecipeRegistry, SchemaRegistry
+from .registry import ModuleRegistry, HookRegistry, RecipeRegistry, SchemaRegistry, PresetRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,9 @@ def list_recipes() -> Dict[str, Any]:
 def list_schemas() -> Dict[str, Any]:
     return _search_registry(SchemaRegistry)
 
+def list_presets() -> Dict[str, Any]:
+    return _search_registry(PresetRegistry)
+
 
 def search(term: str) -> Dict[str, Dict[str, Any]]:
     """Search across ALL Fetchez registries simultaneously."""
@@ -80,6 +83,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "hooks": _search_registry(HookRegistry, term),
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
+        "presets": _search_registry(PresetRegistry, term),
     }
 
 
