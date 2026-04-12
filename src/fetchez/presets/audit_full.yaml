@@ -1,0 +1,11 @@
+presets:
+  audit-full:
+    description: Generate SHA256 hashes, enrichment, and a full JSON audit logs.
+    hooks:
+    - name: checksum
+      args:
+        algo: sha256
+    - name: enrich
+    - name: audit
+      args:
+        file: audit_full.json
