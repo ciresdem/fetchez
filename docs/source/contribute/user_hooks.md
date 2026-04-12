@@ -77,27 +77,28 @@ You can restrict a preset so it only appears in the CLI menu for a specific modu
 `~/.fetchez/presets/inf_only.yaml`
 
 ```yaml
-name: inf-only
-target_module: "multibeam"
-description: "Fetch only .inf metadata sidecar files."
-hooks:
-  - name: filename_filter
-    args:
-      match: ".inf"
-      stage: "pre"
+presets:
+  inf_only:
+    target_module: multibeam
+    description: 'multibeam Only: Fetch only inf files'
+    hooks:
+      - name: filename_filter
+        args:
+          match: '.inf'
+          stage: manifest
 ```
-Now, --inf-only will show up when you run fetchez multibeam --help, but it won't clutter the global menu!
+Now, `--inf-only` will show up when you run `fetchez multibeam --help`, but it won't clutter the global menu!
 
 ### Best Practices for Sharing
 If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Cloud Optimized GeoTIFF Conversion"), you can share it easily!
 
 **Share the YAML:** You can post your .yaml file in a GitHub Issue, a Gist, or on our Zulip chat. Users just drop it into their ~/.fetchez/presets/ folder.
 
-**Bundle in a Python Package:** If you are building a Python package that extends Fetchez (like globato), you can distribute presets automatically! Just place your YAML files in a package directory and register them in your pyproject.toml:
+**Bundle in a Python Package:** If you are building a Python package that extends `fetchez` (like `globato`), you can distribute presets automatically! Just place your YAML files in a package directory and register them in your pyproject.toml:
 
 ```toml
 [project.entry-points."fetchez.presets"]
 my_custom_presets = "my_package.presets"
 ```
 
-**Contribute to Core:** If a preset is universally useful, you can propose adding it directly to the fetchez/presets/ core directory via a Pull Request.a
+**Contribute to Core:** If a preset is universally useful, you can propose adding it directly to the `fetchez/presets/` core directory via a Pull Request.
