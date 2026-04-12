@@ -374,7 +374,7 @@ class PresetRegistry:
                 logger.warning(f"Failed to load presets from package {pkg_name}: {e}")
 
         builtin_module = importlib.import_module(cls.builtin_pkg)
-        builtin_path=builtin_module.__path__
+        builtin_path = builtin_module.__path__
         home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
         builtin_path.append(home_dir)
         for fdir in builtin_path:
