@@ -95,7 +95,7 @@ If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Clou
 
 **Bundle in a Python Package:** If you are building a Python package that extends Fetchez (like globato), you can distribute presets automatically! Just place your YAML files in a package directory and register them in your pyproject.toml:
 
-```Ini, TOML
+```toml
 [project.entry-points."fetchez.presets"]
 my_custom_presets = "my_package.presets"
 ```
