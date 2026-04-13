@@ -96,6 +96,8 @@ class Recipe:
 
         return cls(config, base_dir=base_dir)
 
+    from_dict = from_file
+
     def _check_integrity(self):
         """Ensures the fetchez version meets the recipe's minimum requirements."""
 
@@ -153,14 +155,14 @@ class Recipe:
 
             # --- PRESET EXPANSION ---
             if is_preset:
-                preset_def = PresetRegistry.get_preset(is_preset)
+                preset_def = PresetRegistry.get_yaml(is_preset)
 
                 if preset_def:
                     import copy
 
                     preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
 
-                    # TARGETED ARGUMENT INJECTION
+                    # --- ARGUMENT INJECTION ---
                     for inner_hook in preset_hooks:
                         h_name = inner_hook.get("name")
 
@@ -267,6 +269,7 @@ class Recipe:
 
         self._generate_receipt()
 
+    # This should be in globato, or a more generic version should be made to stay here.
     def _generate_receipt(self):
         """Generates a terminal summary and a Markdown receipt sidecar file."""
 
