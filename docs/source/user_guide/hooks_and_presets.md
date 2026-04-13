@@ -56,17 +56,16 @@ Presets are simply YAML files that live in your ~/.fetchez/presets/ directory. `
 2. Define your workflow:
 
 ```yaml
-presets:
-  audit-full:
-    description: Generate SHA256 hashes, enrichment, and a full JSON audit logs.
-    hooks:
-    - name: checksum
-      args:
-        algo: sha256
-    - name: enrich
-    - name: audit
-      args:
-        file: audit_full.json
+name: audit-full
+description: Generate SHA256 hashes, enrichment, and a full JSON audit logs.
+hooks:
+  - name: checksum
+    args:
+      algo: sha256
+  - name: enrich
+  - name: audit
+    args:
+      file: audit_full.json
 ```
 
 **Run it:** Your new preset automatically appears as a CLI flag in `fetchez`!
