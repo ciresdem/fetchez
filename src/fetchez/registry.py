@@ -379,12 +379,12 @@ class PresetRegistry(YamlRegistry):
                 return
 
             # Legacy ~/.fetchez/presets.py
-            # if "presets" in config:
-            for p_name, p_def in config.get("presets", {}).items():
-                registry[p_name] = p_def
-            # else:
-            #     if "name" in config and "hooks" in config:
-            #         registry[config["name"]] = config
+            if "presets" in config:
+                for p_name, p_def in config.get("presets", {}).items():
+                    registry[p_name] = p_def
+            else:
+                if "name" in config and "hooks" in config:
+                    registry[config["name"]] = config
         except Exception as e:
             logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
 

@@ -77,15 +77,14 @@ You can restrict a preset so it only appears in the CLI menu for a specific modu
 `~/.fetchez/presets/inf_only.yaml`
 
 ```yaml
-presets:
-  inf_only:
-    target_module: multibeam
-    description: 'multibeam Only: Fetch only inf files'
-    hooks:
-      - name: filename_filter
-        args:
-          match: '.inf'
-          stage: manifest
+name: inf_only
+target_module: multibeam
+description: 'multibeam Only: Fetch only inf files'
+hooks:
+  - name: filename_filter
+    args:
+      match: '.inf'
+      stage: manifest
 ```
 Now, `--inf-only` will show up when you run `fetchez multibeam --help`, but it won't clutter the global menu!
 
