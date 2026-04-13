@@ -270,14 +270,11 @@ class YamlRegistry:
             if not config:
                 return
 
-            if is_legacy or "presets" in config:
-                for p_name, p_def in config.get("presets", {}).items():
-                    registry[p_name] = p_def
-            else:
-                if "name" in config and "hooks" in config:
-                    registry[config["name"]] = config
+            if "name" in config:
+                registry[config["name"]] = config
+
         except Exception as e:
-            logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
+            logger.debug(f"Failed to parse YAML {file_path}: {e}")
 
     @classmethod
     def get_yaml(cls, name: str) -> Optional[Dict[str, Any]]:
