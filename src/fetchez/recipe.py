@@ -153,7 +153,7 @@ class Recipe:
 
             # --- PRESET EXPANSION ---
             if is_preset:
-                preset_def = PresetRegistry.get_preset(is_preset)
+                preset_def = PresetRegistry.get_yaml(is_preset)
 
                 if preset_def:
                     import copy
