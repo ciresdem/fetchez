@@ -260,7 +260,7 @@ class YamlRegistry:
                             logger.warning(f"Failed to load yaml {fn}: {e}")
 
     @classmethod
-    def _register_yaml(cls, yaml_content: str, file_path: str, is_legacy=False):
+    def _register_yaml(cls, yaml_content: str, file_path: str):
         import yaml
 
         registry = cls.get_registry()
@@ -368,7 +368,7 @@ class PresetRegistry(YamlRegistry):
     user_folder = "presets"
 
     @classmethod
-    def _register_yaml(cls, yaml_content: str, file_path: str, is_legacy=False):
+    def _register_yaml(cls, yaml_content: str, file_path: str):
         import yaml
 
         registry = cls.get_registry()
@@ -378,12 +378,13 @@ class PresetRegistry(YamlRegistry):
             if not config:
                 return
 
-            if is_legacy or "presets" in config:
-                for p_name, p_def in config.get("presets", {}).items():
-                    registry[p_name] = p_def
-            else:
-                if "name" in config and "hooks" in config:
-                    registry[config["name"]] = config
+            # Legacy ~/.fetchez/presets.py
+            # if "presets" in config:
+            for p_name, p_def in config.get("presets", {}).items():
+                registry[p_name] = p_def
+            # else:
+            #     if "name" in config and "hooks" in config:
+            #         registry[config["name"]] = config
         except Exception as e:
             logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
 
