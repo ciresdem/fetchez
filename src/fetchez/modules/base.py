@@ -193,14 +193,14 @@ class FetchModule:
             try:
                 with open(cache_file, "r") as f:
                     self.results = json.load(f)
-                logger.info(
+                logger.debug(
                     f"[{self.name}] Loaded {len(self.results)} results from cache."
                 )
                 return
             except Exception as e:
                 logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
 
-        logger.info(f"[{self.name}] Querying remote API...")
+        logger.debug(f"[{self.name}] Querying remote API...")
         self._original_run()
 
         if self.results:

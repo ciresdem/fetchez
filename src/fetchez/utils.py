@@ -599,7 +599,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
                         extracted_paths.append(dest_fn)
-                        logger.info(f"Extracted: {member} to {dest_fn}")
+                        logger.debug(f"Extracted: {member} to {dest_fn}")
     else:
         # Fallback if the file isn't a zip
         for pattern in fns:

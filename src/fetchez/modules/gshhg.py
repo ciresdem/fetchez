@@ -56,7 +56,8 @@ class GSHHG(FetchModule):
         logger.info(f"Adding Global GSHHG Shoreline archive to fetch queue...")
 
         # Target the specific shapefile inside the ZIP (L1 = Ocean/Land boundary)
-        target_shp = f"GSHHS_shp/{self.resolution}/GSHHS_{self.resolution}_L1.shp"
+        #target_shp = f"GSHHS_shp/{self.resolution}/GSHHS_{self.resolution}_L1.shp"
+        target_shp = f"GSHHS_{self.resolution}_L1"
 
         self.add_entry_to_results(
             url=GSHHG_SHP_URL,

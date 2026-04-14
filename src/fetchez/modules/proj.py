@@ -158,7 +158,7 @@ class PROJ(FetchModule):
                 matches += 1
 
             if matches == 0:
-                logger.warning("No grids found in PROJ CDN.")
+                logger.debug("No grids found in PROJ CDN.")
 
         except Exception as e:
             logger.error(f"Error reading index: {e}")

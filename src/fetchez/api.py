@@ -162,7 +162,7 @@ def get(
         logger.error(f"Failed to initialize {module}: {e}")
         return []
 
-    logger.info(f"Querying {module}...")
+    logger.debug(f"Querying {module}...")
     try:
         mod_instance.run()
     except Exception as e:
@@ -170,7 +170,7 @@ def get(
         return []
 
     if not mod_instance.results:
-        logger.warning(f"No results found for {module} with given parameters.")
+        logger.debug(f"No results found for {module} with given parameters.")
         return []
 
     run_fetchez([mod_instance], threads=threads)

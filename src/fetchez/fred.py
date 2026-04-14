@@ -95,7 +95,7 @@ class FRED:
                     f"from {utils.str_truncate_middle(self.path)} "
                     f"({utils.colorize(str(len(self.features)), utils.BOLD)} items)"
                 )
-                logger.info(msg)
+                logger.debug(msg)
 
             except (json.JSONDecodeError, IOError) as e:
                 logger.error(f"Corrupt or unreadable index at {self.path}: {e}")
@@ -211,7 +211,7 @@ class FRED:
 
             results.append(props)
 
-        logger.info(f"FRED Search found {len(results)} items.")
+        logger.debug(f"FRED Search found {len(results)} items.")
         return results
 
     def _get_unique_values(self, field: str) -> List[Any]:
