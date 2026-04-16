@@ -477,6 +477,7 @@ def parse_source_string(source_str, default_hooks=None):
 
     return mod_dict
 
+
 def parse_hook_string_(h_str):
     """Helper to parse 'hook:arg=val' strings."""
 

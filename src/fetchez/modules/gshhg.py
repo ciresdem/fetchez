@@ -19,9 +19,12 @@ from fetchez import cli
 logger = logging.getLogger(__name__)
 
 # Standard NCEI distribution for the Shapefile version
-GSHHG_NOAA_URL = "https://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3.7.zip"
+GSHHG_NOAA_URL = (
+    "https://www.ngdc.noaa.gov/mgg/shorelines/data/gshhg/latest/gshhg-shp-2.3.7.zip"
+)
 GSHHG_SHP_URL = "http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.7.zip"
 GSHHG_GMT_URL = "http://www.soest.hawaii.edu/pwessel/gshhg/gshhg-gmt-2.3.7.tar.gz"
+
 
 @cli.cli_opts(
     help_text="Global Self-consistent, Hierarchical, High-resolution Geography (GSHHG)",
@@ -41,9 +44,11 @@ class GSHHG(FetchModule):
         super().__init__(**kwargs)
 
         self.resolution = resolution.lower()
-        if self.resolution not in ['f', 'h', 'i', 'l', 'c']:
-            logger.warning(f"Invalid GSHHG resolution '{self.resolution}'. Defaulting to 'h'.")
-            self.resolution = 'h'
+        if self.resolution not in ["f", "h", "i", "l", "c"]:
+            logger.warning(
+                f"Invalid GSHHG resolution '{self.resolution}'. Defaulting to 'h'."
+            )
+            self.resolution = "h"
 
         self.data_type = "vector"
         self.format = "zip"
@@ -53,10 +58,10 @@ class GSHHG(FetchModule):
 
         filename = "gshhg-shp-latest.zip"
 
-        logger.info(f"Adding Global GSHHG Shoreline archive to fetch queue...")
+        logger.info("Adding Global GSHHG Shoreline archive to fetch queue...")
 
         # Target the specific shapefile inside the ZIP (L1 = Ocean/Land boundary)
-        #target_shp = f"GSHHS_shp/{self.resolution}/GSHHS_{self.resolution}_L1.shp"
+        # target_shp = f"GSHHS_shp/{self.resolution}/GSHHS_{self.resolution}_L1.shp"
         target_shp = f"GSHHS_{self.resolution}_L1"
 
         self.add_entry_to_results(
