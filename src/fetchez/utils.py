@@ -13,6 +13,7 @@ and basic user interaction. Based on cudem.utils
 """
 
 import os
+import sys
 import datetime
 import getpass
 import logging
@@ -73,7 +74,7 @@ class TqdmLoggingHandler(logging.Handler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            tqdm.tqdm.write(msg)
+            tqdm.tqdm.write(msg, file=sys.stderr)
             self.flush()
         except Exception:
             self.handleError(record)
