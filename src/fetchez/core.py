@@ -372,7 +372,7 @@ class HttpFile(io.IOBase):
 
         # Fetch ONLY the specific bytes requested
         headers = {"Range": f"bytes={self.offset}-{end}"}
-        response = self.session.get(self.url, headers=headers)
+        response = self.session.get(self.url, headers=headers, timeout=(10, 60))
         response.raise_for_status()
 
         data = response.content
@@ -413,8 +413,8 @@ class Fetch:
         json: Optional[Dict] = None,
         tries: int = 5,
         # timeout: Optional[Union[float, Tuple]] = None,
-        timeout: Optional[float] = None,
-        read_timeout: Optional[float] = None,
+        timeout: Optional[float] = 30,
+        read_timeout: Optional[float] = 120,
     ) -> Optional[requests.Response]:
         """Fetch src_url and return the requests object (iterative retry)."""
 
@@ -508,7 +508,7 @@ class Fetch:
         datatype=None,
         overwrite=False,
         timeout=30,
-        read_timeout=None,
+        read_timeout=120,
         tries=5,
         check_size=True,
         verbose=True,
