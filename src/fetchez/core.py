@@ -850,7 +850,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
         logger.info("No files to fetch.")
         return
 
-    logger.info(f"Starting parallel fetch: {total_files} files with {threads} threads.")
+    logger.debug(
+        f"Starting parallel fetch: {total_files} files with {threads} threads."
+    )
     final_results_with_owner = []
 
     active_hooks_full = []

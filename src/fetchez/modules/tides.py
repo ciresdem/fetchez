@@ -234,7 +234,7 @@ class Tides(FetchModule):
 
         if self.mode == "datums":
             self.get_datums_in_region()
-        if self.station:
+        elif self.station:
             self._run_data_fetch()
         elif self.region:
             self._run_station_search()

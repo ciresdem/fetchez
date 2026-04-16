@@ -51,6 +51,11 @@ class CUSP(FetchModule):
         self.data_type = "vector"
         self.format = "zip"
 
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": CUSP_BASE,
+        }
+
     def run(self):
         """Generate 5x5 degree tile URLs based on the region."""
 

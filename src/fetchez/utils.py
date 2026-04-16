@@ -386,11 +386,18 @@ def fmod2dict(fmod: str, dict_args: Optional[Dict[str, Any]] = None) -> Dict[str
 
 
 def parse_hook_string(hook_str, default_name=None):
-    """Parses 'name:key=val,key2=val2' into a dictionary for recipes and pipelines."""
+    """Parses 'name:key=val,key2=val2' into a dictionary for recipes and pipelines.
+    Safely ignores delimiters (:,=) when they are wrapped in double quotes.
+    """
 
-    if ":" in hook_str:
-        name, rest = hook_str.split(":", 1)
-        parts = rest.split(",")
+    # Split on the FIRST colon that is NOT inside quotes
+    colon_parts = re.split(r':(?=(?:[^"]*"[^"]*")*[^"]*$)', hook_str, maxsplit=1)
+
+    if len(colon_parts) > 1:
+        name = colon_parts[0]
+        rest = colon_parts[1]
+        # Split on commas NOT inside quotes
+        parts = re.split(r',(?=(?:[^"]*"[^"]*")*[^"]*$)', rest)
     else:
         name = hook_str
         parts = []
@@ -403,8 +410,19 @@ def parse_hook_string(hook_str, default_name=None):
         if not part:
             continue
 
-        if "=" in part:
-            k, v = part.split("=", 1)
+        # Split on the FIRST equals sign NOT inside quotes
+        eq_parts = re.split(r'=(?=(?:[^"]*"[^"]*")*[^"]*$)', part, maxsplit=1)
+
+        if len(eq_parts) > 1:
+            k = eq_parts[0].strip()
+            v = eq_parts[1].strip()
+
+            # Strip surrounding quotes so the hook gets a clean string
+            if len(v) >= 2 and v.startswith('"') and v.endswith('"'):
+                v = v[1:-1]
+            elif len(v) >= 2 and v.startswith("'") and v.endswith("'"):
+                v = v[1:-1]
+
             if v.lower() in ["true", "yes"]:
                 v = True
             elif v.lower() in ["false", "no"]:
@@ -427,41 +445,18 @@ def parse_hook_string(hook_str, default_name=None):
 def parse_source_string(source_str, default_hooks=None):
     """Parses a source string into a Fetchez module dictionary.
     Supports local file auto-detection and chaining hooks via '+'.
-
-    Example: "copernicus:datatype=3+unzip+range_z:min_z=0"
+    Safely ignores '+' delimiters when they are wrapped in double quotes.
     """
 
-    parts = source_str.split("+")
+    # Split on '+' that are NOT inside quotes
+    parts = re.split(r'\+(?=(?:[^"]*"[^"]*")*[^"]*$)', source_str)
     mod_part = parts[0]
     hook_parts = parts[1:]
 
-    # Parse the module arguments
-    if ":" in mod_part:
-        mod_name, rest = mod_part.split(":", 1)
-        arg_parts = rest.split(",")
-    else:
-        mod_name = mod_part
-        arg_parts = []
-
-    args = {}
-    for p in arg_parts:
-        p = p.strip()
-        if not p:
-            continue
-        if "=" in p:
-            k, v = p.split("=", 1)
-            if v.lower() in ["true", "yes"]:
-                v = True
-            elif v.lower() in ["false", "no"]:
-                v = False
-            else:
-                try:
-                    v = float(v) if "." in v else int(v)
-                except ValueError:
-                    pass
-            args[k] = v
-        else:
-            args[p] = True
+    # Re-use the quote-aware logic from parse_hook_string for the module part
+    mod_parsed = parse_hook_string(mod_part)
+    mod_name = mod_parsed["name"]
+    args = mod_parsed.get("args", {})
 
     # Auto-detect local files and directories
     if os.path.exists(mod_name):
@@ -476,7 +471,7 @@ def parse_source_string(source_str, default_hooks=None):
     if args:
         mod_dict["args"] = args
 
-    # Parse and append chained hooks using the unified hook parser
+    # Parse and append chained hooks
     for h_str in hook_parts:
         mod_dict["hooks"].append(parse_hook_string(h_str))
 
@@ -599,7 +594,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
                         extracted_paths.append(dest_fn)
-                        logger.info(f"Extracted: {member} to {dest_fn}")
+                        logger.debug(f"Extracted: {member} to {dest_fn}")
     else:
         # Fallback if the file isn't a zip
         for pattern in fns:
