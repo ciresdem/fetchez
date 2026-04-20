@@ -241,29 +241,101 @@ def print_module_info(mod_key):
         print("\n  Links:")
         for k, v in meta["urls"].items():
             print(f"    {k:<10}: {v}")
+
+    # --- INSPECT FOR ARGUMENTS ---
+    ModuleCls = ModuleRegistry.get_class(mod_key)
+    if ModuleCls:
+        print_class_arguments(ModuleCls)
+
     print(f"{'-' * 40}\n")
 
 
 def print_hook_info(hook_key):
-    """Pretty-print module metadata."""
+    """Pretty-print hook metadata and its available arguments."""
 
     meta = HookRegistry.get_info(hook_key)
     if not meta:
-        logger.error(f"Hook {hook_key} not found.")
+        logger.error(f"Hook '{hook_key}' not found.")
         return
 
     print(f"\n🪝 {utils.CYAN}HOOK: {hook_key.upper()}{utils.RESET}")
-    print(f"{'-' * 40}")
-    print(f"  Description : {meta.get('desc')}")
-    print(f"  Stage       : {meta.get('stage')}")
-    print(f"  Type        : {meta.get('category')}")
-    print(f"  Origin      : {meta.get('mod')}\n")
+    print(f"{'-' * 60}")
+    print(f"  Description : {meta.get('desc', 'No description provided.')}")
+    print(f"  Domain      : {meta.get('domain', 'Universal (Files)')}")
+    print(f"  Requires    : {meta.get('requires', 'any')}")
+    print(f"  Stage       : {meta.get('stage', 'Unknown')}")
+    print(f"  Type        : {meta.get('category', 'Generic')}")
+    print(f"  Origin      : {meta.get('mod', 'Unknown')}")
 
-    print(f"{'-' * 40}\n")
+    # --- INSPECT FOR ARGUMENTS ---
+    HookCls = HookRegistry.get_class(hook_key)
+    if HookCls:
+        print_class_arguments(HookCls)
+
+    print(f"{'-' * 60}\n")
+
+
+def print_class_arguments(TargetCls, want_inherited=True):
+    """Inspect a class for arguments and print them out."""
+
+    print(f"\n  {utils.colorize('Available Arguments:', utils.YELLOW)}")
+
+    all_params = {}
+    for cls in TargetCls.__mro__:
+        if cls is object:
+            continue
+
+        if hasattr(cls, "__init__"):
+            try:
+                sig = inspect.signature(cls.__init__)
+                for name, param in sig.parameters.items():
+                    if name == "self" or param.kind in (
+                        inspect.Parameter.VAR_POSITIONAL,
+                        inspect.Parameter.VAR_KEYWORD,
+                    ):
+                        continue
+
+                    if name not in all_params:
+                        all_params[name] = {"param": param, "origin": cls}
+            except ValueError:
+                pass
+
+    if all_params:
+        arg_help = getattr(TargetCls, "_cli_arg_help", {})
+        for name, data in all_params.items():
+            param = data["param"]
+            origin_cls = data["origin"]
+
+            if param.default is inspect.Parameter.empty:
+                default_str = utils.colorize("(required)", utils.RED)
+            else:
+                default_str = f"(default: {param.default})"
+
+            type_str = ""
+            if param.annotation is not inspect.Parameter.empty:
+                type_name = getattr(param.annotation, "__name__", str(param.annotation))
+                type_str = f"[{type_name}] "
+
+            inherit_str = ""
+            if origin_cls is not TargetCls:
+                # Differentiate it visually, e.g., in cyan or dim text
+                inherit_str = utils.colorize(
+                    f" [from {origin_cls.__name__}]", utils.CYAN
+                )
+
+            desc_str = f" - {arg_help[name]}" if name in arg_help else ""
+
+            print(
+                f"    {utils.colorize(name, utils.BOLD):<15} {type_str}{default_str}{inherit_str}{desc_str}"
+            )
+    else:
+        print("    (No specific arguments required)")
 
 
 def parse_hook_arg(arg_str):
     """Parse a hook string into (name, kwargs).
+
+    ** Depreciated - use `utils.parse_hook_string` **
 
     Syntax: 'name:key=val,key2=val2'
     Example: 'reproject:crs=EPSG:3857,verbose=true'
@@ -656,6 +728,37 @@ def fetchez_cli():
         print("\nAvailable Hooks:")
         print("=" * 60)
 
+        # Testing new list-hooks by domain and requirements
+        # Group by domain using the parsed registry metadata
+        # grouped_hooks = {}
+        # for name, meta in HookRegistry.get_registry().items():
+        #     if name in meta.get("aliases", []):
+        #         continue
+
+        #     # Default to universal if no domain is specified
+        #     # domain = meta.get("domain", "Universal (Files)")
+        #     domain = meta.get("category", "Universal (Files)")
+        #     if domain not in grouped_hooks:
+        #         grouped_hooks[domain] = []
+        #     grouped_hooks[domain].append((name, meta))
+
+        # # Sort domains (Universal first, then specialized)
+        # domains = sorted(
+        #     grouped_hooks.keys(), key=lambda x: (x != "Universal (Files)", x)
+        # )
+
+        # for domain in domains:
+        #     print(f"\n{utils.CYAN}[ {domain.upper()} ]{utils.RESET}")
+
+        #     for name, meta in sorted(grouped_hooks[domain], key=lambda x: x[0]):
+        #         desc = meta.get("desc", "No description provided.")
+        #         requires = meta.get("requires", "any")
+
+        #         print(
+        #             f"  {utils.colorize(name, utils.BOLD):<25} "
+        #             f"{utils.colorize(f'Requires: {requires}', utils.YELLOW):<25} : {desc}"
+        #         )
+
         # Group by category using the parsed registry metadata
         grouped_hooks = {}
         for name, meta in HookRegistry.get_registry().items():
@@ -688,13 +791,14 @@ def fetchez_cli():
             for name, meta in sorted(grouped_hooks[cat], key=lambda x: x[0]):
                 # Grab the cleaned metadata directly from the dictionary
                 desc = meta.get("desc", "No description provided.")
-                # mod_path = meta.get("mod", "")
+                mod_path = meta.get("mod", "")
 
-                # # Determine the origin of the hook
-                # if mod_path:
-                #     origin = mod_path.split(".")[0].capitalize()
-                # else:
-                #     origin = "User Plugin"
+                # Determine the origin of the hook
+                if mod_path:
+                    origin = mod_path.split(".")[0].capitalize()
+                else:
+                    origin = "User Plugin"
+
                 cat_stage = meta.get("stage", "file")
                 if cat_stage == "pre":
                     cat_stage = "manifest"
@@ -703,7 +807,7 @@ def fetchez_cli():
                 # Print with origin tag in yellow
                 print(
                     f"  {utils.colorize(name, utils.BOLD):<26} "
-                    f"{utils.colorize(f'[{cat_stage}]', utils.YELLOW):<13} : {desc}"
+                    f"{utils.colorize(f'[{origin}]', utils.YELLOW):<13} : {desc}"
                 )
 
         print()

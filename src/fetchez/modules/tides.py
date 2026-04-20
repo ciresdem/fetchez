@@ -12,6 +12,8 @@ Supports three modes:
 2. Data Retrieval (Station ID): Fetch time-series data (water levels, predictions).
 3. Datum Retrieval (Spatial): Fetch tidal datum infomation within a bounding box.
 
+https://api.tidesandcurrents.noaa.gov/api/prod/
+
 :copyright: (c) 2010 - 2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
 """
@@ -27,11 +29,18 @@ from fetchez import cli
 # Service for finding stations (ArcGIS REST)
 STATION_SEARCH_URL = "https://mapservices.weather.noaa.gov/static/rest/services/NOS_Observations/CO_OPS_Products/FeatureServer/0/query?"
 
+# Service to check station metadata
+STATION_METADATA_URL = (
+    "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/"
+)
+
 # Service for fetching data (CO-OPS API)
 DATA_API_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?"
 
 # Metadata (CO-OPS API)
 DATUMS_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/"
+
+PRODUCTS = {"water_level": ["Water Levels"]}
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +102,12 @@ class Tides(FetchModule):
         self.interval = interval
         self.mode = mode
 
+    def _fetch_station_products(self):
+        products_url = f"{STATION_METADATA_URL}{self.station}/products.json"
+        prod_req = Fetch(products_url).fetch_req()
+
+        return prod_req.json()
+
     def _run_station_search(self):
         """Search for stations in the region."""
 
@@ -136,6 +151,12 @@ class Tides(FetchModule):
             if not self.start_date:
                 self.start_date = (now - timedelta(days=1)).strftime("%Y%m%d")
 
+        has_product = False
+        available_products = self._fetch_station_products()
+        for product in available_products.get("products"):
+            if product.get("name") in PRODUCTS[self.product]:
+                has_product = True
+
         params = {
             "station": self.station,
             "begin_date": self.start_date,
@@ -157,13 +178,14 @@ class Tides(FetchModule):
             f"tides_{self.station}_{self.product}_{self.start_date}_{self.end_date}.csv"
         )
 
-        self.add_entry_to_results(
-            url=full_url,
-            dst_fn=out_fn,
-            data_type="csv",
-            agency="NOAA CO-OPS",
-            title=f"Station {self.station} Data",
-        )
+        if has_product:
+            self.add_entry_to_results(
+                url=full_url,
+                dst_fn=out_fn,
+                data_type="csv",
+                agency="NOAA CO-OPS",
+                title=f"Station {self.station} Data",
+            )
 
     def get_datums_in_region(self) -> Dict[str, dict]:
         """Directly returns a dictionary of station datums for the current region."""
