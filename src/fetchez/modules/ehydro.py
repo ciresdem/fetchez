@@ -108,7 +108,7 @@ class eHydro(FetchModule):
         }
 
         query_url = f"{EHYDRO_BASE_URL}?{urlencode(params)}"
-        logger.info("Querying USACE eHydro API...")
+        logger.debug("Querying USACE eHydro API...")
 
         req = core.Fetch(query_url).fetch_req()
         if not req or req.status_code != 200:
@@ -126,7 +126,7 @@ class eHydro(FetchModule):
             logger.warning("No eHydro surveys found in this region.")
             return self
 
-        logger.info(f"Scanning {len(features)} potential surveys...")
+        logger.debug(f"Scanning {len(features)} potential surveys...")
 
         matches = 0
         for feature in features:
@@ -163,5 +163,5 @@ class eHydro(FetchModule):
             )
             matches += 1
 
-        logger.info(f"Found {matches} surveys matching criteria.")
+        logger.debug(f"Found {matches} surveys matching criteria.")
         return self

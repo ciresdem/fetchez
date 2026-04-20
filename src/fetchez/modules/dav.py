@@ -298,11 +298,11 @@ class DAV(FetchModule):
             )
             return self
 
-        logger.info(f"Querying Digital Coast API for {self.datatype}...")
+        logger.debug(f"Querying Digital Coast API for {self.datatype}...")
         data = self._get_features()
         datasets = data.get("datasets", [])
 
-        logger.info(f"Found {len(datasets)} potential datasets.")
+        logger.debug(f"Found {len(datasets)} potential datasets.")
 
         for dataset in datasets:
             attrs = dataset.get("attributes", {})
@@ -333,7 +333,7 @@ class DAV(FetchModule):
                 project_name = self._extract_usgs_project(bulk_url)
 
                 if project_name:
-                    logger.info(
+                    logger.debug(
                         f"Routing USGS dataset '{project_name}' to TNM module..."
                     )
 
@@ -359,7 +359,7 @@ class DAV(FetchModule):
 
                     continue
 
-            logger.info(f"Processing: {name}...")
+            logger.debug(f"Processing: {name}...")
 
             index_zip_url = self._find_index_zip(bulk_url)
 

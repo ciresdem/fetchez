@@ -112,7 +112,7 @@ class CSB(FetchModule):
         if self.provider:
             params["provider"] = self.provider
 
-        logger.info("Querying NOAA Crowbar Index...")
+        logger.debug("Querying NOAA Crowbar Index...")
 
         total_fetched = 0
         page = 1
@@ -131,7 +131,7 @@ class CSB(FetchModule):
                 total_pages = data.get("totalPages", 0)
 
                 if page == 1:
-                    logger.info(
+                    logger.debug(
                         f"Total files available in region: {total_count} items in {total_pages} pages"
                     )
 
@@ -183,6 +183,6 @@ class CSB(FetchModule):
                 f"Hit limit of {self.limit} files. (Total available: {total_count})"
             )
         else:
-            logger.info(f"Queued {total_fetched} files for download.")
+            logger.debug(f"Queued {total_fetched} files for download.")
 
         return self

@@ -97,7 +97,7 @@ class HydroNOS(FetchModule):
             "returnGeometry": "false",
         }
 
-        logger.info(f"Querying NOS Hydro (Layer {self.layer})...")
+        logger.debug(f"Querying NOS Hydro (Layer {self.layer})...")
         req = core.Fetch(self._nos_query_url).fetch_req(params=params)
 
         if req is None:
@@ -109,7 +109,7 @@ class HydroNOS(FetchModule):
             return self
 
         features = response.get("features", [])
-        logger.info(f"Found {len(features)} surveys.")
+        logger.debug(f"Found {len(features)} surveys.")
 
         for feature in features:
             attrs = feature.get("attributes", {})
