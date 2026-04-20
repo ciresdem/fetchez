@@ -14,6 +14,7 @@ Fetchez Modules, Hooks, Schemas, and other plugins.
 
 import os
 import sys
+import json
 import pkgutil
 import importlib
 import importlib.util
@@ -139,6 +140,52 @@ class PluginRegistry:
         cls.load_installed_plugins()
 
     @classmethod
+    def _get_cache_path(cls):
+        """Path to the JSON registry cache."""
+
+        cache_dir = os.path.expanduser("~/.fetchez")
+        os.makedirs(cache_dir, exist_ok=True)
+        return os.path.join(cache_dir, f"{cls.__name__}_cache.json")
+
+    @classmethod
+    def load_fast(cls):
+        """Loads from the JSON cache for instant CLI menus.
+        If cache is missing, falls back to the slow load_all().
+        """
+
+        registry = cls.get_registry()
+        if registry:
+            return
+
+        cache_path = cls._get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, "r") as f:
+                    registry.update(json.load(f))
+                return
+            except Exception as e:
+                logger.debug(f"Cache read failed: {e}")
+
+        cls.load_all()
+        cls.save_cache()
+
+    @classmethod
+    def save_cache(cls):
+        """Dumps the discovered registry to JSON."""
+
+        clean_registry = {}
+        for k, meta in cls.get_registry().items():
+            clean_meta = {
+                key: val
+                for key, val in meta.items()
+                if isinstance(val, (str, int, float, list, dict))
+            }
+            clean_registry[k] = clean_meta
+
+        with open(cls._get_cache_path(), "w") as f:
+            json.dump(clean_registry, f, indent=2)
+
+    @classmethod
     def _register_from_module(cls, module):
         """Inspect a module and dynamically extract its metadata."""
 
@@ -165,6 +212,10 @@ class PluginRegistry:
                 # Fallbacks for the CLI
                 meta.setdefault("category", "Generic")
                 meta.setdefault("desc", "No description provided.")
+                meta.setdefault("domain", "Universal (Files)")
+                meta.setdefault("requires", "any")
+
+                meta["import_path"] = f"{obj.__module__}.{obj.__name__}"
 
                 registry[mod_key] = meta
                 for alias in meta["aliases"]:
@@ -175,9 +226,26 @@ class PluginRegistry:
         return cls.get_registry().get(mod_key, {})
 
     @classmethod
-    def get_class(cls, mod_key: str):
+    def _get_class(cls, mod_key: str):
         meta = cls.get_registry().get(mod_key)
         return meta.get("_class_obj") if meta else None
+
+    @classmethod
+    def get_class(cls, name: str):
+        """Returns the class if cached, or lazily imports it on demand."""
+
+        meta = cls.get_registry().get(name)
+        if not meta:
+            return None
+
+        if "import_path" in meta:
+            mod_path, class_name = meta["import_path"].rsplit(".", 1)
+            module = importlib.import_module(mod_path)
+            actual_cls = getattr(module, class_name)
+
+            return actual_cls
+
+        return None
 
     load_module = get_class  # alias for backward compatability
 
@@ -258,6 +326,8 @@ class YamlRegistry:
                                 cls._register_yaml(f.read(), os.path.join(fdir, fn))
                         except Exception as e:
                             logger.warning(f"Failed to load yaml {fn}: {e}")
+
+    load_fast = load_all
 
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):

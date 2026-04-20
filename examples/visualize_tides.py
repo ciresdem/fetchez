@@ -31,15 +31,17 @@ logger = logging.getLogger("tide_viz")
 def fetch_tides(station, start, end, out_dir):
     """Wraps fetchez to get the data."""
 
-    TidesModule = registry.FetchezRegistry.load_module("tides")
+    registry.ModuleRegistry.load_all()
+    TidesModule = registry.ModuleRegistry.load_module("tides")
     if not TidesModule:
         logger.error("Error: 'tides' module not found in fetchez registry.")
         sys.exit(1)
 
     fetcher = TidesModule(
         station=station,
-        start_date=start,
-        end_date=end,
+        # start_date=start,
+        # end_date=end,
+        date="today",
         datum="MLLW",
         product="water_level",
         outdir=out_dir,

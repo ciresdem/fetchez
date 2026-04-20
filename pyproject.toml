@@ -66,6 +66,8 @@ docs = [
 [project.scripts]
 # CLI Entry Points
 fetchez = "fetchez.cli:fetchez_cli"
+# testing for `click` cli
+# fetchez2 = "fetchez.click:cli"
 
 [project.urls]
 Homepage = "https://github.com/ciresdem/fetchez"
