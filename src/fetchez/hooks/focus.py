@@ -77,5 +77,5 @@ class FocusSink(FetchHook):
             )
             return entries
 
-        logger.info(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
+        logger.debug(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
         return new_entries
