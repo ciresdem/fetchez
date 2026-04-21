@@ -187,7 +187,7 @@ def str2bool(v):
         return None
 
 
-def str_truncate_middle(s, n=50):
+def str_truncate_middle(s, n=80):
     """Truncate the middle of the input string, replace with `...`"""
 
     if len(s) <= n:

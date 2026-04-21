@@ -45,7 +45,7 @@ from . import __version__
 
 STOP_EVENT = threading.Event()
 
-CUDEM_USER_AGENT = f"Fetches/{__version__}"
+CUDEM_USER_AGENT = f"Fetchez/{__version__}"
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0"
 )
