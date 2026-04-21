@@ -79,3 +79,64 @@ class FocusSink(FetchHook):
 
         logger.debug(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
         return new_entries
+
+
+class StashEntries(FetchHook):
+    """Saves the current pipeline entries state to memory for later restoration."""
+
+    name = "stash_entries"
+    meta_desc = "Save the current pipeline state for branching"
+    meta_stage = "post"
+    meta_category = "pipeline"
+
+    def __init__(self, key="default", **kwargs):
+        super().__init__(**kwargs)
+        self.key = key
+
+    def run(self, entries):
+        if not entries:
+            return entries
+
+        # We store the stash dictionary on the first module in the pipeline
+        first_mod = entries[0][0]
+        if not hasattr(first_mod, "_pipeline_stash"):
+            first_mod._pipeline_stash = {}
+
+        # Save a shallow copy of the entries list
+        first_mod._pipeline_stash[self.key] = list(entries)
+        logger.debug(f"Stashed {len(entries)} entries under key '{self.key}'.")
+
+        return entries
+
+
+class RestoreEntries(FetchHook):
+    """Restores previously stashed pipeline entries, allowing pipeline branching."""
+
+    name = "restore_entries"
+    meta_desc = "Restore a previously saved pipeline state"
+    meta_stage = "post"
+    meta_category = "pipeline"
+
+    def __init__(self, key="default", merge=False, **kwargs):
+        super().__init__(**kwargs)
+        self.key = key
+        self.merge = str(merge).lower() in ["true", "1", "t", "yes"]
+
+    def run(self, entries):
+        # Scan the current modules to find the stashed dictionary
+        stashed_entries = None
+        for mod, _ in entries:
+            if hasattr(mod, "_pipeline_stash") and self.key in mod._pipeline_stash:
+                stashed_entries = mod._pipeline_stash[self.key]
+                break
+
+        if stashed_entries is None:
+            logger.warning(f"Could not find stashed entries with key '{self.key}'. Ignoring.")
+            return entries
+
+        if self.merge:
+            logger.debug(f"Merged {len(stashed_entries)} stashed entries from '{self.key}' into pipeline.")
+            return entries + stashed_entries
+
+        logger.debug(f"Restored pipeline to {len(stashed_entries)} entries from '{self.key}'.")
+        return stashed_entries
