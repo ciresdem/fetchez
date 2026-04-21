@@ -18,6 +18,7 @@ from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
 
+
 class LocalizeCacheHook(FetchHook):
     """Copies or symlinks fetched pipeline artifacts into a specific local directory."""
 
@@ -50,16 +51,18 @@ class LocalizeCacheHook(FetchHook):
 
             try:
                 if self.symlink:
-                    # Remove existing file/link to prevent FileExistsError
+                    # Remove existing link to prevent FileExistsError
                     if os.path.lexists(local_path):
                         os.remove(local_path)
                     os.symlink(os.path.abspath(current_path), local_path)
-                    logger.info(f"[{self.name}] Symlinked {filename} to {self.target_dir}")
+                    logger.info(
+                        f"[{self.name}] Symlinked {filename} to {self.target_dir}"
+                    )
                 else:
                     shutil.copy2(current_path, local_path)
                     logger.info(f"[{self.name}] Copied {filename} to {self.target_dir}")
 
-                # Update the entry so downstream logs/receipts know the new location!
+                # Update the entry.
                 entry["dst_fn"] = local_path
 
             except Exception as e:

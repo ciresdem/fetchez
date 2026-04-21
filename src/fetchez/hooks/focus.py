@@ -77,7 +77,9 @@ class FocusSink(FetchHook):
             )
             return entries
 
-        logger.debug(f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts.")
+        logger.debug(
+            f"Shrunk pipeline to {len(new_entries)} '{self.target}' artifacts."
+        )
         return new_entries
 
 
@@ -131,12 +133,18 @@ class RestoreEntries(FetchHook):
                 break
 
         if stashed_entries is None:
-            logger.warning(f"Could not find stashed entries with key '{self.key}'. Ignoring.")
+            logger.warning(
+                f"Could not find stashed entries with key '{self.key}'. Ignoring."
+            )
             return entries
 
         if self.merge:
-            logger.debug(f"Merged {len(stashed_entries)} stashed entries from '{self.key}' into pipeline.")
+            logger.debug(
+                f"Merged {len(stashed_entries)} stashed entries from '{self.key}' into pipeline."
+            )
             return entries + stashed_entries
 
-        logger.debug(f"Restored pipeline to {len(stashed_entries)} entries from '{self.key}'.")
+        logger.debug(
+            f"Restored pipeline to {len(stashed_entries)} entries from '{self.key}'."
+        )
         return stashed_entries
