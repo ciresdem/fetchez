@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+fetchez.modules.sysu
+~~~~~~~~~~~~~~~~~~~~~~
+Fetches the SYSU_topo netcdf
+SYSU_Topo: a 1-arc-minute global bathymetry from SWOT-derived gravity using the gravity-geological method.
+"""
+
+import logging
+from fetchez import cli
+from fetchez.modules import FetchModule
+
+logger = logging.getLogger(__name__)
+
+
+DOWNLOAD_URL = "https://zenodo.org/records/17958545/files/SYSU_Topo_v1.0.nc"
+
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "referer": "https://zenodo.org/records/17958545/",
+}
+
+
+@cli.cli_opts(
+    help_text="Fetch SYSU_topo global bathymetry (Open Access).",
+    product="Product ID. Currently only 'SYSU_topo' is supported.",
+)
+class Seanoe(FetchModule):
+    name = "sysu"
+    meta_category = "Bathymetry"
+    meta_desc = "SYSU Global Gravity-Geological Bathymetry"
+    meta_agency = "SYSU"
+    meta_tags = ["bathymetry", "gravity", "global", "open-science"]
+    meta_region = "Global"
+    meta_resolution = "1 arc-minute (~2km)"
+    meta_license = "Creative Commons Attribution 4.0 International"
+    meta_urls = {"home": "https://www.seanoe.org/data/00742/85408/"}
+
+    FILENAME = "SYSU_Topo_v1.0.nc"
+
+    def __init__(self, product="SYSU_topo", **kwargs):
+        super().__init__(name="sysu", **kwargs)
+        self.headers = HEADERS
+
+    def run(self):
+        self.add_entry_to_results(
+            url=DOWNLOAD_URL,
+            dst_fn=self.FILENAME,
+            data_type="netcdf",
+            # layers=[""],
+        )
