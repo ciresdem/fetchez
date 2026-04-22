@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+fetchez.hooks.copy_artifact
+~~~~~~~~~~~~~
+
+Copy a registrered entry artifact to a new location.
+
+:copyright: (c) 2010-2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
+"""
+
+import os
+import shutil
+import logging
+from fetchez.hooks import FetchHook
+
+logger = logging.getLogger(__name__)
+
+
+class CopyArtifactHook(FetchHook):
+    """Copies resulting artifacts to a target directory. Useful for batch collating.
+
+    Usage:
+      --hook copy_artifact:target_dir="../_collate",match="dem.tif/hillshade.tif"
+    """
+
+    name = "copy_artifact"
+    meta_stage = "collection"
+    meta_category = "tools"
+
+    def __init__(self, target_dir="../_collate", match=None, **kwargs):
+        super().__init__(**kwargs)
+        self.target_dir = os.path.abspath(target_dir)
+
+        # Parse the match string into a list
+        if isinstance(match, str):
+            self.matches = [m.strip() for m in match.split("/")]
+        elif isinstance(match, list):
+            self.matches = match
+        else:
+            self.matches = []
+
+    def run(self, entries):
+        os.makedirs(self.target_dir, exist_ok=True)
+
+        for mod, entry in entries:
+            # Look through all registered artifacts in the entry
+            artifacts = entry.get("artifacts", {})
+            files_to_copy = []
+
+            if self.matches:
+                for key, path in artifacts.items():
+                    if any(m in path for m in self.matches) and os.path.exists(path):
+                        files_to_copy.append(path)
+            else:
+                # Fallback to the current primary destination file
+                dst_fn = entry.get("dst_fn")
+                if dst_fn and os.path.exists(dst_fn):
+                    files_to_copy.append(dst_fn)
+
+            # Deduplicate just in case multiple hooks registered the same file
+            files_to_copy = list(set(files_to_copy))
+
+            for fpath in files_to_copy:
+                dest_path = os.path.join(self.target_dir, os.path.basename(fpath))
+                logger.info(
+                    f"[{self.name}] Collating {os.path.basename(fpath)} -> {self.target_dir}"
+                )
+
+                try:
+                    shutil.copy2(fpath, dest_path)
+                except Exception as e:
+                    logger.error(f"[{self.name}] Failed to copy {fpath}: {e}")
+
+        return entries

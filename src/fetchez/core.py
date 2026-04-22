@@ -504,6 +504,7 @@ class Fetch:
     def fetch_file(
         self,
         dst_fn: str,
+        method="GET",
         params=None,
         datatype=None,
         overwrite=False,
@@ -573,10 +574,13 @@ class Fetch:
                     mode = "ab"
 
             try:
-                with requests.get(
-                    self.url,
+                with requests.request(
+                    method=method,
+                    url=self.url,
                     stream=True,
                     params=params,
+                    # data=data,
+                    # json=json,
                     headers=self.headers,
                     timeout=(timeout, read_timeout),
                     verify=self.verify,
