@@ -385,7 +385,7 @@ class IceSat2(EarthData):
     server-side, saving significant bandwidth.
     """
 
-    name="icesat2"
+    name = "icesat2"
 
     def __init__(
         self,
@@ -430,7 +430,7 @@ class IceSat2(EarthData):
 class SWOT(EarthData):
     """Shortcut for SWOT (Surface Water and Ocean Topography) data."""
 
-    name="swot"
+    name = "swot"
 
     def __init__(self, product: str = "L2_HR_Raster_2", **kwargs):
         super().__init__(short_name=f"SWOT_{product}*", **kwargs)
@@ -440,7 +440,7 @@ class SWOT(EarthData):
 class MUR_SST(EarthData):
     """Shortcut for MUR-SST Level 4 Global Sea Surface Temperature."""
 
-    name="mur_sst"
+    name = "mur_sst"
 
     def __init__(self, **kwargs):
         super().__init__(short_name="MUR-JPL-L4-GLOB-v4.1", **kwargs)
