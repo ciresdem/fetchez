@@ -6,6 +6,9 @@ fetchez.modules.sysu
 ~~~~~~~~~~~~~~~~~~~~~~
 Fetches the SYSU_topo netcdf
 SYSU_Topo: a 1-arc-minute global bathymetry from SWOT-derived gravity using the gravity-geological method.
+
+https://www.nature.com/articles/s41597-026-06641-5
+https://zenodo.org/records/17958545
 """
 
 import logging

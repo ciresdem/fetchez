@@ -197,6 +197,26 @@ def str_truncate_middle(s, n=80):
     return f"{s[:n_2]}...{s[-n_2:]}"
 
 
+def format_dataset_id(dataset_id):
+    """Extracts Context + Basename for logging."""
+
+    from urllib.parse import urlparse
+
+    if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
+        parsed = urlparse(dataset_id)
+        #context = parsed.netloc.split('.')[0]
+        context = parsed.netloc
+        basename = os.path.basename(parsed.path)
+    else:
+        basename = os.path.basename(dataset_id)
+        context = os.path.basename(os.path.dirname(dataset_id))
+
+    if not context:
+        return basename
+
+    return f"[{context}] {basename}"
+
+
 def fn_url_p(fn):
     """Check if fn is a URL."""
 
