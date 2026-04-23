@@ -526,7 +526,7 @@ class Fetch:
             if os.path.abspath(src_path) == os.path.abspath(dst_fn):
                 if os.path.exists(src_path):
                     if verbose:
-                        logger.info(f"Verified local: {src_path}")
+                        logger.debug(f"Verified local: {src_path}")
                     return 0
                 else:
                     logger.error(f"Missing local file: {src_path}")
@@ -707,7 +707,7 @@ class Fetch:
                     logger.warning(f"Download failed: {e}. Retrying in {wait_time}s...")
                     time.sleep(wait_time)
                 else:
-                    logger.error(f"Failed to download {self.url}: {e}")
+                    logger.warning(f"Failed to download {self.url}: {e}")
                     return -1
 
         return -1
@@ -852,7 +852,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
     total_files = len(all_entries)
     if total_files == 0:
-        logger.info("No files to fetch.")
+        logger.debug("No files to fetch.")
         return
 
     logger.debug(
