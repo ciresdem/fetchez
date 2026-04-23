@@ -879,7 +879,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                 for future in concurrent.futures.as_completed(futures):
                     mod, original_entry = futures[future]
                     file_name = os.path.basename(original_entry.get("dst_fn", "item"))
-                    short_name = file_name[:30] + "..." if len(file_name) > 30 else file_name
+                    short_name = (
+                        file_name[:30] + "..." if len(file_name) > 30 else file_name
+                    )
                     pbar.set_description(f"[{mod.name}] {short_name}")
                     try:
                         status = future.result()

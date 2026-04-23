@@ -204,7 +204,7 @@ def format_dataset_id(dataset_id):
 
     if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
         parsed = urlparse(dataset_id)
-        #context = parsed.netloc.split('.')[0]
+        # context = parsed.netloc.split('.')[0]
         context = parsed.netloc
         basename = os.path.basename(parsed.path)
     else:

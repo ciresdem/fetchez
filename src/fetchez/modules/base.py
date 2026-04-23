@@ -203,7 +203,7 @@ class FetchModule:
         logger.debug(f"[{self.name}] Querying remote API...")
         self._original_run()
 
-        #if self.results:
+        # if self.results:
         def _json_fallback(obj):
             """Safely serialize custom objects like Region."""
 
