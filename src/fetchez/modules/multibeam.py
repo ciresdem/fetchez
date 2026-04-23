@@ -149,7 +149,7 @@ class Multibeam(FetchModule):
         w, e, s, n = self.region
         params = {"geometry": f"{w},{s},{e},{n}"}
 
-        logger.info("Querying NCEI Multibeam database...")
+        logger.debug("Querying NCEI Multibeam database...")
         req = core.Fetch(NCEI_SEARCH_URL).fetch_req(params=params, timeout=30)
 
         if req is None or req.status_code != 200:
@@ -226,7 +226,7 @@ class Multibeam(FetchModule):
             logger.warning("No multibeam surveys found in region.")
             return
 
-        logger.info(f"Found {len(surveys_found)} relevant surveys.")
+        logger.debug(f"Found {len(surveys_found)} relevant surveys.")
 
         with tqdm(
             total=len(surveys_found), desc="Scanning multibeam files...", leave=False
@@ -359,14 +359,14 @@ class MBDB(FetchModule):
             "returnGeometry": "false",
         }
 
-        logger.info("Querying MBDB ArcGIS Server...")
+        logger.debug("Querying MBDB ArcGIS Server...")
         req = core.Fetch(self._mb_features_query_url).fetch_req(params=params)
         # print(req.text)
         if req is None:
             return []
 
         features = req.json().get("features", [])
-        logger.info(f"MBDB found {len(features)} surveys.")
+        logger.debug(f"MBDB found {len(features)} surveys.")
 
         for feature in features:
             attrs = feature.get("attributes", {})
@@ -429,13 +429,13 @@ class R2R(FetchModule):
         wkt = spatial.region_to_wkt(self.region)
         params = {"spatial_bounds": wkt}
 
-        logger.info("Querying R2R API...")
+        logger.debug("Querying R2R API...")
         req = core.Fetch(R2R_API_URL).fetch_req(params=params)
         if req is None:
             return []
 
         data = req.json().get("data", [])
-        logger.info(f"R2R found {len(data)} cruises.")
+        logger.debug(f"R2R found {len(data)} cruises.")
 
         for item in data:
             cruise_id = item.get("cruise_id")
