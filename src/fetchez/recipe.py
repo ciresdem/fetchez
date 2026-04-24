@@ -19,24 +19,10 @@ from .core import run_fetchez
 from .spatial import parse_region
 from .registry import ModuleRegistry, HookRegistry, SchemaRegistry, PresetRegistry
 from .utils import TqdmLoggingHandler
+from .cli import setup_logging
 from . import __version__ as fetchez_version
 
 logger = logging.getLogger(__name__)
-
-
-def setup_logging(verbose=False):
-    log_level = logging.INFO if verbose else logging.WARNING
-
-    logger = logging.getLogger()
-    logger.setLevel(log_level)
-
-    if logger.hasHandlers():
-        logger.handlers.clear()
-
-    handler = TqdmLoggingHandler()
-    formatter = logging.Formatter("[ %(levelname)s ] %(name)s: %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
 
 
 def _parse_version(v_str):
