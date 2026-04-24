@@ -48,6 +48,8 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
     return decorator
 
 
+# This is duplicated in fetchez.recipe
+# We should move this to utils
 def setup_logging(quiet=False, verbose=False):
     if quiet:
         log_level = logging.WARNING

@@ -24,18 +24,30 @@ from . import __version__ as fetchez_version
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(verbose=False):
-    log_level = logging.INFO if verbose else logging.WARNING
+# This is duplicated in fetchez.cli
+# We should move this to utils
+def setup_logging(quiet=False, verbose=False):
+    if quiet:
+        log_level = logging.WARNING
+    elif verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
 
-    logger = logging.getLogger()
+    logger = logging.getLogger("fetchez")
     logger.setLevel(log_level)
+
+    logger.propagate = False
 
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    handler = TqdmLoggingHandler()
+    handler = utils.TqdmLoggingHandler()
+
+    # formatter = logging.Formatter("[ %(levelname)s ] %(name)s: %(message)s")
     formatter = logging.Formatter("[ %(levelname)s ] %(module)s: %(message)s")
     handler.setFormatter(formatter)
+
     logger.addHandler(handler)
 
 
@@ -69,7 +81,7 @@ class Recipe:
         self.config = config
         self.base_dir = base_dir or os.getcwd()
         self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
-        setup_logging(True)
+        setup_logging(False, False)
 
     @classmethod
     def from_file(cls, config_source):
