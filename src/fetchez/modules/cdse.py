@@ -61,7 +61,7 @@ class CDSE(FetchModule):
     def __init__(
         self,
         collection_name="SENTINEL-2",
-        product_type="S2MSI1C",
+        product_type="S2MSI2A",
         cloud_cover=None,
         start_date="",
         end_date="",
@@ -250,9 +250,10 @@ class CDSE(FetchModule):
                         for img in image_files
                         if img.text
                         and (
-                            img.text.endswith("B02")
-                            or img.text.endswith("B03")
-                            or img.text.endswith("B04")
+                            img.text.endswith("B02")  # R
+                            or img.text.endswith("B03")  # G
+                            or img.text.endswith("B04")  # B
+                            or img.text.endswith("B08")  # IR
                         )
                     ]
 
