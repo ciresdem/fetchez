@@ -18,7 +18,6 @@ import logging
 from .core import run_fetchez
 from .spatial import parse_region
 from .registry import ModuleRegistry, HookRegistry, SchemaRegistry, PresetRegistry
-from .utils import TqdmLoggingHandler
 from .cli import setup_logging
 from . import __version__ as fetchez_version
 
