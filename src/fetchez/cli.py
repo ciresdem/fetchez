@@ -48,6 +48,8 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
     return decorator
 
 
+# This is duplicated in fetchez.recipe
+# We should move this to utils
 def setup_logging(quiet=False, verbose=False):
     if quiet:
         log_level = logging.WARNING
@@ -66,7 +68,8 @@ def setup_logging(quiet=False, verbose=False):
 
     handler = utils.TqdmLoggingHandler()
 
-    formatter = logging.Formatter("[ %(levelname)s ] %(name)s: %(message)s")
+    # formatter = logging.Formatter("[ %(levelname)s ] %(name)s: %(message)s")
+    formatter = logging.Formatter("[ %(levelname)s ] %(module)s: %(message)s")
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
