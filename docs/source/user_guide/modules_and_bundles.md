@@ -67,5 +67,5 @@ In your project, make a directory called 'bundles'; add any YAML module bundles 
 
 ```toml
 [project.entry-points."fetchez.bundles"]
-my_project_recipes = "my_project.bundles"
+my_project_bundles = "my_project.bundles"
 ```
