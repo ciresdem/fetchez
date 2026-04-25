@@ -59,3 +59,13 @@ project:
     args: {weight: 1.0}
     """
 ```
+
+### Extending Bunldes (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool and want to bundle your own modules, you can register your own bundles either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.BundleRegistry`
+
+In your project, make a directory called 'bundles'; add any YAML module bundles to that directory and register them with `fetchez` in your `pyproject.toml`:
+
+```toml
+[project.entry-points."fetchez.bundles"]
+my_project_recipes = "my_project.bundles"
+```
