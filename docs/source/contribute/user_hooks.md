@@ -46,13 +46,13 @@ fetchez --list-hooks
 fetchez srtm_plus --hook audit
 ```
 
-# Sharing a Plugin or Hook
+# 🔗 Sharing a Plugin or Hook
 Did you build a plugin that would be useful for the wider community? We'd love to incorporate it!
 
 Submit a Pull Request adding your file to fetchez/modules/ or fetchez/hooks.
 
-## 🔗 Developing & Sharing Presets
-Presets (or "Macros") are the easiest way to share complex data engineering workflows without writing Python code. They allow you to bundle multiple processing steps into a single, shareable YAML snippet.
+## Developing & Sharing Presets
+Presets (Macros) are the easiest way to share complex data engineering workflows without writing Python code. They allow you to bundle multiple processing steps into a single, shareable YAML snippet.
 
 ### The Preset Structure
 Presets are standalone `.yaml` files placed in `~/.fetchez/presets/`. You can quickly see all active presets on your system by running `fetchez --list-presets`.
