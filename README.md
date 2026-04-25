@@ -7,7 +7,7 @@
 <p align="center"><strong>Fetch geospatial data with ease.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/continuous-dems/fetchez"><img src="https://img.shields.io/badge/version-0.5.5-blue.svg" alt="Version"></a>
+  <a href="https://github.com/continuous-dems/fetchez"><img src="https://img.shields.io/badge/version-0.5.6-blue.svg" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.12+-yellow.svg" alt="Python"></a>
   <a href="https://badge.fury.io/py/fetchez"><img src="https://badge.fury.io/py/fetchez.svg" alt="PyPI version"></a>
@@ -34,7 +34,7 @@ Geospatial data engineering is traditionally fragmented. You often need one scri
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
-* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources and domain schemas.
+* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks, etc.
 
 ---
 
@@ -72,6 +72,8 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 ## 📚 Documentation
 Would you like to know more? Check out our [Official Documentation](https://fetchez.readthedocs.io) to learn about:
+
+* **Modules & Bundles:** Discover and learn about data fetchers.
 
 * **The Python API:** Build custom fetchers into your apps.
 
