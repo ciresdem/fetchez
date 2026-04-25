@@ -17,7 +17,13 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry, SchemaRegistry, PresetRegistry, BundleRegistry
+from .registry import (
+    ModuleRegistry,
+    HookRegistry,
+    SchemaRegistry,
+    PresetRegistry,
+    BundleRegistry,
+)
 from .utils import TqdmLoggingHandler
 from . import __version__ as fetchez_version
 
@@ -223,7 +229,7 @@ class Recipe:
 
         expanded_modules = []
 
-        for mod_dict in config.get("modules", []):
+        for mod_dict in self.config.get("modules", []):
             if "bundle" in mod_dict:
                 bundle_name = mod_dict["bundle"]
                 user_args = mod_dict.get("args", {})
@@ -251,7 +257,7 @@ class Recipe:
             else:
                 expanded_modules.append(mod_dict)
 
-        config["modules"] = expanded_modules
+        self.config["modules"] = expanded_modules
 
         modules_to_run = []
         for mod_def in self.config.get("modules", []):
