@@ -169,14 +169,20 @@ class TheNationalMap(FetchModule):
                 )  # YYYYMMDD
                 params["dateType"] = self.date_type
 
-            req = core.Fetch(TNM_API_PRODUCTS_URL).fetch_req(
-                params=params, timeout=60, read_timeout=60
-            )
+            req = core.Fetch(TNM_API_PRODUCTS_URL).fetch_req(params=params)
+            if req and "All dataset queries failed" in req.text and "datasets" in params:
+                logger.warning("USGS rejected the strict dataset strings. Retrying with broad text search...")
+
+                params.pop("datasets")
+
+                fallback_q = params.get("q", "") + " " + " ".join(dataset_names)
+                fallback_q = fallback_q.replace("National Elevation Dataset (NED)", "").strip()
+                params["q"] = fallback_q
+
+                req = core.Fetch(TNM_API_PRODUCTS_URL).fetch_req(params=params)
 
             if req is None or req.status_code != 200:
-                logger.error(
-                    f"TNM API Failed: {req.status_code if req else 'No Response'}"
-                )
+                logger.error(f"TNM API Failed: {req.status_code if req else 'No Response'}")
                 break
 
             if req.text.strip().startswith("{errorMessage"):
