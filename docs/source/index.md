@@ -41,13 +41,13 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 ## Key Features
 
-* **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+* **Unified Interface**: Access [70+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
 * **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
 * **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
 
-* **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
+* **Pipeline Hooks**: Transparently stream, filter, and process data as it is being downloaded.
 
 * **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources and domain schemas.
 

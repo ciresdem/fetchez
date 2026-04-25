@@ -73,3 +73,18 @@ hooks:
 ```bash
 fetchez charts --audit-full
 ```
+
+### Extending Hooks and Presets (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool and want to create your own processing hooks and presets, you can register your own hooks and presets either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.HookRegistry` and `fetchez.registry.PresetRegistry`
+
+In your project, make a directory called 'hooks' or 'presets'; add any python hooks and presets to the appropriate directory and register them with `fetchez` in your `pyproject.toml`:
+
+```toml
+[project.entry-points."fetchez.hooks"]
+my_project_hooks = "my_project.hooks"
+```
+
+```toml
+[project.entry-points."fetchez.presets"]
+my_project_presetes = "my_project.presets"
+```

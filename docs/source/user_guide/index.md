@@ -7,6 +7,7 @@ Welcome to the Fetchez user guide! Here you will find everything you need to kno
 
 installation
 cli_usage
+modules_and_bundles
 hooks_and_presets
 plugins_and_extensions
 recipes

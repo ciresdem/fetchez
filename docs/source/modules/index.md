@@ -1,6 +1,6 @@
 # Module Catalog
 
-Fetchez supports over 40 distinct data modules.
+Fetchez supports over 70 distinct data modules.
 
 ```{module-table}
 ```

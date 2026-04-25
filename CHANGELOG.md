@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5 - 2026-04-24]
+### ADDED
+- BundleRegistry: bundle multiple modules + hooks in a yaml registry.
+
+### CHANGED
+- Update CDSE module to get B08 (IR)
+- Change logging from name->module
+
 ## [0.5.5 - 2026-04-22]
 ### ADDED
 - SYSU_topo dataset
