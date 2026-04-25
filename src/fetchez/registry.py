@@ -479,6 +479,14 @@ class PresetRegistry(YamlRegistry):
         return hooks
 
 
+class BundleRegistry(YamlRegistry):
+    """A registry for discovering and loading Module Bundles (Data Packages)."""
+
+    builtin_pkg = "fetchez.bundles"
+    entry_point_group = "fetchez.bundles"
+    user_folder = "bundles"
+
+
 # =============================================================================
 # Old YAML Registries (recipe & preset)
 # =============================================================================

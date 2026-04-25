@@ -17,7 +17,13 @@ import logging
 
 from .core import run_fetchez
 from .spatial import parse_region
-from .registry import ModuleRegistry, HookRegistry, SchemaRegistry, PresetRegistry
+from .registry import (
+    ModuleRegistry,
+    HookRegistry,
+    SchemaRegistry,
+    PresetRegistry,
+    BundleRegistry,
+)
 from .utils import TqdmLoggingHandler
 from . import __version__ as fetchez_version
 
@@ -201,6 +207,7 @@ class Recipe:
         """Execute the recipe!"""
 
         ModuleRegistry.load_all()
+        BundleRegistry.load_all()
         SchemaRegistry.load_all()
 
         if not self.config:
@@ -219,6 +226,38 @@ class Recipe:
         global_regions = (
             parse_region(global_region_def) if global_region_def else [None]
         )
+
+        expanded_modules = []
+
+        for mod_dict in self.config.get("modules", []):
+            if "bundle" in mod_dict:
+                bundle_name = mod_dict["bundle"]
+                user_args = mod_dict.get("args", {})
+                user_hooks = mod_dict.get("hooks", [])
+
+                # Fetch the curated package from the registry
+                bundle_def = BundleRegistry.get_yaml(bundle_name)
+
+                if not bundle_def:
+                    logger.error(f"Bundle '{bundle_name}' not found!")
+                    continue
+
+                weight_multiplier = float(user_args.get("weight", 1.0))
+
+                # Inject the bundle's modules into the main recipe
+                for pkg_mod in bundle_def.get("modules", []):
+                    if "weight" in pkg_mod.setdefault("args", {}):
+                        original_weight = float(pkg_mod["args"]["weight"])
+                        pkg_mod["args"]["weight"] = original_weight * weight_multiplier
+
+                    if user_hooks:
+                        pkg_mod.setdefault("hooks", []).extend(user_hooks)
+
+                    expanded_modules.append(pkg_mod)
+            else:
+                expanded_modules.append(mod_dict)
+
+        self.config["modules"] = expanded_modules
 
         modules_to_run = []
         for mod_def in self.config.get("modules", []):
