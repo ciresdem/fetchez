@@ -20,13 +20,13 @@ from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
-try:
-    import shapefile  # pip install pyshp
-    from pyproj import Transformer
+# try:
+#     import shapefile  # pip install pyshp
+#     from pyproj import Transformer
 
-    HAS_LIGHT_GEO = True
-except ImportError:
-    HAS_LIGHT_GEO = False
+#     HAS_LIGHT_GEO = True
+# except ImportError:
+#     HAS_LIGHT_GEO = False
 
 logger = logging.getLogger(__name__)
 
@@ -129,33 +129,59 @@ class ArcticDEM(FetchModule):
             search_bbox = self._get_projected_bbox()
             logger.info(f"Search Bounds (EPSG:3413): {search_bbox}")
 
-            sf = shapefile.Reader(v_shp)
+            import fiona
+            with fiona.open(v_shp) as src:
+                bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
 
-            fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
-            try:
-                url_idx = fields.index("fileurl")
-            except ValueError:
-                url_idx = next(
-                    (i for i, f in enumerate(fields) if "url" in f.lower()), -1
-                )
+                for feature in src.filter(bbox=bbox):
+                    props = feature.get("properties", {})
+                    props_lower = {k.lower(): v for k, v in props.items()}
 
-            matches = 0
+                    tile_url = props_lower.get("url") or props_lower.get("fileurl")
 
-            for shapeRec in sf.iterShapeRecords():
-                if self._intersects(search_bbox, shapeRec.shape.bbox):
-                    data_link = shapeRec.record[url_idx]
+                    if not tile_url:
+                        continue
 
-                    if data_link:
-                        self.add_entry_to_results(
-                            url=data_link,
-                            dst_fn=os.path.basename(data_link),
-                            data_type="arcticdem",
-                            agency="PGC",
-                            title="ArcticDEM Tile",
-                        )
-                        matches += 1
+                    self.add_entry_to_results(
+                        url=tile_link,
+                        dst_fn=os.path.basename(data_link),
+                        data_type="arcticdem",
+                        agency="PGC",
+                        title="ArcticDEM Tile",
+                    )
+                    matches += 1
 
             logger.info(f"Found {matches} ArcticDEM tiles.")
+        except ImportError:
+            logger.error("Fiona is required. Run: pip install fiona")
+
+            # sf = shapefile.Reader(v_shp)
+
+            # fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
+            # try:
+            #     url_idx = fields.index("fileurl")
+            # except ValueError:
+            #     url_idx = next(
+            #         (i for i, f in enumerate(fields) if "url" in f.lower()), -1
+            #     )
+
+            # matches = 0
+
+            # for shapeRec in sf.iterShapeRecords():
+            #     if self._intersects(search_bbox, shapeRec.shape.bbox):
+            #         data_link = shapeRec.record[url_idx]
+
+            #         if data_link:
+            #             self.add_entry_to_results(
+            #                 url=data_link,
+            #                 dst_fn=os.path.basename(data_link),
+            #                 data_type="arcticdem",
+            #                 agency="PGC",
+            #                 title="ArcticDEM Tile",
+            #             )
+            #             matches += 1
+
+            # logger.info(f"Found {matches} ArcticDEM tiles.")
 
         except Exception as e:
             logger.error(f"Error processing index: {e}")

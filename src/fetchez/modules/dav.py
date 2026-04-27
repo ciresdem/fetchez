@@ -20,14 +20,20 @@ from urllib.parse import urljoin
 from typing import List, Dict, Optional, Any
 import requests
 
-# Lightweight Geospatial Dependencies
 try:
-    import shapefile  # pip install pyshp
     from pyproj import CRS, Transformer
 
-    HAS_LIGHT_GEO = True
-except ImportError:
-    HAS_LIGHT_GEO = False
+    HAS_PYPROJ = True
+except:
+    HAS_PYPROJ = Fasel
+# # Lightweight Geospatial Dependencies
+# try:
+#     import shapefile  # pip install pyshp
+#     from pyproj import CRS, Transformer
+
+#     HAS_LIGHT_GEO = True
+# except ImportError:
+#     HAS_LIGHT_GEO = False
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -200,8 +206,8 @@ class DAV(FetchModule):
     def _process_index_shapefile(self, shp_path: str, dataset_id: str, data_type: str):
         """Parse the downloaded index shapefile using PyShp + PyProj."""
 
-        if not HAS_LIGHT_GEO:
-            logger.error("Missing libraries. Run: `pip install pyproj pyshp`")
+        if not HAS_PYPROJ:
+            logger.error("Missing libraries. Run: `pip install pyproj`")
             return
 
         prj_path = shp_path.replace(".shp", ".prj")
@@ -231,52 +237,90 @@ class DAV(FetchModule):
         ys = [c[1] for c in corners]
         search_bbox = [min(xs), min(ys), max(xs), max(ys)]
 
-        sf = shapefile.Reader(shp_path)
+        try:
+            import fiona
+            with fiona.open(shp_path) as src:
+                bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
 
-        fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
+                for feature in src.filter(bbox=bbox):
+                    props = feature.get("properties", {})
 
-        def find_field(candidates):
-            for c in candidates:
-                for i, f in enumerate(fields):
-                    if c.lower() == f.lower():
-                        return i
-            return -1
+                    props_lower = {k.lower(): v for k, v in props.items()}
 
-        name_idx = find_field(["Name", "location", "filename", "tilename", "TILE_NAME"])
-        url_idx = find_field(["url", "path", "link", "HTTP_LINK", "URL_Link"])
+                    tile_name = props_lower.get("name") or props_lower.get("location") or props_lower.get("tile_name")
+                    tile_url = props_lower.get("url") or props_lower.get("path") or props_lower.get("url_link")
 
-        if name_idx == -1 or url_idx == -1:
-            logger.warning(
-                f"Could not find Name/URL fields in {os.path.basename(shp_path)}"
-            )
-            return
+                    if not tile_url or not tile_name:
+                        continue
 
-        for shapeRec in sf.iterShapeRecords():
-            if self._intersects(search_bbox, shapeRec.shape.bbox):
-                tile_name = str(shapeRec.record[name_idx]).strip()
-                tile_url = str(shapeRec.record[url_idx]).strip()
+                    # Clean up URL (handle relative paths/missing filenames)
+                    if not tile_url.endswith(tile_name):
+                        if tile_url.endswith("/"):
+                            tile_url += tile_name
+                        elif not tile_url.lower().endswith(
+                            os.path.basename(tile_name).lower()
+                        ):
+                            tile_url = (
+                                f"{tile_url.rstrip('/')}/{os.path.basename(tile_name)}"
+                            )
 
-                if not tile_url or not tile_name:
-                    continue
+                    self.add_entry_to_results(
+                        url=tile_url,
+                        dst_fn=os.path.join(str(dataset_id), os.path.basename(tile_url)),
+                        data_type=data_type,
+                        agency="NOAA Digital Coast",
+                        title=f"Dataset {dataset_id}",
+                    )
 
-                # Clean up URL (handle relative paths/missing filenames)
-                if not tile_url.endswith(tile_name):
-                    if tile_url.endswith("/"):
-                        tile_url += tile_name
-                    elif not tile_url.lower().endswith(
-                        os.path.basename(tile_name).lower()
-                    ):
-                        tile_url = (
-                            f"{tile_url.rstrip('/')}/{os.path.basename(tile_name)}"
-                        )
+        except ImportError:
+            logger.error("Fiona is required. Run: pip install fiona")
 
-                self.add_entry_to_results(
-                    url=tile_url,
-                    dst_fn=os.path.join(str(dataset_id), os.path.basename(tile_url)),
-                    data_type=data_type,
-                    agency="NOAA Digital Coast",
-                    title=f"Dataset {dataset_id}",
-                )
+        # sf = shapefile.Reader(shp_path)
+
+        # fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
+
+        # def find_field(candidates):
+        #     for c in candidates:
+        #         for i, f in enumerate(fields):
+        #             if c.lower() == f.lower():
+        #                 return i
+        #     return -1
+
+        # name_idx = find_field(["Name", "location", "filename", "tilename", "TILE_NAME"])
+        # url_idx = find_field(["url", "path", "link", "HTTP_LINK", "URL_Link"])
+
+        # if name_idx == -1 or url_idx == -1:
+        #     logger.warning(
+        #         f"Could not find Name/URL fields in {os.path.basename(shp_path)}"
+        #     )
+        #     return
+
+        # for shapeRec in sf.iterShapeRecords():
+        #     if self._intersects(search_bbox, shapeRec.shape.bbox):
+        #         tile_name = str(shapeRec.record[name_idx]).strip()
+        #         tile_url = str(shapeRec.record[url_idx]).strip()
+
+        #         if not tile_url or not tile_name:
+        #             continue
+
+        #         # Clean up URL (handle relative paths/missing filenames)
+        #         if not tile_url.endswith(tile_name):
+        #             if tile_url.endswith("/"):
+        #                 tile_url += tile_name
+        #             elif not tile_url.lower().endswith(
+        #                 os.path.basename(tile_name).lower()
+        #             ):
+        #                 tile_url = (
+        #                     f"{tile_url.rstrip('/')}/{os.path.basename(tile_name)}"
+        #                 )
+
+        #         self.add_entry_to_results(
+        #             url=tile_url,
+        #             dst_fn=os.path.join(str(dataset_id), os.path.basename(tile_url)),
+        #             data_type=data_type,
+        #             agency="NOAA Digital Coast",
+        #             title=f"Dataset {dataset_id}",
+        #         )
 
     def _extract_usgs_project(self, url):
         """Extract project from the bulk URL."""
@@ -292,11 +336,11 @@ class DAV(FetchModule):
         if self.region is None:
             return []
 
-        if not HAS_LIGHT_GEO:
-            logger.error(
-                "This module requires pyproj and pyshp. Run: `pip install pyproj pyshp`"
-            )
-            return self
+        # if not HAS_LIGHT_GEO:
+        #     logger.error(
+        #         "This module requires pyproj and pyshp. Run: `pip install pyproj pyshp`"
+        #     )
+        #     return self
 
         logger.debug(f"Querying Digital Coast API for {self.datatype}...")
         data = self._get_features()

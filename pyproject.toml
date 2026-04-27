@@ -29,17 +29,19 @@ dependencies = [
     "requests[security]",
     "lxml",
     "tqdm",
-    'pyyaml',
+    "pyyaml",
+    "click",
 ]
 
 keywords = ["Geospatial"]
 
 [project.optional-dependencies]
 aws = ["boto3"]
-vector = ["pyshp", "pyproj", "shapely", "fiona"]
+vector = ["pyproj", "shapely", "fiona"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client"]
+marine = ["copernicusmarine"]
 # jupyter = ["jupyterlab", "ipyleaflet", "ipywidgets"]
 
 full = ["fetchez[aws,bing,vector,earthdata,stac]"]
@@ -67,7 +69,7 @@ docs = [
 # CLI Entry Points
 fetchez = "fetchez.cli:fetchez_cli"
 # testing for `click` cli
-# fetchez2 = "fetchez.click:cli"
+fetchez2 = "fetchez.click:cli"
 
 [project.urls]
 Homepage = "https://github.com/ciresdem/fetchez"
