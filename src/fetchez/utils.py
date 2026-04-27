@@ -22,6 +22,7 @@ import shutil
 import tempfile
 import tqdm
 import re
+import inspect
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -534,6 +535,79 @@ def parse_hook_string_(h_str):
 def range_pairs(lst):
     return [(lst[i], lst[i + 1]) for i in range(len(lst) - 1)]
 
+
+def print_class_arguments(TargetCls, want_inherited=True):
+    """Inspect a class for arguments and print them out."""
+
+    print(f"\n  {colorize('Available Arguments:', YELLOW)}")
+
+    all_params = {}
+    for cls in TargetCls.__mro__:
+        if cls is object:
+            continue
+
+        if hasattr(cls, "__init__"):
+            try:
+                sig = inspect.signature(cls.__init__)
+                for name, param in sig.parameters.items():
+                    if name == "self" or param.kind in (
+                        inspect.Parameter.VAR_POSITIONAL,
+                        inspect.Parameter.VAR_KEYWORD,
+                    ):
+                        continue
+
+                    if name not in all_params:
+                        all_params[name] = {"param": param, "origin": cls}
+            except ValueError:
+                pass
+
+    if all_params:
+        arg_help = getattr(TargetCls, "_cli_arg_help", {})
+        for name, data in all_params.items():
+            param = data["param"]
+            origin_cls = data["origin"]
+
+            if param.default is inspect.Parameter.empty:
+                default_str = colorize("(required)", RED)
+            else:
+                default_str = f"(default: {param.default})"
+
+            type_str = ""
+            if param.annotation is not inspect.Parameter.empty:
+                type_name = getattr(param.annotation, "__name__", str(param.annotation))
+                type_str = f"[{type_name}] "
+
+            inherit_str = ""
+            if origin_cls is not TargetCls:
+                # Differentiate it visually, e.g., in cyan or dim text
+                inherit_str = colorize(
+                    f" [from {origin_cls.__name__}]", CYAN
+                )
+
+            desc_str = f" - {arg_help[name]}" if name in arg_help else ""
+
+            print(
+                f"    {colorize(name, BOLD):<15} {type_str}{default_str}{inherit_str}{desc_str}"
+            )
+    else:
+        print("    (No specific arguments required)")
+
+
+def get_class_arguments(TargetClass):
+    sig = inspect.signature(TargetClass.__init__)
+    args_dict = {}
+    for param_name, param in sig.parameters.items():
+        if param_name in ["self", "kwargs", "args"]:
+            continue
+
+        default = (
+            param.default
+            if param.default is not inspect.Parameter.empty
+            else "REQUIRED"
+        )
+        args_dict[param_name] = default
+
+    return args_dict
 
 # =============================================================================
 # Archives, etc.
