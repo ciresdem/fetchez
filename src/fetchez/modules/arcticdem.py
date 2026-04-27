@@ -20,6 +20,19 @@ from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
+try:
+    from pyproj import Transformer
+
+    HAS_PYPROJ = True
+except ImportError:
+    HAS_PYPROJ = False
+
+try:
+    import fiona
+
+    HAS_FIONA = True
+except ImportError:
+    HAS_FIONA = False
 # try:
 #     import shapefile  # pip install pyshp
 #     from pyproj import Transformer
@@ -57,7 +70,7 @@ class ArcticDEM(FetchModule):
     produce a high-resolution, high quality, digital surface model (DSM)
     of the Arctic.
 
-    This module uses 'pyproj' and 'pyshp'.
+    This module uses 'pyproj' and 'fiona'.
     """
 
     def __init__(self, where: Optional[str] = None, **kwargs):
@@ -105,8 +118,12 @@ class ArcticDEM(FetchModule):
         if self.region is None:
             return self
 
-        if not HAS_LIGHT_GEO:
-            logger.error("Missing libraries. Please run: pip install pyproj pyshp")
+        if not HAS_PYPROJ:
+            logger.error("Missing libraries. Run: `pip install pyproj`")
+            return self
+
+        if not HAS_FIONA:
+            logger.error("Missing libraries. Please run: pip install fiona")
             return self
 
         idx_zip_name = os.path.basename(ARCTIC_DEM_INDEX_URL)
@@ -129,7 +146,7 @@ class ArcticDEM(FetchModule):
             search_bbox = self._get_projected_bbox()
             logger.info(f"Search Bounds (EPSG:3413): {search_bbox}")
 
-            import fiona
+            matches = 0
             with fiona.open(v_shp) as src:
                 bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
 
@@ -143,8 +160,8 @@ class ArcticDEM(FetchModule):
                         continue
 
                     self.add_entry_to_results(
-                        url=tile_link,
-                        dst_fn=os.path.basename(data_link),
+                        url=tile_url,
+                        dst_fn=os.path.basename(tile_url),
                         data_type="arcticdem",
                         agency="PGC",
                         title="ArcticDEM Tile",

@@ -24,8 +24,15 @@ try:
     from pyproj import CRS, Transformer
 
     HAS_PYPROJ = True
-except:
-    HAS_PYPROJ = Fasel
+except ImportError:
+    HAS_PYPROJ = False
+
+try:
+    import fiona
+
+    HAS_FIONA = True
+except ImportError:
+    HAS_FIONA = False
 # # Lightweight Geospatial Dependencies
 # try:
 #     import shapefile  # pip install pyshp
@@ -210,6 +217,10 @@ class DAV(FetchModule):
             logger.error("Missing libraries. Run: `pip install pyproj`")
             return
 
+        if not HAS_FIONA:
+            logger.error("Missing libraries. Run: `pip install fiona`")
+            return
+
         prj_path = shp_path.replace(".shp", ".prj")
         target_crs = None
 
@@ -238,7 +249,6 @@ class DAV(FetchModule):
         search_bbox = [min(xs), min(ys), max(xs), max(ys)]
 
         try:
-            import fiona
             with fiona.open(shp_path) as src:
                 bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
 
@@ -247,8 +257,16 @@ class DAV(FetchModule):
 
                     props_lower = {k.lower(): v for k, v in props.items()}
 
-                    tile_name = props_lower.get("name") or props_lower.get("location") or props_lower.get("tile_name")
-                    tile_url = props_lower.get("url") or props_lower.get("path") or props_lower.get("url_link")
+                    tile_name = (
+                        props_lower.get("name")
+                        or props_lower.get("location")
+                        or props_lower.get("tile_name")
+                    )
+                    tile_url = (
+                        props_lower.get("url")
+                        or props_lower.get("path")
+                        or props_lower.get("url_link")
+                    )
 
                     if not tile_url or not tile_name:
                         continue
@@ -266,7 +284,9 @@ class DAV(FetchModule):
 
                     self.add_entry_to_results(
                         url=tile_url,
-                        dst_fn=os.path.join(str(dataset_id), os.path.basename(tile_url)),
+                        dst_fn=os.path.join(
+                            str(dataset_id), os.path.basename(tile_url)
+                        ),
                         data_type=data_type,
                         agency="NOAA Digital Coast",
                         title=f"Dataset {dataset_id}",

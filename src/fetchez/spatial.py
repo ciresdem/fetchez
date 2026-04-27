@@ -16,6 +16,7 @@ import os
 import json
 import math
 import logging
+import warnings
 from typing import Union, List, Tuple, Optional
 
 try:
@@ -32,7 +33,7 @@ try:
 except ImportError:
     HAS_PYPROJ = False
 
-from fetchez.utils import str_or
+from fetchez.utils import str_or, _linspace
 
 logger = logging.getLogger(__name__)
 
@@ -232,16 +233,16 @@ class Region:
         xs = []
         ys = []
 
-        ys.extend(np.linspace(self.ymin, self.ymax, density))
+        ys.extend(_linspace(self.ymin, self.ymax, density))
         xs.extend([self.xmin] * density)
 
-        xs.extend(np.linspace(self.xmin, self.xmax, density))
+        xs.extend(_linspace(self.xmin, self.xmax, density))
         ys.extend([self.ymax] * density)
 
-        ys.extend(np.linspace(self.ymax, self.ymin, density))
+        ys.extend(_linspace(self.ymax, self.ymin, density))
         xs.extend([self.xmax] * density)
 
-        xs.extend(np.linspace(self.xmax, self.xmin, density))
+        xs.extend(_linspace(self.xmax, self.xmin, density))
         ys.extend([self.ymin] * density)
 
         # return list(zip(xs, ys))
@@ -491,7 +492,9 @@ class Region:
             return self
 
         if not HAS_PYPROJ:
-            logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
+            logger.error(
+                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
+            )
             return self
 
         with warnings.catch_warnings():
@@ -511,6 +514,7 @@ class Region:
 
         return self
 
+
 # =============================================================================
 # Helper / Parser Functions
 # =============================================================================
@@ -523,7 +527,9 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
     try:
         import fiona
     except ImportError:
-        logger.error(f"Fiona is required to parse '{os.path.basename(fn)}'. Run: pip install fiona")
+        logger.error(
+            f"Fiona is required to parse '{os.path.basename(fn)}'. Run: pip install fiona"
+        )
         return None
 
     try:
@@ -552,6 +558,7 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
         logger.warning(f"Failed to parse vector bounds from {fn}: {e}")
 
     return None
+
 
 def region_from_geojson(fn: str) -> Optional[List[Region]]:
     """Parse the bounding box(es) of a GeoJSON file."""
@@ -842,6 +849,7 @@ def regions_intersect_p(region_a: Region, region_b: Region) -> bool:
             return False
 
     return True
+
 
 # --- Geotransforms and Transformations ---
 def _geo2pixel(geo_x, geo_y, geo_transform, node="grid"):
