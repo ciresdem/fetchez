@@ -67,9 +67,9 @@ docs = [
 
 [project.scripts]
 # CLI Entry Points
-fetchez = "fetchez.cli:fetchez_cli"
+# fetchez = "fetchez.cli:fetchez_cli"
 # testing for `click` cli
-fetchez2 = "fetchez.click:cli"
+fetchez2 = "fetchez.cli:cli"
 
 [project.urls]
 Homepage = "https://github.com/ciresdem/fetchez"
@@ -138,5 +138,4 @@ extend-select = [  # Extend the default ruleset:
 
 [tool.ruff.lint.per-file-ignores]
 # Allow print() statements in CLI module where they are expected
-"src/fetchez/cli.py" = ["T201"]
-"src/fetchez/recipe.py" = ["T201"]
+"src/fetchez/_cli.py" = ["T201"]
