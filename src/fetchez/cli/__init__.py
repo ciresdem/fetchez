@@ -16,11 +16,9 @@ import logging
 from typing import Optional
 
 from fetchez.utils import TqdmLoggingHandler, FetchezMainGroup
-# from fetchez.utils import _cli_logo
-# from fetchez import __version__
+# , colorize, GREEN, BOLD
 
 from .pipeline import pipeline_group
-
 from .modules import modules_group
 from .hooks import hooks_group
 from .schemas import schemas_group
@@ -76,15 +74,32 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
     help="Fetch geospatial data with ease.",
-    fetchez_commands=[
-        "run",
-        "modules",
-        "hooks",
-        "schemas",
-        "recipes",
-        "presets",
-        "bundles",
-    ],
+    fetchez_commands={
+        "Execution": ["run"],
+        "Discovery and Management": [
+            "modules",
+            "hooks",
+            "schemas",
+            "recipes",
+            "presets",
+            "bundles",
+        ],
+    },
+    #     epilog=f"""
+    # \b
+    # {colorize(colorize('Examples', GREEN), BOLD)}:
+    #   # Quick fetch for a specific location
+    #   $ fetchez run -R loc:seattle tides
+    #   \b
+    #   # Run multiple modules with weights and specific hooks
+    #   $ fetchez run -R -120/34/-119/35 coned --weight 2.0 tnm --hook unzip
+    #   \b
+    #   # Execute a complete pre-built YAML pipeline recipe
+    #   $ fetchez run --recipe crm_standard
+    #   \b
+    #   # Export a dynamic CLI command into a reusable YAML recipe
+    #   $ fetchez run -R loc:hawaii --export my_pipeline.yaml bluetopo
+    #     """
 )
 @click.version_option(package_name="fetchez")
 @click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
@@ -102,6 +117,7 @@ cli.add_command(schemas_group, name="schemas")
 cli.add_command(recipes_group, name="recipes")
 cli.add_command(presets_group, name="presets")
 cli.add_command(bundles_group, name="bundles")
+
 
 if __name__ == "__main__":
     cli()

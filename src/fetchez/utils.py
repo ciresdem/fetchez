@@ -139,20 +139,15 @@ class FetchezMainGroup(click.Group):
         if not commands:
             return
 
-        # categories = {
-        #     f"{colorize(colorize('Execution', GREEN), BOLD)}": ["run"],
-        #     f"{colorize(colorize('Discovery & Management', GREEN), BOLD)}": [
-        #         "modules",
-        #         "hooks",
-        #         "schemas",
-        #         "recipes",
-        #         "presets",
-        #         "bundles",
-        #     ],
-        # }
-        categories = {
-            f"{colorize(colorize('Commands', GREEN), BOLD)}": self.fetchez_commands,
-        }
+        if isinstance(self.fetchez_commands, dict):
+            categories = {
+                f"{colorize(colorize(k, GREEN), BOLD)}": v
+                for k, v in self.fetchez_commands.items()
+            }
+        else:
+            categories = {
+                f"{colorize(colorize('Commands', GREEN), BOLD)}": self.fetchez_commands,
+            }
 
         for cat_name, cmd_names in categories.items():
             with formatter.section(cat_name):
