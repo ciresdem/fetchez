@@ -179,7 +179,9 @@ class PipelineExecutor(FetchezMainGroup):
 
 
 @click.command(
-    cls=PipelineExecutor, chain=True, help="Build or run a Fetchez pipeline."
+    cls=PipelineExecutor,
+    chain=True,
+    help="Fetch/download data and execute processing pipelines.",
 )
 @click.option("-R", "--region", help="Bounding box (W/E/S/N)")
 @click.option("--global-hook", multiple=True, help="Attach a global processing hook")

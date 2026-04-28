@@ -76,15 +76,17 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
     help="Fetch geospatial data with ease.",
-    fetchez_commands=[
-        "run",
-        "modules",
-        "hooks",
-        "schemas",
-        "recipes",
-        "presets",
-        "bundles",
-    ],
+    fetchez_commands={
+        "Execution": ["run"],
+        "Discovery and Management": [
+            "modules",
+            "hooks",
+            "schemas",
+            "recipes",
+            "presets",
+            "bundles",
+        ],
+    },
 )
 @click.version_option(package_name="fetchez")
 @click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
