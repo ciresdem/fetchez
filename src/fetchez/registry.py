@@ -266,6 +266,7 @@ class PluginRegistry:
                 or term in meta.get("desc", "").lower()
                 or term in meta.get("agency", "").lower()
                 or any(term in tag.lower() for tag in meta.get("tags", []))
+                or any(term in alias.lower() for alias in meta.get("aliases", ""))
             ):
                 if key not in results:
                     results.append(key)
