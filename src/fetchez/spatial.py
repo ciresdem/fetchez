@@ -682,7 +682,6 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
             for item in input_r:
                 regions.extend(parse_region(item))
 
-    print(target_crs)
     if not regions:
         # Don't warn on None input, only on failed parse of actual input
         if input_r is not None:
