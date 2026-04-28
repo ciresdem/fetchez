@@ -110,11 +110,11 @@ class FetchezMainGroup(click.Group):
 @click.group(
     cls=FetchezMainGroup,
     help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
-    # help=f"\b\n{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
 )
 @click.version_option(package_name="fetchez")
 def cli():
     """Fetchez CLI."""
+
     setup_logging()
 
 
