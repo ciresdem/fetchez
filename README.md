@@ -50,15 +50,15 @@ Fetch Copernicus topography and NOAA multibeam bathymetry for a specific boundin
 ### CLI
 
 ```bash
-fetchez -R loc:"Miami, FL" --global-hook audit copernicus multibeam
+fetchez run -R loc:"Miami, FL" --global-hook audit copernicus multibeam
 ```
 
 Or run a full processing pipeline from a YAML recipe:
 
 ```bash
-fetchez run recipes/my_dem_project.yaml
+fetchez recipes run recipes/my_dem_project.yaml
 ```
-
+xs
 ### Python
 
 ```python

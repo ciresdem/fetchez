@@ -133,11 +133,13 @@ def module_info(name):
         for link_name, link_url in urls.items():
             click.echo(f"    - {link_name.title()}: {link_url}")
 
+    # args_dict = get_class_arguments(mod_cls)
     args_dict = get_class_arguments(mod_cls)
-
     click.secho("\n  Arguments:", fg="yellow", bold=True)
     for key, val in args_dict.items():
-        click.echo(f"    - {click.style(key, bold=True)} {val}")
+        click.echo(
+            f"    - {click.style(key, bold=True)} {val['type']}[{val['default']}]{val['inherit']}{val['desc']}"
+        )
 
     # Generate the YAML Snippet
     click.secho("\n  YAML Recipe Example:", fg="green", bold=True)
@@ -148,9 +150,13 @@ def module_info(name):
 
     if args_dict:
         click.echo("      args:")
-        for k, v in args_dict.items():
-            val_str = f'"{v}"' if isinstance(v, str) and v != "REQUIRED" else v
-            click.echo(f"        {k}: {val_str}")
+        for key, val in args_dict.items():
+            val_str = (
+                f"{val['default']}"
+                if isinstance(val["default"], str) and val["default"] != "REQUIRED"
+                else val["default"]
+            )
+            click.echo(f"        {key}: {val_str}")
 
         # click.echo("      hooks:")
     click.echo("-" * 40 + "\n")

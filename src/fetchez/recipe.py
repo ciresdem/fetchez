@@ -309,7 +309,7 @@ class Recipe:
         run_fetchez(modules_to_run, threads=threads, global_hooks=global_hooks)
         logger.info(f"Recipe complete: {self.name}")
 
-        self._generate_receipt()
+        # self._generate_receipt()
 
     def _generate_receipt(self):
         import datetime
