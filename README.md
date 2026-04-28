@@ -56,7 +56,7 @@ fetchez -R loc:"Miami, FL" --global-hook audit copernicus multibeam
 Or run a full processing pipeline from a YAML recipe:
 
 ```bash
-fetchez recipes/my_dem_project.yaml
+fetchez run recipes/my_dem_project.yaml
 ```
 
 ### Python
