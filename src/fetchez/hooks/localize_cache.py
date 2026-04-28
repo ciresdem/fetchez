@@ -20,12 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class LocalizeCacheHook(FetchHook):
-    """Copies or symlinks fetched pipeline artifacts into a specific local directory."""
+    """Copies or symlinks fetched pipeline entry results into a specific local directory."""
 
     name = "localize_cache"
     meta_stage = "collection"
     meta_domain = "System"
     meta_category = "Utility"
+    meta_desc = "Copies or symlinks entry results into a specific local directory. (Modifies entry)"
 
     def __init__(self, target_dir=".", symlink=False, **kwargs):
         super().__init__(**kwargs)

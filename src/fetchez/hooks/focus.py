@@ -73,7 +73,7 @@ class FocusSink(FetchHook):
         if not found_target:
             logger.warning(
                 f"Artifact target '{self.target}' was not found in any pipeline entries! "
-                f"Ignoring focus request and passing original stream onward."
+                f"Ignoring focus request and passing original entry onward."
             )
             return entries
 

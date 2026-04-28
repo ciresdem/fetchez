@@ -33,7 +33,9 @@ def test_module_metadata_complete():
     ModuleRegistry.load_builtins()
     modules = ModuleRegistry.get_registry()
 
-    # In the new registry, `meta_` is stripped from the keys in the dictionary!
+    # In the new registry, `meta_` is stripped from the keys in the dictionary.
+    # New keys to be implemented:
+    # ...
     required_keys = [
         "category",
         "desc",
@@ -107,7 +109,6 @@ def test_optional_dependencies_are_protected():
 
     OPTIONAL_IMPORTS = {
         "boto3",
-        "shapefile",
         "pyproj",
         "shapely",
         "mercantile",
@@ -115,6 +116,7 @@ def test_optional_dependencies_are_protected():
         "pystac",
         "pystac_client",
         "fiona",
+        "copernicusmarine",
     }
 
     mod_dir = os.path.dirname(fetchez.modules.__file__)
@@ -167,7 +169,7 @@ def test_optional_dependencies_are_protected():
                             )
 
     error_msg = (
-        "\n🚨 Found unprotected optional imports! These must be wrapped in a try/except block "
+        "\nFound unprotected optional imports! These must be wrapped in a try/except block "
         "to prevent crashing the CLI for users who haven't installed them:\n"
         + "\n".join(unprotected_imports)
     )

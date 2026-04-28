@@ -1,12 +1,12 @@
 import subprocess
 import sys
 
-from fetchez.cli import parse_hook_arg
+from fetchez.utils import parse_hook_string
 
 # Testing CLI using subprocess
 
 # CMD will run Fetchez
-CMD = [sys.executable, "-m", "fetchez.cli"]
+CMD = [sys.executable, "-m", "fetchez.cli.__init__"]
 
 
 def run_fetchez(args):
@@ -32,7 +32,7 @@ def test_version():
 def test_list_modules():
     """Can we list modules without crashing?"""
 
-    result = run_fetchez(["--list-modules"])
+    result = run_fetchez(["modules", "list"])
     assert result.returncode == 0
     assert "multibeam" in result.stdout
     assert "local" in result.stdout
@@ -41,7 +41,7 @@ def test_list_modules():
 def test_list_hooks():
     """Can we list hooks?"""
 
-    result = run_fetchez(["--list-hooks"])
+    result = run_fetchez(["hooks", "list"])
     assert result.returncode == 0
     assert "dryrun" in result.stdout
     assert "enrich" in result.stdout
@@ -50,7 +50,7 @@ def test_list_hooks():
 def test_hook_info():
     """Does the hook-info flag work?"""
 
-    result = run_fetchez(["--hook-info", "audit"])
+    result = run_fetchez(["hooks", "info", "audit"])
     assert result.returncode == 0
     assert "Save a run summary to a file" in result.stdout
 
@@ -58,34 +58,42 @@ def test_hook_info():
 def test_dry_run_ipinfo():
     """Run a simple module."""
 
-    result = run_fetchez(["ipinfo:ip=8.8.8.8", "--hook", "dryrun"])
+    result = run_fetchez(["run", "ipinfo", "--ip", "8.8.8.8", "--hook", "dryrun"])
     assert result.returncode == 0
+
+
+# test module string parsing in cli (no supported atm)
+# def test_dry_run_ipinfo():
+#     """Run a simple module."""
+
+#     result = run_fetchez(["run", "ipinfo:ip=8.8.8.8", "--hook", "dryrun"])
+#     assert result.returncode == 0
 
 
 # Testing cli functions from python
 
 
-def test_parse_hook_arg_simple():
+def test_parse_hook_string_simple():
     """Test basic hook parsing with string arguments."""
 
-    name, kwargs = parse_hook_arg("reproject:crs=EPSG:3857")
-    assert name == "reproject"
-    assert kwargs == {"crs": "EPSG:3857"}
+    hook = parse_hook_string("reproject:crs=EPSG:3857")
+    assert hook["name"] == "reproject"
+    assert hook["args"] == {"crs": "EPSG:3857"}
 
 
-def test_parse_hook_arg_type_inference():
+def test_parse_hook_string_type_inference():
     """Test if the parser correctly identifies booleans and numbers."""
 
-    name, kwargs = parse_hook_arg("filter:match=.tif,force=true,retries=3")
-    assert name == "filter"
-    assert kwargs["match"] == ".tif"
-    assert kwargs["force"] is True
-    assert kwargs["retries"] == 3
+    hook = parse_hook_string("filter:match=.tif,force=true,retries=3")
+    assert hook["name"] == "filter"
+    assert hook["args"]["match"] == ".tif"
+    assert hook["args"]["force"] is True
+    assert hook["args"]["retries"] == 3
 
 
-def test_parse_hook_arg_no_args():
+def test_parse_hook_string_no_args():
     """Test a hook string that has no arguments."""
 
-    name, kwargs = parse_hook_arg("unzip")
-    assert name == "unzip"
-    assert kwargs == {}
+    hook = parse_hook_string("unzip")
+    assert hook["name"] == "unzip"
+    assert hook.get("args") is None

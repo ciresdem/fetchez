@@ -381,24 +381,24 @@ class Recipe:
                 f.write("*None*\n")
 
         # --- Print Terminal Summary ---
-        print("\n" + "=" * 67)
-        print(f"✅ PIPELINE COMPLETE: {name}")
-        print("=" * 67)
+        logger.info("=" * 67)
+        logger.info(f"✅ PIPELINE COMPLETE: {name}")
+        logger.info("=" * 67)
 
         short_desc = desc[:75] + "..." if len(desc) > 75 else desc
-        print(f"Description: {short_desc}")
+        logger.info(f"Description: {short_desc}")
 
         if region and str(region) != "None":
-            print(f"Region:      {region}")
+            logger.info(f"Region:      {region}")
 
         sources_str = ", ".join(
             [f"{k} (x{v})" if v > 1 else k for k, v in mod_counts.items()]
         )
-        print(f"Sources:     {sources_str}")
+        logger.info(f"Sources:     {sources_str}")
 
-        print(f"\n💾 OUTPUTS SAVED TO: {self.base_dir}")
+        logger.info(f"💾 OUTPUTS SAVED TO: {self.base_dir}")
         for out in expected_outputs:
-            print(f"  ➔ {out}")
+            logger.info(f"  ➔ {out}")
 
-        print(f"\n📄 Full processing receipt saved to: {receipt_filename}")
-        print("=" * 67 + "\n")
+        logger.info(f"📄 Full processing receipt saved to: {receipt_filename}")
+        logger.info("=" * 67)

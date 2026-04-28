@@ -28,7 +28,7 @@ class Sidecar(FetchHook):
     """
 
     name = "sidecar"
-    meta_desc = "Write a .meta.json sidecar file. Usage: --hook sidecar"
+    meta_desc = "Write a .meta.json sidecar file."
     meta_stage = "file"
     meta_category = "metadata"
 

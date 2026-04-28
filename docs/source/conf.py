@@ -32,10 +32,13 @@ extensions = [
     "sphinx.ext.intersphinx",  # Link to other projects' docs
     "sphinx.ext.viewcode",  # Add links to source code
     "sphinx.ext.githubpages",  # Auto-generate .nojekyll for GH Pages
-    "sphinx_argparse_cli",  # argparse
+    # "sphinx_argparse_cli",  # argparse
+    "sphinx_click",
     "myst_parser",  # Parse Markdown files
     "module_table",  # Generate module catalog table
 ]
+
+sphinx_click_mock_imports = []
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
@@ -116,4 +119,5 @@ typehints_defaults = "comma"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
+    "pyproj": ("https://pyproj4.github.io/pyproj/stable/", None),
 }

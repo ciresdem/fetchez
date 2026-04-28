@@ -147,12 +147,12 @@ def get(
     active_hooks = []
     if hooks:
         for h_str in hooks:
-            name, h_kwargs = parse_hook_string(h_str)
-            HookCls = HookRegistry.get_class(name)
+            hook_config = parse_hook_string(h_str)
+            HookCls = HookRegistry.get_class(hook_config.get("name"))
             if HookCls:
-                active_hooks.append(HookCls(**h_kwargs))
+                active_hooks.append(HookCls(**hook_config.get("args", {})))
             else:
-                logger.warning(f"Hook '{name}' not found. Skipping.")
+                logger.warning(f"Hook {hook_config.get('name')} not found. Skipping.")
 
     try:
         mod_instance = ModCls(

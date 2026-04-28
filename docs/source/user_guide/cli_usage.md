@@ -3,8 +3,7 @@
 The `fetchez` command line tool allows you to chain modules and hooks together.
 
 ```{eval-rst}
-.. sphinx_argparse_cli::
-   :module: fetchez.cli
-   :func: get_parser
+.. click:: fetchez.cli:cli
+   :nested: full
    :prog: fetchez
 ```

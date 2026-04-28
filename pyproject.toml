@@ -29,17 +29,19 @@ dependencies = [
     "requests[security]",
     "lxml",
     "tqdm",
-    'pyyaml',
+    "pyyaml",
+    "click",
 ]
 
 keywords = ["Geospatial"]
 
 [project.optional-dependencies]
 aws = ["boto3"]
-vector = ["pyshp", "pyproj", "shapely", "fiona"]
+vector = ["pyproj", "shapely", "fiona"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client"]
+marine = ["copernicusmarine"]
 # jupyter = ["jupyterlab", "ipyleaflet", "ipywidgets"]
 
 full = ["fetchez[aws,bing,vector,earthdata,stac]"]
@@ -56,18 +58,19 @@ test = [
     "pytest-cov",
 ]
 docs = [
-    "sphinx",
+    "sphinx<9.0.0",  # temp pin for sphinx-click
     "sphinx-autodoc-typehints>=2.0.1",
-    "sphinx-argparse-cli",
+    # "sphinx-argparse-cli",
+    "sphinx-click>=6.0",
     "pydata-sphinx-theme",
     "myst-parser",
 ]
 
 [project.scripts]
 # CLI Entry Points
-fetchez = "fetchez.cli:fetchez_cli"
+# fetchez = "fetchez.cli:fetchez_cli"
 # testing for `click` cli
-# fetchez2 = "fetchez.click:cli"
+fetchez = "fetchez.cli:cli"
 
 [project.urls]
 Homepage = "https://github.com/ciresdem/fetchez"
@@ -125,6 +128,7 @@ module = [
     "earthaccess.*",
     "pystac",
     "pystac_client",
+    "copernicusmarine",
 ]
 ignore_missing_imports = true
 
@@ -136,5 +140,4 @@ extend-select = [  # Extend the default ruleset:
 
 [tool.ruff.lint.per-file-ignores]
 # Allow print() statements in CLI module where they are expected
-"src/fetchez/cli.py" = ["T201"]
-"src/fetchez/recipe.py" = ["T201"]
+"src/fetchez/_cli.py" = ["T201"]
