@@ -113,7 +113,9 @@ def hook_info(name):
 
     click.secho("  Arguments:", fg="yellow", bold=True)
     for key, val in args_dict.items():
-        click.echo(f"    - {click.style(key, bold=True)} {val['default']}{val['inherit']}{val['desc']}")
+        click.echo(
+            f"    - {click.style(key, bold=True)} {val['default']}{val['inherit']}{val['desc']}"
+        )
 
     # Generate the YAML Snippet
     click.secho("\n  YAML Recipe Example:", fg="green", bold=True)
@@ -133,7 +135,11 @@ def hook_info(name):
     if args_dict:
         click.echo("      args:")
         for key, val in args_dict.items():
-            val_str = f'{val['default']}' if isinstance(val['default'], str) and val != "REQUIRED" else val['default']
+            val_str = (
+                f"{val['default']}"
+                if isinstance(val["default"], str) and val != "REQUIRED"
+                else val["default"]
+            )
             click.echo(f"        {key}: {val_str}")
 
     click.echo("-" * 40 + "\n")
