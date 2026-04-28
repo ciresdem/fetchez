@@ -119,5 +119,5 @@ typehints_defaults = "comma"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
-    'pyproj': ('https://pyproj4.github.io/pyproj/stable/', None),
+    "pyproj": ("https://pyproj4.github.io/pyproj/stable/", None),
 }
