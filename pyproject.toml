@@ -60,7 +60,8 @@ test = [
 docs = [
     "sphinx",
     "sphinx-autodoc-typehints>=2.0.1",
-    "sphinx-argparse-cli",
+    # "sphinx-argparse-cli",
+    "sphinx-click",
     "pydata-sphinx-theme",
     "myst-parser",
 ]
