@@ -19,11 +19,7 @@ from fetchez.registry import SchemaRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(
-    cls=FetchezMainGroup,
-    name="schemas",
-    fetchez_commands=["list", "info"]
-)
+@click.group(cls=FetchezMainGroup, name="schemas", fetchez_commands=["list", "info"])
 def schemas_group():
     """Discover, search, and learn about recipe schemas."""
 

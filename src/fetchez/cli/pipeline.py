@@ -23,7 +23,15 @@ from fetchez.registry import (
     SchemaRegistry,
 )
 from fetchez.spatial import parse_region
-from fetchez.utils import parse_hook_string, colorize, CYAN, GREEN, BOLD, FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    parse_hook_string,
+    colorize,
+    CYAN,
+    GREEN,
+    BOLD,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
 def _populate_subparser(module_cls):
@@ -67,7 +75,7 @@ def add_options(options):
     return decorator
 
 
-#class PipelineExecutor(click.Group):
+# class PipelineExecutor(click.Group):
 class PipelineExecutor(FetchezMainGroup):
     def list_commands(self, ctx):
         ModuleRegistry.load_all()

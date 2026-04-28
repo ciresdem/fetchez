@@ -22,7 +22,8 @@ from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 @click.group(
     cls=FetchezMainGroup,
     name="bundles",
-    fetchez_commands = ["copy", "dump", "info", "list"])
+    fetchez_commands=["copy", "dump", "info", "list"],
+)
 def bundles_group():
     """Discover, inspect, and copy module groups."""
 

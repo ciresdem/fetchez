@@ -108,7 +108,11 @@ class FetchezMainGroup(click.Group):
 
     def format_usage(self, ctx, formatter):
         usage_pieces = self.collect_usage_pieces(ctx)
-        formatter.write_usage(ctx.command_path, " ".join(usage_pieces), prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}")
+        formatter.write_usage(
+            ctx.command_path,
+            " ".join(usage_pieces),
+            prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}",
+        )
 
     def format_options(self, ctx, formatter):
         opts = []
@@ -153,7 +157,10 @@ class FetchezMainGroup(click.Group):
         for cat_name, cmd_names in categories.items():
             with formatter.section(cat_name):
                 cat_cmds = [
-                    (f"{colorize(colorize(name, CYAN), BOLD):<17}", cmd.get_short_help_str(limit=80))
+                    (
+                        f"{colorize(colorize(name, CYAN), BOLD):<17}",
+                        cmd.get_short_help_str(limit=80),
+                    )
                     for name, cmd in commands
                     if name in cmd_names
                 ]
@@ -165,7 +172,11 @@ class FetchezMainCommand(click.Command):
 
     def format_usage(self, ctx, formatter):
         usage_pieces = self.collect_usage_pieces(ctx)
-        formatter.write_usage(ctx.command_path, " ".join(usage_pieces), prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}")
+        formatter.write_usage(
+            ctx.command_path,
+            " ".join(usage_pieces),
+            prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}",
+        )
 
     def format_options(self, ctx, formatter):
         opts = []

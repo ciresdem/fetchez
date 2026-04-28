@@ -70,7 +70,7 @@ def _load_yaml(target):
 @click.group(
     cls=FetchezMainGroup,
     name="recipes",
-    fetchez_commands = ["copy", "dump", "info", "list", "validate"]
+    fetchez_commands=["copy", "dump", "info", "list", "validate"],
 )
 def recipes_group():
     """Discover, inspect, and copy complete pipeline workflows."""

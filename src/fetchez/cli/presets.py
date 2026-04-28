@@ -22,7 +22,7 @@ from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 @click.group(
     cls=FetchezMainGroup,
     name="presets",
-    fetchez_commands = ["copy", "dump", "info", "list"]
+    fetchez_commands=["copy", "dump", "info", "list"],
 )
 def presets_group():
     """Discover, inspect, and copy processing macros."""
