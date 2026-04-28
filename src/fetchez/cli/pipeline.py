@@ -137,7 +137,6 @@ class PipelineExecutor(FetchezMainGroup):
             if mod_meta:
                 category = mod_meta.get("category", "Other Modules")
             else:
-                # category = "📦 Curated Data Bundles"
                 category = f"{colorize(colorize('Curated Data Bundles', GREEN), BOLD)}"
 
             if category not in grouped_commands:
@@ -145,7 +144,7 @@ class PipelineExecutor(FetchezMainGroup):
 
             grouped_commands[category].append((name, cmd))
 
-        # Print the Bundles first, then alphabetize the remaining categories
+        # Print the bundles first, then alphabetize the remaining categories
         bundle_key = f"{colorize(colorize('Curated Data Bundles', GREEN), BOLD)}"
         if bundle_key in grouped_commands:
             with formatter.section(bundle_key):
