@@ -151,7 +151,7 @@ class PipelineExecutor(FetchezMainGroup):
             with formatter.section(bundle_key):
                 formatter.write_dl(
                     [
-                        (name, cmd.get_short_help_str(limit=80))
+                        (f"{colorize(colorize(name, CYAN), BOLD)}", cmd.get_short_help_str(limit=80))
                         for name, cmd in grouped_commands.pop(bundle_key)
                     ]
                 )
