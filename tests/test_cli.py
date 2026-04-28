@@ -61,6 +61,7 @@ def test_dry_run_ipinfo():
     result = run_fetchez(["run", "ipinfo", "--ip", "8.8.8.8", "--hook", "dryrun"])
     assert result.returncode == 0
 
+
 # test module string parsing in cli (no supported atm)
 # def test_dry_run_ipinfo():
 #     """Run a simple module."""
