@@ -1,0 +1,5 @@
+name: list-only
+description: List fetched urls only.
+hooks:
+  - name: list
+  - name: dryrun
