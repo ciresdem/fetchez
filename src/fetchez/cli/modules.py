@@ -14,17 +14,21 @@ Discoverability and documentation for fetching modules.
 import click
 import sys
 from fetchez.registry import ModuleRegistry
-from fetchez.utils import get_class_arguments
+from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(name="modules")
+@click.group(
+    cls=FetchezMainGroup,
+    name="modules",
+    fetchez_commands=["info", "list"],
+)
 def modules_group():
     """Discover, search, and learn about data sources."""
 
     pass
 
 
-@modules_group.command("list")
+@modules_group.command("list", cls=FetchezMainCommand)
 @click.option("--search", "-s", help="Search by name, description, agency, or tag.")
 def module_list(search):
     """List all available modules grouped by category."""
@@ -48,20 +52,20 @@ def module_list(search):
         click.secho(f"No modules found matching '{search}'.", fg="yellow")
         return
 
-    click.secho("\n🌍 Available Data Modules:", fg="cyan", bold=True)
+    click.secho("\n🌍 Available Data Modules:", fg="yellow", bold=True)
     click.echo("=" * 60)
 
     for cat in sorted(grouped_modules.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
+        click.secho(f"\n[ {cat} ]", fg="green", bold=True)
         for name, meta in sorted(grouped_modules[cat], key=lambda x: x[0]):
             desc = meta.get("desc", "No description provided.")
             name_padded = f"{name:<16}"
-            click.echo(f"  {click.style(name_padded, bold=True, fg='green')} : {desc}")
+            click.echo(f"  {click.style(name_padded, bold=True, fg='cyan')} : {desc}")
 
     click.echo("\nRun 'fetchez modules info <name>' for detailed metadata.\n")
 
 
-@modules_group.command("info")
+@modules_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def module_info(name):
     """Get detailed metadata and available CLI arguments for a module."""

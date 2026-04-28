@@ -15,7 +15,7 @@ import click
 import logging
 from typing import Optional
 
-from fetchez.utils import TqdmLoggingHandler, colorize, BOLD, YELLOW
+from fetchez.utils import TqdmLoggingHandler, colorize, BOLD, YELLOW, CYAN, GREEN, FetchezMainGroup
 # from fetchez.utils import _cli_logo
 # from fetchez import __version__
 
@@ -48,7 +48,7 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
     return decorator
 
 
-def setup_logging(quiet=False, verbose=False):
+def setup_logging(name="fetchez", quiet=False, verbose=False):
     if quiet:
         log_level = logging.WARNING
     elif verbose:
@@ -56,7 +56,7 @@ def setup_logging(quiet=False, verbose=False):
     else:
         log_level = logging.INFO
 
-    logger = logging.getLogger("fetchez")
+    logger = logging.getLogger(name)
     logger.setLevel(log_level)
 
     logger.propagate = False
@@ -72,46 +72,12 @@ def setup_logging(quiet=False, verbose=False):
     logger.addHandler(handler)
 
 
-class FetchezMainGroup(click.Group):
-    """Custom group to categorize the main CLI commands."""
-
-    def format_commands(self, ctx, formatter):
-        commands = []
-        for subcommand in self.list_commands(ctx):
-            cmd = self.get_command(ctx, subcommand)
-            if cmd is None or cmd.hidden:
-                continue
-            commands.append((subcommand, cmd))
-
-        if not commands:
-            return
-
-        categories = {
-            f"{colorize('Execution', YELLOW)}": ["run"],
-            f"{colorize('Discovery & Management', YELLOW)}": [
-                "modules",
-                "hooks",
-                "schemas",
-                "recipes",
-                "presets",
-                "bundles",
-            ],
-        }
-
-        for cat_name, cmd_names in categories.items():
-            with formatter.section(cat_name):
-                cat_cmds = [
-                    (f"{colorize(name, BOLD):<17}", cmd.get_short_help_str(limit=80))
-                    for name, cmd in commands
-                    if name in cmd_names
-                ]
-                formatter.write_dl(cat_cmds)
-
-
 @click.group(
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
     help="Fetch geospatial data with ease.",
+    fetchez_commands = ["run", "modules", "hooks", "schemas", "recipes", "presets", "bundles"]
+
 )
 @click.version_option(package_name="fetchez")
 @click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
@@ -119,7 +85,7 @@ class FetchezMainGroup(click.Group):
 def cli(verbose, quiet):
     """Fetchez CLI."""
 
-    setup_logging(quiet, verbose)
+    setup_logging(quiet=quiet, verbose=verbose)
 
 
 cli.add_command(pipeline_group, name="run")

@@ -16,17 +16,21 @@ import click
 
 # from fetchez.api import list_schemas
 from fetchez.registry import SchemaRegistry
-from fetchez.utils import get_class_arguments
+from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(name="schemas")
+@click.group(
+    cls=FetchezMainGroup,
+    name="schemas",
+    fetchez_commands=["list", "info"]
+)
 def schemas_group():
     """Discover, search, and learn about recipe schemas."""
 
     pass
 
 
-@schemas_group.command("list")
+@schemas_group.command("list", cls=FetchezMainCommand)
 @click.option("--search", "-s", help="Filter schemas by name or keyword.")
 def schemas_list(search):
     """List all available processing schemas grouped by category."""
@@ -66,7 +70,7 @@ def schemas_list(search):
     )
 
 
-@schemas_group.command("info")
+@schemas_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def schemas_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""

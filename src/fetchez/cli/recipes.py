@@ -16,6 +16,7 @@ import sys
 import yaml
 import click
 from fetchez.registry import RecipeRegistry
+from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 
 
 def validate_dependencies(recipe_obj):
@@ -66,14 +67,18 @@ def _load_yaml(target):
     return base_config
 
 
-@click.group(name="recipes")
+@click.group(
+    cls=FetchezMainGroup,
+    name="recipes",
+    fetchez_commands = ["copy", "dump", "info", "list", "validate"]
+)
 def recipes_group():
     """Discover, inspect, and copy complete pipeline workflows."""
 
     pass
 
 
-@recipes_group.command("list")
+@recipes_group.command("list", cls=FetchezMainCommand)
 def list_recipes():
     """List all available built-in and local recipes."""
 
@@ -92,7 +97,7 @@ def list_recipes():
     click.echo("\nRun 'fetchez recipes info <name>' for details.\n")
 
 
-@recipes_group.command("info")
+@recipes_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def info_recipe(name):
     """Print a clean, readable summary of a recipe's contents."""
@@ -125,7 +130,7 @@ def info_recipe(name):
     click.echo("=" * 60 + "\n")
 
 
-@recipes_group.command("dump")
+@recipes_group.command("dump", cls=FetchezMainCommand)
 @click.argument("name")
 def dump_recipe(name):
     """Print the raw YAML definition to the terminal."""
@@ -144,7 +149,7 @@ def dump_recipe(name):
     click.echo(yaml_str)
 
 
-@recipes_group.command("copy")
+@recipes_group.command("copy", cls=FetchezMainCommand)
 @click.argument("name")
 def copy_recipe(name):
     """Copy a recipe to your local ~/.fetchez/ folder for editing."""
@@ -174,7 +179,7 @@ def copy_recipe(name):
     click.echo("You can open it in any text editor to safely customize the pipeline.\n")
 
 
-@recipes_group.command("validate")
+@recipes_group.command("validate", cls=FetchezMainCommand)
 @click.argument("name")
 def recipe_validate(name):
     """Check a recipe for syntax errors and missing modules/hooks."""
