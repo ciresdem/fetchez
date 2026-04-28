@@ -342,6 +342,9 @@ class EarthData(FetchModule):
                     elif state == "running":
                         logger.info(f"Harmony Job Running: {progress}%")
                         time.sleep(15)
+                    elif state == "paused":
+                        self.harmony_ping_for_status(self.subset_job_id, "resume")
+                        time.sleep(10)
                     else:
                         # queued, accepted, etc.
                         logger.info(f"Harmony Job Status: {state}")
