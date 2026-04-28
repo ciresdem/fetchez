@@ -640,6 +640,8 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
     def _parse_crs(r_string: str) -> tuple[str, str]:
         # Parse the crs; either appended with `@` or `,`
 
+        r_string = r_string
+        target_crs = None
         if "@" in r_string:
             r_string, target_crs = r_string.split("@", 1)
         elif "," in r_string and "EPSG" in r_string.upper():

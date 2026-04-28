@@ -21,7 +21,7 @@ pip install fetchez
 Fetch Copernicus topography and NOAA multibeam bathymetry for a specific bounding box in one command:
 
 ```bash
-fetchez -R loc:"Miami, FL" copernicus multibeam --audit-log miami_audit.json
+fetchez run -R loc:"Miami, FL" --global-hook audit copernicus multibeam
 ```
 
 ### Python API:
