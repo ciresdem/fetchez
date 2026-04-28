@@ -114,10 +114,12 @@ class FetchezMainGroup(click.Group):
     help="Fetch geospatial data with ease.",
 )
 @click.version_option(package_name="fetchez")
-def cli():
+@click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
+@click.option("--quiet", is_flag=True, help="Suppress non-error output.")
+def cli(verbose, quiet):
     """Fetchez CLI."""
 
-    setup_logging()
+    setup_logging(quiet, verbose)
 
 
 cli.add_command(pipeline_group, name="run")
