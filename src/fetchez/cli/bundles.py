@@ -16,16 +16,21 @@ import sys
 import yaml
 import click
 from fetchez.registry import BundleRegistry
+from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(name="bundles")
+@click.group(
+    cls=FetchezMainGroup,
+    name="bundles",
+    fetchez_commands=["copy", "dump", "info", "list"],
+)
 def bundles_group():
     """Discover, inspect, and copy module groups."""
 
     pass
 
 
-@bundles_group.command("list")
+@bundles_group.command("list", cls=FetchezMainCommand)
 def list_bundles():
     """List all available built-in and local bundles."""
 
@@ -46,7 +51,7 @@ def list_bundles():
     click.echo("\nRun 'fetchez bundles info <name>' for details.\n")
 
 
-@bundles_group.command("info")
+@bundles_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def info_bundles(name):
     """Print a clean, readable summary of a bundle's contents."""
@@ -79,7 +84,7 @@ def info_bundles(name):
     click.echo("=" * 60 + "\n")
 
 
-@bundles_group.command("dump")
+@bundles_group.command("dump", cls=FetchezMainCommand)
 @click.argument("name")
 def dump_bundle(name):
     """Print the raw YAML definition to the terminal."""
@@ -98,7 +103,7 @@ def dump_bundle(name):
     click.echo(yaml_str)
 
 
-@bundles_group.command("copy")
+@bundles_group.command("copy", cls=FetchezMainCommand)
 @click.argument("name")
 def copy_bundle(name):
     """Copy a module bundle to your local ~/.fetchez/ folder for editing."""

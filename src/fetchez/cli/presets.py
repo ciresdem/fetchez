@@ -16,16 +16,21 @@ import sys
 import yaml
 import click
 from fetchez.registry import PresetRegistry
+from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(name="presets")
+@click.group(
+    cls=FetchezMainGroup,
+    name="presets",
+    fetchez_commands=["copy", "dump", "info", "list"],
+)
 def presets_group():
     """Discover, inspect, and copy processing macros."""
 
     pass
 
 
-@presets_group.command("list")
+@presets_group.command("list", cls=FetchezMainCommand)
 def list_presets():
     """List all available built-in and local presets."""
 
@@ -45,7 +50,7 @@ def list_presets():
     click.echo("\nRun 'fetchez presets info <name>' for details.\n")
 
 
-@presets_group.command("info")
+@presets_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def info_preset(name):
     """Print a clean, readable summary of a preset's contents."""
@@ -77,7 +82,7 @@ def info_preset(name):
     click.echo("=" * 60 + "\n")
 
 
-@presets_group.command("dump")
+@presets_group.command("dump", cls=FetchezMainCommand)
 @click.argument("name")
 def dump_preset(name):
     """Print the raw YAML definition to the terminal."""
@@ -96,7 +101,7 @@ def dump_preset(name):
     click.echo(yaml_str)
 
 
-@presets_group.command("copy")
+@presets_group.command("copy", cls=FetchezMainCommand)
 @click.argument("name")
 def copy_preset(name):
     """Copy a preset to your local ~/.fetchez/ folder for editing."""

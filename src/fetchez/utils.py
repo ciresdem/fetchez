@@ -23,6 +23,7 @@ import tempfile
 import tqdm
 import re
 import inspect
+import click
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,99 @@ def _cli_logo(name="fetchez", desc="", version=""):
     """
 
     return logo
+
+
+class FetchezMainGroup(click.Group):
+    """Custom group to categorize the main CLI commands."""
+
+    def __init__(self, fetchez_commands=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.fetchez_commands = fetchez_commands
+
+    def format_usage(self, ctx, formatter):
+        usage_pieces = self.collect_usage_pieces(ctx)
+        formatter.write_usage(
+            ctx.command_path,
+            " ".join(usage_pieces),
+            prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}",
+        )
+
+    def format_options(self, ctx, formatter):
+        opts = []
+        for param in self.get_params(ctx):
+            rv = param.get_help_record(ctx)
+            if rv is not None:
+                rv = (f"{colorize(colorize(rv[0], CYAN), BOLD)}", rv[1])
+                opts.append(rv)
+
+        if opts:
+            with formatter.section(f"{colorize(colorize('Options', GREEN), BOLD)}"):
+                formatter.write_dl(opts)
+
+        self.format_commands(ctx, formatter)
+
+    def format_commands(self, ctx, formatter):
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is None or cmd.hidden:
+                continue
+            commands.append((subcommand, cmd))
+
+        if not commands:
+            return
+
+        # categories = {
+        #     f"{colorize(colorize('Execution', GREEN), BOLD)}": ["run"],
+        #     f"{colorize(colorize('Discovery & Management', GREEN), BOLD)}": [
+        #         "modules",
+        #         "hooks",
+        #         "schemas",
+        #         "recipes",
+        #         "presets",
+        #         "bundles",
+        #     ],
+        # }
+        categories = {
+            f"{colorize(colorize('Commands', GREEN), BOLD)}": self.fetchez_commands,
+        }
+
+        for cat_name, cmd_names in categories.items():
+            with formatter.section(cat_name):
+                cat_cmds = [
+                    (
+                        f"{colorize(colorize(name, CYAN), BOLD):<17}",
+                        cmd.get_short_help_str(limit=80),
+                    )
+                    for name, cmd in commands
+                    if name in cmd_names
+                ]
+                formatter.write_dl(cat_cmds)
+
+
+class FetchezMainCommand(click.Command):
+    """Custom command to colorize the main CLI commands."""
+
+    def format_usage(self, ctx, formatter):
+        usage_pieces = self.collect_usage_pieces(ctx)
+        formatter.write_usage(
+            ctx.command_path,
+            " ".join(usage_pieces),
+            prefix=f"{colorize(colorize('Usage: ', GREEN), BOLD)}",
+        )
+
+    def format_options(self, ctx, formatter):
+        opts = []
+        for param in self.get_params(ctx):
+            rv = param.get_help_record(ctx)
+            if rv is not None:
+                rv = (f"{colorize(colorize(rv[0], CYAN), BOLD)}", rv[1])
+                opts.append(rv)
+
+        if opts:
+            with formatter.section(f"{colorize(colorize('Options', GREEN), BOLD)}"):
+                formatter.write_dl(opts)
 
 
 # =============================================================================

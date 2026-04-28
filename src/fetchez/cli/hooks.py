@@ -16,10 +16,14 @@ import click
 
 # from fetchez.api import list_hooks
 from fetchez.registry import HookRegistry
-from fetchez.utils import get_class_arguments
+from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 
 
-@click.group(name="hooks")
+@click.group(
+    cls=FetchezMainGroup,
+    name="hooks",
+    fetchez_commands=["info", "list"],
+)
 def hooks_group():
     """Discover, search, and learn about data processors.
 
@@ -43,7 +47,7 @@ def hooks_group():
     pass
 
 
-@hooks_group.command("list")
+@hooks_group.command("list", cls=FetchezMainCommand)
 @click.option("--search", "-s", help="Filter hooks by name or keyword.")
 def hook_list(search):
     """List all available processing hooks grouped by category."""
@@ -85,7 +89,7 @@ def hook_list(search):
     click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
 
 
-@hooks_group.command("info")
+@hooks_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def hook_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""

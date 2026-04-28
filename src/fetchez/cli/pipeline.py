@@ -23,7 +23,15 @@ from fetchez.registry import (
     SchemaRegistry,
 )
 from fetchez.spatial import parse_region
-from fetchez.utils import parse_hook_string, colorize, CYAN, BOLD
+from fetchez.utils import (
+    parse_hook_string,
+    colorize,
+    CYAN,
+    GREEN,
+    BOLD,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
 def _populate_subparser(module_cls):
@@ -67,7 +75,8 @@ def add_options(options):
     return decorator
 
 
-class PipelineExecutor(click.Group):
+# class PipelineExecutor(click.Group):
+class PipelineExecutor(FetchezMainGroup):
     def list_commands(self, ctx):
         ModuleRegistry.load_all()
         BundleRegistry.load_all()
@@ -92,7 +101,7 @@ class PipelineExecutor(click.Group):
             help_text = bundle_yml.get("description", "")
             mod_args = []
 
-        @click.command(name=name, help=help_text, hidden=True)
+        @click.command(name=name, help=help_text, hidden=False, cls=FetchezMainCommand)
         @click.option("--weight", type=float, default=1.0)
         @click.option("--hook", multiple=True, help="Attach a processing hook")
         @add_options(mod_args)
@@ -129,7 +138,7 @@ class PipelineExecutor(click.Group):
                 category = mod_meta.get("category", "Other Modules")
             else:
                 # category = "📦 Curated Data Bundles"
-                category = f"[ {colorize('Curated Data Bundles', CYAN)} ]"
+                category = f"{colorize(colorize('Curated Data Bundles', GREEN), BOLD)}"
 
             if category not in grouped_commands:
                 grouped_commands[category] = []
@@ -137,7 +146,7 @@ class PipelineExecutor(click.Group):
             grouped_commands[category].append((name, cmd))
 
         # Print the Bundles first, then alphabetize the remaining categories
-        bundle_key = f"[ {colorize('Curated Data Bundles', CYAN)} ]"
+        bundle_key = f"{colorize(colorize('Curated Data Bundles', GREEN), BOLD)}"
         if bundle_key in grouped_commands:
             with formatter.section(bundle_key):
                 formatter.write_dl(
@@ -150,7 +159,7 @@ class PipelineExecutor(click.Group):
         # Print the rest of the categories
         for category, cmds in sorted(grouped_commands.items()):
             formatted_category = (
-                f"[ {colorize(category, CYAN)} ]"
+                f"{colorize(colorize(category, GREEN), BOLD)}"
                 if category != "Other Modules"
                 else category
             )
@@ -159,7 +168,7 @@ class PipelineExecutor(click.Group):
                 formatter.write_dl(
                     [
                         (
-                            f"{colorize(name, BOLD):<26}",
+                            f"{colorize(colorize(name, CYAN), BOLD):<26}",
                             cmd.get_short_help_str(limit=80),
                         )
                         for name, cmd in cmds
