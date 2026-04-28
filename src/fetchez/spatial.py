@@ -926,7 +926,7 @@ def transform_increment(dst_inc_x, dst_inc_y, transformer, region_center):
     Args:
         dst_inc_x (float): X increment in destination units (e.g. 1/3600 for 1s).
         dst_inc_y (float): Y increment in destination units.
-        transformer (pyproj.Transformer): The pipeline transforming Source -> Dest.
+        transformer (pyproj.transformer.Transformer): The pipeline transforming Source -> Dest.
         region_center (tuple): (x, y) center of the region in Source CRS.
 
     Returns:

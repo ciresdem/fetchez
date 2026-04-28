@@ -58,10 +58,10 @@ test = [
     "pytest-cov",
 ]
 docs = [
-    "sphinx",
+    "sphinx<9.0.0",  # temp pin for sphinx-click
     "sphinx-autodoc-typehints>=2.0.1",
     # "sphinx-argparse-cli",
-    "sphinx-click>=5.2",
+    "sphinx-click>=6.0",
     "pydata-sphinx-theme",
     "myst-parser",
 ]
