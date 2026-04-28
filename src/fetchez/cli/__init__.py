@@ -15,8 +15,9 @@ import click
 import logging
 from typing import Optional
 
-from fetchez.utils import _cli_logo, TqdmLoggingHandler, colorize, BOLD, YELLOW
-from fetchez import __version__
+from fetchez.utils import TqdmLoggingHandler, colorize, BOLD, YELLOW
+# from fetchez.utils import _cli_logo
+# from fetchez import __version__
 
 from .pipeline import pipeline_group
 
@@ -110,7 +111,7 @@ class FetchezMainGroup(click.Group):
 @click.group(
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
-    help="Fetch geospatial data.",
+    help="Fetch geospatial data with ease.",
 )
 @click.version_option(package_name="fetchez")
 def cli():
