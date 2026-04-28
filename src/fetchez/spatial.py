@@ -637,19 +637,23 @@ def region_from_place(query: str, centered: bool = True) -> Optional[Region]:
 def parse_region(input_r: Union[str, List]) -> List[Region]:
     """Main function to parse region input into a list of Region objects."""
 
+    def _parse_crs(r_string: str) -> tuple[str, str]:
+        # Parse the crs; either appended with `@` or `,`
+
+        if "@" in r_string:
+            r_string, target_crs = r_string.split("@", 1)
+        elif "," in r_string and "EPSG" in r_string.upper():
+            r_string, target_crs = r_string.split(",", 1)
+        return r_string, target_crs
+
     if not input_r:
-        return None
+        return []
 
-    # Parse the crs; either appended with `@` or `,`
     target_crs = None
-    if "@" in input_r:
-        input_r, target_crs = input_r.split("@", 1)
-    elif "," in input_r and "EPSG" in input_r.upper():
-        input_r, target_crs = input_r.split(",", 1)
-
     regions = []
     # 1. Single String
     if isinstance(input_r, str):
+        input_r, target_crs = _parse_crs(input_r)
         s_lower = input_r.lower()
         if s_lower.endswith((".json", ".geojson")):
             rs = region_from_geojson(input_r)
@@ -678,6 +682,7 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
             for item in input_r:
                 regions.extend(parse_region(item))
 
+    print(target_crs)
     if not regions:
         # Don't warn on None input, only on failed parse of actual input
         if input_r is not None:
