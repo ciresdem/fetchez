@@ -13,6 +13,7 @@ The main command-line interface for the Fetchez framework.
 
 import click
 import logging
+from typing import Optional
 
 from fetchez.utils import _cli_logo, TqdmLoggingHandler, colorize, BOLD, YELLOW
 from fetchez import __version__
@@ -25,6 +26,25 @@ from .schemas import schemas_group
 from .recipes import recipes_group
 from .presets import presets_group
 from .bundles import bundles_group
+
+
+# =============================================================================
+# CLI Decorator and Decorations and logging
+# =============================================================================
+def cli_opts(help_text: Optional[str] = None, **arg_help):
+    """Decorator to attach CLI help text to FetchModule classes.
+
+    Args:
+        help_text: The description for the module's sub-command.
+        **arg_help: Key-value pairs matching __init__ arguments to help strings.
+    """
+
+    def decorator(cls):
+        cls._cli_help_text = help_text
+        cls._cli_arg_help = arg_help
+        return cls
+
+    return decorator
 
 
 def setup_logging(quiet=False, verbose=False):
