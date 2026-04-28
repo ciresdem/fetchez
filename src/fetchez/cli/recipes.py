@@ -15,8 +15,11 @@ import os
 import sys
 import yaml
 import click
+from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+
+RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run"]
 
 
 def validate_dependencies(recipe_obj):
@@ -70,7 +73,7 @@ def _load_yaml(target):
 @click.group(
     cls=FetchezMainGroup,
     name="recipes",
-    fetchez_commands=["copy", "dump", "info", "list", "validate"],
+    fetchez_commands=RECIPE_COMMANDS,
 )
 def recipes_group():
     """Discover, inspect, and copy complete pipeline workflows."""
@@ -237,3 +240,24 @@ def recipe_validate(name):
     else:
         click.secho(f"Failed validation with {errors} errors.", fg="red", bold=True)
         sys.exit(1)
+
+
+@recipes_group.command("run", cls=FetchezMainCommand)
+@click.argument("name")
+def run_recipe(name):
+    """Execute a YAML recipe by registry name or file path."""
+
+    RecipeRegistry.load_all()
+
+    click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
+
+    if os.path.exists(name):
+        Recipe.from_yaml(name).run()
+        return
+
+    meta = RecipeRegistry.get_yaml(name)
+    if not meta:
+        click.secho(f"Error: Recipe '{name}' not found in registry or local path.", fg="red")
+        sys.exit(1)
+
+    Recipe.from_dict(meta).run()
