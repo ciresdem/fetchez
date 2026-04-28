@@ -257,7 +257,9 @@ def run_recipe(name):
 
     meta = RecipeRegistry.get_yaml(name)
     if not meta:
-        click.secho(f"Error: Recipe '{name}' not found in registry or local path.", fg="red")
+        click.secho(
+            f"Error: Recipe '{name}' not found in registry or local path.", fg="red"
+        )
         sys.exit(1)
 
     Recipe.from_dict(meta).run()
