@@ -61,7 +61,7 @@ docs = [
     "sphinx",
     "sphinx-autodoc-typehints>=2.0.1",
     # "sphinx-argparse-cli",
-    "sphinx-click",
+    "sphinx-click>=4.4",
     "pydata-sphinx-theme",
     "myst-parser",
 ]
