@@ -86,10 +86,10 @@ def schemas_info(name):
 
     # print_class_arguments(schema_cls)
     args_dict = get_class_arguments(schema_cls)
-
-    click.secho("  Arguments:", fg="yellow", bold=True)
-    for key, val in args_dict.items():
-        click.echo(f"    - {click.style(key, bold=True)} {val}")
+    if args_dict:
+        click.secho("  Arguments:", fg="yellow", bold=True)
+        for key, val in args_dict.items():
+            click.echo(f"    - {click.style(key, bold=True)} {val['default']}")
 
     # Generate the YAML Snippet
     click.secho("\n  YAML Recipe Example:", fg="green", bold=True)
