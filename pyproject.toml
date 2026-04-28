@@ -68,8 +68,7 @@ docs = [
 
 [project.scripts]
 # CLI Entry Points
-# fetchez = "fetchez.cli:fetchez_cli"
-# testing for `click` cli
+fetchez_cli = "fetchez._cli:fetchez_cli"
 fetchez = "fetchez.cli:cli"
 
 [project.urls]
