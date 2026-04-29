@@ -24,7 +24,7 @@ from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
-from fetchez.schemas import BaseSchema
+from fetchez.recipes.schemas import BaseSchema
 from fetchez.formats import BaseReader
 
 logger = logging.getLogger(__name__)
@@ -376,9 +376,9 @@ class HookRegistry(PluginRegistry):
 
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
-    builtin_pkg = "fetchez.schemas"
-    entry_point_group = "fetchez.schemas"
-    user_folder = "schemas"
+    builtin_pkg = "fetchez.recipes.schemas"
+    entry_point_group = "fetchez.recipes.schemas"
+    user_folder = "recipes/schemas"
 
     @classmethod
     def apply_schema(cls, config):
@@ -460,9 +460,9 @@ class RecipeRegistry(YamlRegistry):
 
 
 class PresetRegistry(YamlRegistry):
-    builtin_pkg = "fetchez.presets"
-    entry_point_group = "fetchez.presets"
-    user_folder = "presets"
+    builtin_pkg = "fetchez.hooks.presets"
+    entry_point_group = "fetchez.hooks.presets"
+    user_folder = "hooks/presets"
 
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):
@@ -509,9 +509,9 @@ class PresetRegistry(YamlRegistry):
 class BundleRegistry(YamlRegistry):
     """A registry for discovering and loading Module Bundles (Data Packages)."""
 
-    builtin_pkg = "fetchez.bundles"
-    entry_point_group = "fetchez.bundles"
-    user_folder = "bundles"
+    builtin_pkg = "fetchez.modules.bundles"
+    entry_point_group = "fetchez.modules.bundles"
+    user_folder = "modules/bundles"
 
 
 # =============================================================================
