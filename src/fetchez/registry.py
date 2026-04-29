@@ -374,6 +374,7 @@ class HookRegistry(PluginRegistry):
     user_folder = "hooks"
 
 
+# Schemas extend Recipes
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
     builtin_pkg = "fetchez.recipes.schemas"
@@ -459,6 +460,7 @@ class RecipeRegistry(YamlRegistry):
             logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
 
 
+# Presets extend Hooks
 class PresetRegistry(YamlRegistry):
     builtin_pkg = "fetchez.hooks.presets"
     entry_point_group = "fetchez.hooks.presets"
@@ -506,6 +508,7 @@ class PresetRegistry(YamlRegistry):
         return hooks
 
 
+# Bundles extend Modules
 class BundleRegistry(YamlRegistry):
     """A registry for discovering and loading Module Bundles (Data Packages)."""
 

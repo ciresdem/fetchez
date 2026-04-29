@@ -53,12 +53,14 @@ def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]
         desc = meta.get("desc", getattr(meta, "meta_desc", ""))
         tags = [t.lower() for t in getattr(meta, "meta_tags", [])]
         aliases = [a.lower() for a in getattr(meta, "meta_aliases", [])]
+        category = meta.get("category", getattr(meta, "meta_category", ""))
 
         if (
             term_lower in name.lower()
             or term_lower in desc.lower()
             or term_lower in tags
             or term_lower in aliases
+            or term_lower in category.lower()
         ):
             found[name] = meta
 
