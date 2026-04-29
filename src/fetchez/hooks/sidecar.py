@@ -49,9 +49,9 @@ class Sidecar(FetchHook):
                 "original_filename": os.path.basename(filepath),
                 "tags": getattr(mod, "tags", []),
                 "extra": {
-                    k: v
-                    for k, v in entry.items()
-                    if k not in ["url", "dst_fn", "status", "stream"]
+                    key: val
+                    for key, val in entry.items()
+                    if key not in ["url", "dst_fn", "status", "stream"]
                 },
             }
 

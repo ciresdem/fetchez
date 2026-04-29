@@ -4,7 +4,11 @@
 """
 fetchez.hooks.transfer_log
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Generates a report of successful and failed downloads.
+
+:copyright: (c) 2010-2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
 """
 
 import os
@@ -17,10 +21,11 @@ logger = logging.getLogger(__name__)
 class TransferLog(FetchHook):
     """Write a clear summary of failed and successful downloads."""
 
-    name = "transfer_log"
+    name = "transfer-log"
     meta_desc = "Generates a clear report of download successes and failures."
     meta_stage = "post"
     meta_category = "metadata"
+    meta_aliases = ["transfer_log"]
 
     def __init__(self, file="download_report.txt", **kwargs):
         super().__init__(**kwargs)

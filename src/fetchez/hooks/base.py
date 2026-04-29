@@ -15,7 +15,7 @@ This file holds the FetchHook super class
 class FetchHook:
     """Base class for all Fetchez Hooks."""
 
-    name = "base_hook"
+    name = "base-hook"
 
     # --- Registry Metadata ---
     meta_desc = "Does something."
@@ -29,20 +29,14 @@ class FetchHook:
     def __init__(self, stage=None, **kwargs):
         self.opts = kwargs
 
-        # Grab the stage from kwargs, or fallback to the class meta_stage
         raw_stage = stage or getattr(self.__class__, "meta_stage", "file")
-
-        # Map legacy names to the new modern names
         stage_aliases = {"pre": "manifest", "post": "collection"}
-
-        # Normalize and apply alias
         mapped_stage = stage_aliases.get(raw_stage.lower(), raw_stage.lower())
 
-        # Validate and Set
         if mapped_stage in ["manifest", "file", "collection"]:
             self.stage = mapped_stage
         else:
-            self.stage = "file"  # Safe fallback
+            self.stage = "file"  # Fallback
 
     def __eq__(self, other):
         """Hooks are 'equal' if they are the same type and have identical dicts."""
@@ -54,7 +48,7 @@ class FetchHook:
     def teardown(self):
         """Cleanup.
 
-        Called strictly once after all processing is complete.
+        Called once after all processing is complete.
         Override this to close files, finalize grids, or print summaries.
         """
 

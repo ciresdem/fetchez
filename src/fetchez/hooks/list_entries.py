@@ -23,7 +23,7 @@ PRINT_LOCK = threading.Lock()
 
 class ListEntries(FetchHook):
     name = "list"
-    meta_desc = "Print discovered URLs to stdout."
+    meta_desc = "Print discovered URLs or filepaths to stdout."
     meta_stage = "pre"
     meta_category = "metadata"
 

@@ -32,6 +32,7 @@ class DataStream(FetchHook):
     meta_desc = "Setup a data stream from input data."
     meta_category = "format-stream"
     meta_requires = "file"
+    meta_aliases = ["stream_init"]
 
     def __init__(self, stream_type=None, **kwargs):
         super().__init__(**kwargs)
@@ -42,7 +43,7 @@ class DataStream(FetchHook):
         ReaderRegistry.load_all()
 
         for mod, entry in entries:
-            if entry.get("stream") or entry.get("raster_stream"):
+            if entry.get("stream"):
                 logger.warning(f"Entry {entry} already has an attached {entry.get('stream_type')} stream...")
                 continue
 

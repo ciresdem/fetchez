@@ -17,6 +17,7 @@ import click
 # from fetchez.api import list_hooks
 from fetchez.registry import HookRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from fetchez.api import search_hooks
 
 
 @click.group(
@@ -47,29 +48,7 @@ def hooks_group():
     pass
 
 
-@hooks_group.command("list", cls=FetchezMainCommand)
-@click.option("--search", "-s", help="Filter hooks by name or keyword.")
-def hook_list(search):
-    """List all available processing hooks grouped by category."""
-
-    HookRegistry.load_builtins()
-    registry = HookRegistry.get_registry()
-
-    grouped_hooks = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-
-        if (
-            search
-            and search.lower() not in name.lower()
-            and search.lower() not in meta.get("desc", "").lower()
-        ):
-            continue
-
-        cat = meta.get("category", "uncategorized").title()
-        grouped_hooks.setdefault(cat, []).append((name, meta))
-
+def _print_grouped_hooks(grouped_hooks):
     click.secho("\nAvailable Hooks by Category:", fg="cyan", bold=True)
     click.echo("=" * 60)
 
@@ -85,8 +64,38 @@ def hook_list(search):
             click.echo(
                 f"  {click.style(name_padded, bold=True, fg='green')} {click.style(stage_padded, fg='blue')} : {desc}"
             )
-
     click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
+
+
+@hooks_group.command("search", cls=FetchezMainCommand)
+@click.argument("term")
+def hook_list(term):
+    """Search all available processing hooks by keyword."""
+
+    registry = search_hooks(term)
+    grouped_hooks = {}
+    for name, meta in registry.items():
+        cat = meta.get("category", "uncategorized").title()
+        grouped_hooks.setdefault(cat, []).append((name, meta))
+
+    _print_grouped_hooks(grouped_hooks)
+
+
+@hooks_group.command("list", cls=FetchezMainCommand)
+@click.option("--search", "-s", help="Filter hooks by name or keyword.")
+def hook_list(search):
+    """List all available processing hooks grouped by category."""
+
+    registry = search_hooks(search)
+    grouped_hooks = {}
+    for name, meta in registry.items():
+        if name in meta.get("aliases", []):
+            continue
+
+        cat = meta.get("category", "uncategorized").title()
+        grouped_hooks.setdefault(cat, []).append((name, meta))
+
+    _print_grouped_hooks(grouped_hooks)
 
 
 @hooks_group.command("info", cls=FetchezMainCommand)

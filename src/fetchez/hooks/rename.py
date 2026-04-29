@@ -54,6 +54,6 @@ class Rename(FetchHook):
                 if new_basename != basename:
                     entry["dst_fn"] = os.path.join(dirname, new_basename)
             except Exception as e:
-                logger.error(f"Rename pattern failed for {basename}: {e}")
+                logger.warning(f"Rename pattern failed for {basename}: {e}")
 
         return entries

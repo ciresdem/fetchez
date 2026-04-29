@@ -30,6 +30,7 @@ class DataStream(FetchHook):
     meta_desc = "Dump the contents of a stream."
     meta_category = "format-stream"
     meta_requires = "Any"
+    meta_aliases = ["stream_dump"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

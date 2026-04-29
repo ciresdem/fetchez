@@ -24,14 +24,17 @@ class FocusSink(FetchHook):
     The target hook must adhere to the 'Artifact Protocol' by registering
     its outputs in `entry['artifacts'][hook_name] = output_path`.
 
+    That output_path then becomes the entry['dst_fn']
+
     Usage:
-      --hook focus_sink:target=blended_checkpoint
+      --hook focus-sink:target=blended_checkpoint
     """
 
-    name = "focus_sink"
+    name = "focus-sink"
     meta_desc = "Focus the pipeline to an 'artifact'"
     meta_stage = "post"
     meta_category = "pipeline"
+    meta_aliases = ["focus_sink"]
 
     def __init__(self, target=None, **kwargs):
         super().__init__(**kwargs)
@@ -86,10 +89,11 @@ class FocusSink(FetchHook):
 class StashEntries(FetchHook):
     """Saves the current pipeline entries state to memory for later restoration."""
 
-    name = "stash_entries"
+    name = "stash-entries"
     meta_desc = "Save the current pipeline state for branching"
     meta_stage = "post"
     meta_category = "pipeline"
+    meta_aliases = ["stash_entries"]
 
     def __init__(self, key="default", **kwargs):
         super().__init__(**kwargs)
@@ -114,10 +118,11 @@ class StashEntries(FetchHook):
 class RestoreEntries(FetchHook):
     """Restores previously stashed pipeline entries, allowing pipeline branching."""
 
-    name = "restore_entries"
-    meta_desc = "Restore a previously saved pipeline state"
+    name = "restore-entries"
+    meta_desc = "Restore a previously saved pipeline stash"
     meta_stage = "post"
     meta_category = "pipeline"
+    meta_aliases = ["restore_entries"]
 
     def __init__(self, key="default", merge=False, **kwargs):
         super().__init__(**kwargs)

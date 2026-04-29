@@ -23,7 +23,7 @@ class SetWeight(FetchHook):
 
     Usage:
         # In YAML:
-        - name: set_weight
+        - name: set-weight
           args:
             default: 1.0
             rules:
@@ -37,10 +37,11 @@ class SetWeight(FetchHook):
     - The 'datatype' entry field (e.g., 'bag', 'xyz')
     """
 
-    name = "set_weight"
+    name = "set-weight"
     meta_desc = "Assigns weights to entries"
     meta_stage = "pre"
     meta_category = "metadata"
+    meta_aliases = ["set_weight"]
 
     def __init__(self, default=1.0, rules=None, **kwargs):
         super().__init__(**kwargs)
