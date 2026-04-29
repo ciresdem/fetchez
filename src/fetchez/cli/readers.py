@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.cli.readers
+fetchez.cli.formats.readers
 ~~~~~~~~~~~~~~~~
 
 Discoverability and documentation for processing readers.
@@ -21,7 +21,7 @@ from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainComm
 
 @click.group(cls=FetchezMainGroup, name="readers", fetchez_commands=["list", "info"])
 def readers_group():
-    """Discover, search, and learn about recipe readers."""
+    """Discover, search, and learn about format readers."""
 
     pass
 
@@ -61,15 +61,13 @@ def readers_list(search):
 
             click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
 
-    click.echo(
-        "\nRun 'fetchez readers info <name>' for arguments and recipe examples.\n"
-    )
+    click.echo("\nRun 'fetchez readers info <name>' for arguments and examples.\n")
 
 
 @readers_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
 def readers_info(name):
-    """Show arguments and YAML recipe examples for a specific hook."""
+    """Show arguments and YAML recipe examples for a specific reader."""
 
     ReaderRegistry.load_all()
     schema_cls = ReaderRegistry.get_class(name)

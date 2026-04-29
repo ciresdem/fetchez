@@ -18,8 +18,9 @@ import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from .schemas import schemas_group
 
-RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run"]
+RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run", "schemas"]
 
 
 def validate_dependencies(recipe_obj):
@@ -263,3 +264,6 @@ def run_recipe(name):
         sys.exit(1)
 
     Recipe.from_dict(meta).run()
+
+
+recipes_group.add_command(schemas_group, name="schemas")

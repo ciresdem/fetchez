@@ -18,12 +18,15 @@ import click
 from fetchez.registry import HookRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 from fetchez.api import search_hooks
+from .presets import presets_group
+
+HOOKS_COMMANDS = ["info", "list", "presets"]
 
 
 @click.group(
     cls=FetchezMainGroup,
     name="hooks",
-    fetchez_commands=["info", "list"],
+    fetchez_commands=HOOKS_COMMANDS,
 )
 def hooks_group():
     """Discover, search, and learn about data processors.
@@ -152,3 +155,6 @@ def hook_info(name):
             click.echo(f"        {key}: {val_str}")
 
     click.echo("-" * 40 + "\n")
+
+
+hooks_group.add_command(presets_group, name="presets")

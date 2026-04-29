@@ -21,11 +21,13 @@ from fetchez.utils import TqdmLoggingHandler, FetchezMainGroup
 from .pipeline import pipeline_group
 from .modules import modules_group
 from .hooks import hooks_group
-from .schemas import schemas_group
+
+# from .schemas import schemas_group
 from .recipes import recipes_group
-from .presets import presets_group
-from .bundles import bundles_group
-from .readers import readers_group
+
+# from .presets import presets_group
+# from .bundles import bundles_group
+from .formats import formats_group
 
 
 # =============================================================================
@@ -80,11 +82,12 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
         "Discovery and Management": [
             "modules",
             "hooks",
-            "schemas",
+            # "schemas",
             "recipes",
-            "presets",
-            "bundles",
-            "readers",
+            # "presets",
+            # "bundles",
+            # "readers",
+            "formats",
         ],
     },
     #     epilog=f"""
@@ -115,12 +118,11 @@ def cli(verbose, quiet):
 cli.add_command(pipeline_group, name="run")
 cli.add_command(modules_group, name="modules")
 cli.add_command(hooks_group, name="hooks")
-cli.add_command(schemas_group, name="schemas")
+# cli.add_command(schemas_group, name="schemas")
 cli.add_command(recipes_group, name="recipes")
-cli.add_command(presets_group, name="presets")
-cli.add_command(bundles_group, name="bundles")
-cli.add_command(readers_group, name="readers")
-
+# cli.add_command(presets_group, name="presets")
+# cli.add_command(bundles_group, name="bundles")
+cli.add_command(formats_group, name="formats")
 
 if __name__ == "__main__":
     cli()
