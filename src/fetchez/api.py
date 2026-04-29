@@ -52,11 +52,13 @@ def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]
     for name, meta in full_reg.items():
         desc = meta.get("desc", getattr(meta, "meta_desc", ""))
         tags = [t.lower() for t in getattr(meta, "meta_tags", [])]
+        aliases = [a.lower() for a in getattr(meta, "meta_aliases", [])]
 
         if (
             term_lower in name.lower()
             or term_lower in desc.lower()
             or term_lower in tags
+            or term_lower in aliases
         ):
             found[name] = meta
 
@@ -69,6 +71,10 @@ def list_modules() -> Dict[str, Any]:
 
 def list_hooks() -> Dict[str, Any]:
     return _search_registry(HookRegistry)
+
+
+def search_hooks(term) -> Dict[str, Any]:
+    return _search_registry(HookRegistry, term)
 
 
 def list_recipes() -> Dict[str, Any]:

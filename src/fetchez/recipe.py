@@ -216,7 +216,7 @@ class Recipe:
         self.config = SchemaRegistry.apply_schema(self.config)
 
         self._check_integrity()
-        logger.info(f"Preparing to execute recipe: {self.name}")
+        logger.debug(f"Preparing to execute recipe: {self.name}")
 
         run_opts = self.config.get("execution", {})
         threads = run_opts.get("threads", 1)
@@ -297,7 +297,7 @@ class Recipe:
             logger.warning("Recipe empty. Nothing to execute.")
             return
 
-        logger.info(f"Queued {len(modules_to_run)} module queries. Searching...")
+        logger.debug(f"Queued {len(modules_to_run)} module queries. Searching...")
         for mod in modules_to_run:
             try:
                 mod.run()
@@ -307,7 +307,7 @@ class Recipe:
                 )
 
         run_fetchez(modules_to_run, threads=threads, global_hooks=global_hooks)
-        logger.info(f"Recipe complete: {self.name}")
+        logger.debug(f"Recipe complete: {self.name}")
 
         # self._generate_receipt()
 

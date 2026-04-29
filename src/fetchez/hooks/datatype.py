@@ -25,10 +25,11 @@ class SetDataType(FetchHook):
     Usage: --hook set_datatype:type=nos_legacy_xyz
     """
 
-    name = "set_datatype"
+    name = "set-datatype"
     meta_desc = "Override the data_type of pipeline entries."
     meta_stage = "file"
     meta_category = "metadata"
+    meta_aliases = ["set_datatype"]
 
     def __init__(self, data_type=None, **kwargs):
         super().__init__(**kwargs)

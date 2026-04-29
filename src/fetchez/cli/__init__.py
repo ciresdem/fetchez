@@ -25,6 +25,7 @@ from .schemas import schemas_group
 from .recipes import recipes_group
 from .presets import presets_group
 from .bundles import bundles_group
+from .readers import readers_group
 
 
 # =============================================================================
@@ -83,6 +84,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
             "recipes",
             "presets",
             "bundles",
+            "readers",
         ],
     },
     #     epilog=f"""
@@ -117,6 +119,7 @@ cli.add_command(schemas_group, name="schemas")
 cli.add_command(recipes_group, name="recipes")
 cli.add_command(presets_group, name="presets")
 cli.add_command(bundles_group, name="bundles")
+cli.add_command(readers_group, name="readers")
 
 
 if __name__ == "__main__":

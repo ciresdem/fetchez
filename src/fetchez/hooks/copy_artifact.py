@@ -22,20 +22,24 @@ logger = logging.getLogger(__name__)
 class CopyArtifactHook(FetchHook):
     """Copies resulting artifacts to a target directory. Useful for batch collating.
 
+    *Does not modify entry*
+
     Usage:
-      --hook copy_artifact:target_dir="../_collate",match="dem.tif/hillshade.tif"
+      --hook copy-artifact:target_dir="../_collate",match="dem.tif/hillshade.tif"
     """
 
-    name = "copy_artifact"
+    name = "copy-artifact"
     meta_stage = "collection"
     meta_category = "utility"
-    meta_desc = "Copies resulting artifacts to a target directory. Useful for batch collating. (Does not modify entry)"
+    meta_desc = (
+        "Copies resulting artifacts to a target directory. Useful for batch collating."
+    )
+    meta_aliases = ["copy_artifact"]
 
     def __init__(self, target_dir="../_collate", match=None, **kwargs):
         super().__init__(**kwargs)
         self.target_dir = os.path.abspath(target_dir)
 
-        # Parse the match string into a list
         if isinstance(match, str):
             self.matches = [m.strip() for m in match.split("/")]
         elif isinstance(match, list):
@@ -47,7 +51,6 @@ class CopyArtifactHook(FetchHook):
         os.makedirs(self.target_dir, exist_ok=True)
 
         for mod, entry in entries:
-            # Look through all registered artifacts in the entry
             artifacts = entry.get("artifacts", {})
             files_to_copy = []
 
@@ -56,14 +59,11 @@ class CopyArtifactHook(FetchHook):
                     if any(m in path for m in self.matches) and os.path.exists(path):
                         files_to_copy.append(path)
             else:
-                # Fallback to the current primary destination file
                 dst_fn = entry.get("dst_fn")
                 if dst_fn and os.path.exists(dst_fn):
                     files_to_copy.append(dst_fn)
 
-            # Deduplicate just in case multiple hooks registered the same file
             files_to_copy = list(set(files_to_copy))
-
             for fpath in files_to_copy:
                 dest_path = os.path.join(self.target_dir, os.path.basename(fpath))
                 logger.info(

@@ -37,7 +37,7 @@ def list_bundles():
     BundleRegistry.load_all()
     registry = BundleRegistry.get_registry()
 
-    click.secho("\n📜 Available Pipeline Bundles:", fg="cyan", bold=True)
+    click.secho("\n📜 Available Module Bundles:", fg="cyan", bold=True)
     click.echo("=" * 60)
     for name, meta in sorted(registry.items()):
         # Quick summary for the list view

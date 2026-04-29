@@ -29,7 +29,7 @@ class Exec(FetchHook):
     """
 
     name = "exec"
-    meta_desc = "Run shell command on file. Usage: --hook exec:cmd='echo {file}'"
+    meta_desc = "Run shell command on file."
     meta_stage = "file"
     meta_category = "file-op"
 
@@ -38,29 +38,27 @@ class Exec(FetchHook):
         self.cmd = cmd
 
     def run(self, entries):
-        if not self.cmd:
-            return entries
+        if self.cmd:
+            for mod, entry in entries:
+                if entry.get("status") != 0:
+                    continue
 
-        for mod, entry in entries:
-            if entry.get("status") != 0:
-                continue
+                filepath = os.path.abspath(entry.get("dst_fn"))
+                dirname = os.path.dirname(filepath)
+                filename = os.path.basename(filepath)
+                name_only = os.path.splitext(filename)[0]
+                command_str = self.cmd.format(
+                    file=filepath,
+                    url=entry.get("url"),
+                    dir=dirname,
+                    filename=filename,
+                    name=name_only,
+                )
 
-            filepath = os.path.abspath(entry.get("dst_fn"))
-            dirname = os.path.dirname(filepath)
-            filename = os.path.basename(filepath)
-            name_only = os.path.splitext(filename)[0]
-            command_str = self.cmd.format(
-                file=filepath,
-                url=entry.get("url"),
-                dir=dirname,
-                filename=filename,
-                name=name_only,
-            )
-
-            try:
-                logger.info(f"Exec: {command_str}")
-                subprocess.run(shlex.split(command_str), check=True)
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Exec command failed: {e}")
+                try:
+                    logger.info(f"Exec: {command_str}")
+                    subprocess.run(shlex.split(command_str), check=True)
+                except subprocess.CalledProcessError as e:
+                    logger.error(f"Exec command failed: {e}")
 
         return entries

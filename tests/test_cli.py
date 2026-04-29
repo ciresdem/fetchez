@@ -52,7 +52,7 @@ def test_hook_info():
 
     result = run_fetchez(["hooks", "info", "audit"])
     assert result.returncode == 0
-    assert "Save a run summary to a file" in result.stdout
+    assert "Save a run summary of fetch entries to disk" in result.stdout
 
 
 def test_dry_run_ipinfo():

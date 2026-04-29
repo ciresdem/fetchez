@@ -22,12 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 class FilenameFilter(FetchHook):
-    """Filter the pipeline results by filename pattern."""
+    """Filter the entry by filename pattern."""
 
-    name = "filename_filter"
+    name = "filename-filter"
     meta_desc = "Filter results by filename. Usage: --hook fn_filter:match=.tif"
     meta_stage = "file"
     meta_category = "pipeline"
+    meta_aliases = ["filename_filter"]
 
     def __init__(self, match=None, exclude=None, regex=False, **kwargs):
         """
@@ -42,7 +43,7 @@ class FilenameFilter(FetchHook):
         self.exclude = utils.str_or(exclude)
         self.regex = regex
 
-        # logger.info(f"filename_filter is set to stage {self.stage}")
+        logger.debug(f"filename_filter is set to stage {self.stage}")
 
     def run(self, entries):
         kept_entries = []
@@ -77,8 +78,8 @@ class FilenameFilter(FetchHook):
             if keep:
                 kept_entries.append(item)
 
-        # if self.stage == "pre":
-        #     logger.info(
-        #         f"Filename Filter hook filtered files from {mod} and has kept {len(kept_entries)} matches."
-        #     )
+        if self.stage == "pre":
+            logger.debug(
+                f"Filename Filter hook filtered files from {mod} and has kept {len(kept_entries)} matches."
+            )
         return kept_entries

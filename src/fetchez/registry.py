@@ -25,6 +25,7 @@ from typing import Dict, Any, Type, Optional
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.schemas import BaseSchema
+from fetchez.formats import BaseReader
 
 logger = logging.getLogger(__name__)
 
@@ -396,6 +397,31 @@ class SchemaRegistry(PluginRegistry):
                 )
 
         return config
+
+
+class ReaderRegistry(PluginRegistry):
+    base_class = BaseReader
+    builtin_pkg = "fetchez.formats.readers"
+    entry_point_group = "fetchez.formats.readers"
+    user_folder = "formats/readers"
+
+    @classmethod
+    def get_reader_for_ext(cls, ext: str):
+        """Iterate through registered readers to find one that supports this extension."""
+
+        for name, meta in cls.get_registry().items():
+            if ext.lower() in meta.get("extensions", []):
+                return cls.get_class(name)
+        return None
+
+    @classmethod
+    def get_reader_for_dtype(cls, dtype: str):
+        """Iterate through registered readers to find one that supports this dtype."""
+
+        for name, meta in cls.get_registry().items():
+            if dtype.lower() in meta.get("dtype"):
+                return cls.get_class(name)
+        return None
 
 
 class RecipeRegistry(YamlRegistry):

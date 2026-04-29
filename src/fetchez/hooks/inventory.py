@@ -5,17 +5,15 @@
 fetchez.hooks.inventory
 ~~~~~~~~~~~~~
 
-Generate an inventory of (pre) of the fetchez operation.
+Generate an inventory (pre) of the fetchez operation.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
 """
 
-import sys
 import json
 import csv
 import logging
-from io import StringIO
 
 from fetchez.hooks import FetchHook
 
@@ -24,37 +22,37 @@ logger = logging.getLogger(__name__)
 
 class Inventory(FetchHook):
     name = "inventory"
-    meta_desc = "Output metadata inventory (JSON/CSV)"
+    meta_desc = "Output a metadata inventory (JSON/CSV)"
     meta_stage = "pre"
     meta_category = "metadata"
 
-    def __init__(self, format="json", **kwargs):
+    def __init__(self, output="inventory.json", out_format="json", **kwargs):
         super().__init__(**kwargs)
-        self.format = format.lower()
+        self.output = output
+        self.out_format = out_format.lower()
 
     def run(self, entries):
-        inventory_list = []
-        for mod, entry in entries:
-            item = {
-                "module": mod.name,
-                "filename": entry.get("dst_fn"),
-                "url": entry.get("url"),
-                "data_type": entry.get("data_type"),
-                "date": entry.get("date", ""),
-            }
-            inventory_list.append(item)
+        if entries:
+            inventory_list = []
+            for mod, entry in entries:
+                item = {
+                    "module": mod.name,
+                    "filename": entry.get("dst_fn"),
+                    "url": entry.get("url"),
+                    "data_type": entry.get("data_type"),
+                    "date": entry.get("date", ""),
+                }
+                inventory_list.append(item)
 
-        if self.format == "json":
-            sys.stdout.write(json.dumps(inventory_list, indent=2) + "\n")
+            with open(self.output, "w") as f:
+                if self.out_format == "csv":
+                    keys = set().union(*(d.keys() for d in inventory_list))
+                    writer = csv.DictWriter(f, fieldnames=sorted(list(keys)))
+                    writer.writeheader()
+                    writer.writerows(inventory_list)
+                else:
+                    json.dump(inventory_list, f, indent=2)
 
-        elif self.format == "csv":
-            output = StringIO()
-            if inventory_list:
-                keys = inventory_list[0].keys()
-                writer = csv.DictWriter(output, fieldnames=keys)
-                writer.writeheader()
-                writer.writerows(inventory_list)
-            sys.stdout.write(output.getvalue() + "\n")
+            logger.info(f"Entry inventory written to {self.output}")
 
-        sys.stdout.flush()
         return entries
