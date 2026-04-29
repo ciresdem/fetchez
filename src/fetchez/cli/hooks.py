@@ -52,7 +52,7 @@ def hooks_group():
 def hook_list(search):
     """List all available processing hooks grouped by category."""
 
-    HookRegistry.load_all()
+    HookRegistry.load_builtins()
     registry = HookRegistry.get_registry()
 
     grouped_hooks = {}
