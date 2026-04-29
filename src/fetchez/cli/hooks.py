@@ -22,6 +22,7 @@ from .presets import presets_group
 
 HOOKS_COMMANDS = ["info", "list", "presets"]
 
+
 @click.group(
     cls=FetchezMainGroup,
     name="hooks",

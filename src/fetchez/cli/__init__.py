@@ -21,8 +21,10 @@ from fetchez.utils import TqdmLoggingHandler, FetchezMainGroup
 from .pipeline import pipeline_group
 from .modules import modules_group
 from .hooks import hooks_group
+
 # from .schemas import schemas_group
 from .recipes import recipes_group
+
 # from .presets import presets_group
 # from .bundles import bundles_group
 from .formats import formats_group
@@ -111,6 +113,7 @@ def cli(verbose, quiet):
     """Fetchez CLI."""
 
     setup_logging(quiet=quiet, verbose=verbose)
+
 
 cli.add_command(pipeline_group, name="run")
 cli.add_command(modules_group, name="modules")

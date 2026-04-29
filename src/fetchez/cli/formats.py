@@ -11,7 +11,6 @@ Discoverability and documentation for processing readers.
 :license: MIT, see LICENSE for more details.
 """
 
-import sys
 import click
 
 # from fetchez.api import list_readers

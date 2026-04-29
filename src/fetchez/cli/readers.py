@@ -61,9 +61,7 @@ def readers_list(search):
 
             click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
 
-    click.echo(
-        "\nRun 'fetchez readers info <name>' for arguments and examples.\n"
-    )
+    click.echo("\nRun 'fetchez readers info <name>' for arguments and examples.\n")
 
 
 @readers_group.command("info", cls=FetchezMainCommand)
