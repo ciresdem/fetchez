@@ -460,9 +460,9 @@ class RecipeRegistry(YamlRegistry):
 
 
 class PresetRegistry(YamlRegistry):
-    builtin_pkg = "fetchez.presets"
-    entry_point_group = "fetchez.presets"
-    user_folder = "presets"
+    builtin_pkg = "fetchez.hooks.presets"
+    entry_point_group = "fetchez.hooks.presets"
+    user_folder = "hooks/presets"
 
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):
