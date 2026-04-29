@@ -509,9 +509,9 @@ class PresetRegistry(YamlRegistry):
 class BundleRegistry(YamlRegistry):
     """A registry for discovering and loading Module Bundles (Data Packages)."""
 
-    builtin_pkg = "fetchez.bundles"
-    entry_point_group = "fetchez.bundles"
-    user_folder = "bundles"
+    builtin_pkg = "fetchez.modules.bundles"
+    entry_point_group = "fetchez.modules.bundles"
+    user_folder = "modules/bundles"
 
 
 # =============================================================================
