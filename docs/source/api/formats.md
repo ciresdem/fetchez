@@ -1,5 +1,5 @@
 Formats
-=======
+========
 
 ```{eval-rst}
 .. automodule:: fetchez.formats
