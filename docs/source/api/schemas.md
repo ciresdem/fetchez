@@ -2,7 +2,7 @@ Schema Registry
 ===============
 
 ```{eval-rst}
-.. automodule:: fetchez.schemas
+.. automodule:: fetchez.recipes.schemas
    :members:
    :undoc-members:
    :show-inheritance:
