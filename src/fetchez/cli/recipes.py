@@ -253,7 +253,7 @@ def run_recipe(name):
     click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
 
     if os.path.exists(name):
-        Recipe.from_yaml(name).run()
+        Recipe.from_file(name).run()
         return
 
     meta = RecipeRegistry.get_yaml(name)
