@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.cli.readers
+fetchez.cli.formats.readers
 ~~~~~~~~~~~~~~~~
 
 Discoverability and documentation for processing readers.

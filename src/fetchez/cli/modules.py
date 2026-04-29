@@ -15,12 +15,15 @@ import click
 import sys
 from fetchez.registry import ModuleRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from .bundles import bundles_group
+
+MODULES_COMMANDS = ["info", "list", "search", "bundles"]
 
 
 @click.group(
     cls=FetchezMainGroup,
     name="modules",
-    fetchez_commands=["info", "list", "search"],
+    fetchez_commands=MODULES_COMMANDS,
 )
 def modules_group():
     """Discover, search, and learn about data sources."""
@@ -160,3 +163,6 @@ def module_info(name):
 
         # click.echo("      hooks:")
     click.echo("-" * 40 + "\n")
+
+
+modules_group.add_command(bundles_group, name="bundles")
