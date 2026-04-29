@@ -11,11 +11,9 @@ Generate an inventory (pre) of the fetchez operation.
 :license: MIT, see LICENSE for more details.
 """
 
-import sys
 import json
 import csv
 import logging
-from io import StringIO
 
 from fetchez.hooks import FetchHook
 
@@ -51,7 +49,7 @@ class Inventory(FetchHook):
                     keys = set().union(*(d.keys() for d in inventory_list))
                     writer = csv.DictWriter(f, fieldnames=sorted(list(keys)))
                     writer.writeheader()
-                    writer.writerows(entry_results)
+                    writer.writerows(inventory_list)
                 else:
                     json.dump(inventory_list, f, indent=2)
 

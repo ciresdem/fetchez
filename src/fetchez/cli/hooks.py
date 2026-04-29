@@ -69,7 +69,7 @@ def _print_grouped_hooks(grouped_hooks):
 
 @hooks_group.command("search", cls=FetchezMainCommand)
 @click.argument("term")
-def hook_list(term):
+def hook_search(term):
     """Search all available processing hooks by keyword."""
 
     registry = search_hooks(term)

@@ -298,7 +298,9 @@ class EarthData(FetchModule):
             if status and "jobID" in status:
                 self.subset_job_id = status["jobID"]
                 logger.info(f"Harmony Job Initiated: {self.subset_job_id}")
-                logger.info(f"Harmony status url: {HARMONY_BASE_URL}/jobs/{self.subset_job_id}")
+                logger.info(
+                    f"Harmony status url: {HARMONY_BASE_URL}/jobs/{self.subset_job_id}"
+                )
             else:
                 return
 

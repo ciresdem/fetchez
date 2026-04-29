@@ -28,7 +28,9 @@ class CSVReader(BaseReader):
 
     def yield_chunks(self):
         # just reads the data and yields generic chunks as list or dict
-        with open(self.path, mode='r', newline=self.newline, encoding=self.encoding) as file:
+        with open(
+            self.path, mode="r", newline=self.newline, encoding=self.encoding
+        ) as file:
             if self.as_dict:
                 for chunk in csv.DictReader(file):
                     yield chunk

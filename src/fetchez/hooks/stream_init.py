@@ -36,7 +36,7 @@ class DataStream(FetchHook):
 
     def __init__(self, stream_type=None, **kwargs):
         super().__init__(**kwargs)
-        self.stream_type = stream_type#.lower()
+        self.stream_type = stream_type  # .lower()
         self.reader_kwargs = kwargs
 
     def run(self, entries):
@@ -44,7 +44,9 @@ class DataStream(FetchHook):
 
         for mod, entry in entries:
             if entry.get("stream"):
-                logger.warning(f"Entry {entry} already has an attached {entry.get('stream_type')} stream...")
+                logger.warning(
+                    f"Entry {entry} already has an attached {entry.get('stream_type')} stream..."
+                )
                 continue
 
             src = entry.get("dst_fn")
@@ -60,10 +62,12 @@ class DataStream(FetchHook):
 
             kwargs_copy["region"] = getattr(mod, "region", None)
 
-            #if dtype:
+            # if dtype:
             #    reader = ReaderRegistry.get_reader_for_dtype(dtype)(src, **kwargs_copy)
-            #else:
-            reader = ReaderRegistry.get_reader_for_ext(src.split(".")[-1])(src, **kwargs_copy)
+            # else:
+            reader = ReaderRegistry.get_reader_for_ext(src.split(".")[-1])(
+                src, **kwargs_copy
+            )
 
             if not reader:
                 logger.warning(f"No reader could be determined for {dtype}: {entry}")

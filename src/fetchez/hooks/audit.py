@@ -44,7 +44,7 @@ class Audit(FetchHook):
             if key in ["stream"]:
                 continue
 
-            if isinstance(v, (dict, list, str, int, float, bool, type(None))):
+            if isinstance(val, (dict, list, str, int, float, bool, type(None))):
                 clean[key] = val
             else:
                 clean[key] = str(val)
@@ -53,7 +53,7 @@ class Audit(FetchHook):
     def run(self, entries):
         if entries:
             try:
-                entry_results = [self._sanitize(e) for mod, entry in entries]
+                entry_results = [self._sanitize(entry) for mod, entry in entries]
                 with open(self.output, "w") as f:
                     if self.out_format == "json":
                         json.dump(entry_results, f, indent=2)
@@ -67,7 +67,9 @@ class Audit(FetchHook):
                     else:
                         for result in entry_results:
                             status = "OK" if result.get("status") == 0 else "FAIL"
-                            f.write(f"[{status}] {result.get('dst_fn')} < {result.get('url')}\n")
+                            f.write(
+                                f"[{status}] {result.get('dst_fn')} < {result.get('url')}\n"
+                            )
 
                 logger.info(f"Audit log written to {self.output}")
 

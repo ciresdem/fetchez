@@ -11,6 +11,7 @@ Base fetchez Reader class to create 'streams'
 :license: MIT, see LICENSE for more details.
 """
 
+
 class BaseReader:
     """The base class for fetchez data Readers"""
 

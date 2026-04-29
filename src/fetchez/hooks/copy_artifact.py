@@ -31,7 +31,9 @@ class CopyArtifactHook(FetchHook):
     name = "copy-artifact"
     meta_stage = "collection"
     meta_category = "utility"
-    meta_desc = "Copies resulting artifacts to a target directory. Useful for batch collating."
+    meta_desc = (
+        "Copies resulting artifacts to a target directory. Useful for batch collating."
+    )
     meta_aliases = ["copy_artifact"]
 
     def __init__(self, target_dir="../_collate", match=None, **kwargs):
