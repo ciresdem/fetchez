@@ -24,7 +24,7 @@ from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
-from fetchez.schemas import BaseSchema
+from fetchez.recipes.schemas import BaseSchema
 from fetchez.formats import BaseReader
 
 logger = logging.getLogger(__name__)
@@ -376,9 +376,9 @@ class HookRegistry(PluginRegistry):
 
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
-    builtin_pkg = "fetchez.schemas"
-    entry_point_group = "fetchez.schemas"
-    user_folder = "schemas"
+    builtin_pkg = "fetchez.recipes.schemas"
+    entry_point_group = "fetchez.recipes.schemas"
+    user_folder = "recipes/schemas"
 
     @classmethod
     def apply_schema(cls, config):
