@@ -119,7 +119,7 @@ class FetchezMainGroup(click.Group):
         for param in self.get_params(ctx):
             rv = param.get_help_record(ctx)
             if rv is not None:
-                rv = (f"{colorize(colorize(rv[0], CYAN), BOLD)}", rv[1])
+                rv = (f"{colorize(colorize(rv[0], CYAN), BOLD):<30}", rv[1])
                 opts.append(rv)
 
         if opts:
@@ -153,7 +153,7 @@ class FetchezMainGroup(click.Group):
             with formatter.section(cat_name):
                 cat_cmds = [
                     (
-                        f"{colorize(colorize(name, CYAN), BOLD):<17}",
+                        f"{colorize(colorize(name, CYAN), BOLD):<30}",
                         cmd.get_short_help_str(limit=80),
                     )
                     for name, cmd in commands
