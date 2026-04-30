@@ -47,7 +47,9 @@ def _print_grouped_profiles(grouped_profiles):
             click.echo(
                 f"  {click.style(name_padded, bold=True, fg='green')} {click.style(reader_padded, fg='blue')} : {desc}"
             )
-    click.echo("\nRun 'fetchez streams profiles info <name>' for arguments and recipe examples.\n")
+    click.echo(
+        "\nRun 'fetchez streams profiles info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @profiles_group.command("list", cls=FetchezMainCommand)
@@ -67,7 +69,6 @@ def list_profiles(search):
         grouped_profiles.setdefault(cat, []).append((name, meta))
 
     _print_grouped_profiles(grouped_profiles)
-
 
     # ProfileRegistry.load_all()
     # registry = ProfileRegistry.get_registry()
@@ -108,7 +109,7 @@ def info_profiles(name):
     reader = meta.get("reader").get("name")
 
     if reader:
-        click.secho(f"\n  Supported Reader:", fg="yellow", bold=True)
+        click.secho("\n  Supported Reader:", fg="yellow", bold=True)
         click.echo(f"    - {click.style(reader, fg='green')}")
 
     # global_hooks = meta.get("global_hooks", [])
@@ -119,6 +120,7 @@ def info_profiles(name):
     #         click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("\n" + "=" * 60 + "\n")
     # click.echo("\n" + "-" * 40 + "\n")
+
 
 @profiles_group.command("dump", cls=FetchezMainCommand)
 @click.argument("name")

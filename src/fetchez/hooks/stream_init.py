@@ -87,6 +87,8 @@ class DataStream(FetchHook):
                 #     raw_stream, module_weight=w, module_unc=u
                 # )
                 # entry["stream_type"] = "xyz_recarray"
-                entry["stream_type"] = getattr(reader, "meta_category", "generic-stream")
+                entry["stream_type"] = getattr(
+                    reader, "meta_category", "generic-stream"
+                )
 
         return entries
