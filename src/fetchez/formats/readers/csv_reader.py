@@ -53,7 +53,6 @@ class CSVReader(BaseReader):
         with open(
             self.path, mode="r", newline=self.newline, encoding=self.encoding
         ) as file:
-
             for chunk in reader(file, delimiter=self.delimiter):
                 if self.skiplines > 0:
                     self.skiplines -= 1

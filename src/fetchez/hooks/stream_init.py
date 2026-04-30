@@ -62,13 +62,12 @@ class DataStream(FetchHook):
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
 
-            #print(dtype)
+            # print(dtype)
             # print(ProfileRegistry.get_registry())
             # if dtype in ProfileRegistry.get_registry():
-                # profile_args = ProfileRegistry.get_yaml(dtype)
-                # print(profile_args)
+            # profile_args = ProfileRegistry.get_yaml(dtype)
+            # print(profile_args)
             reader = ReaderRegistry.get_reader(src, dtype, **kwargs_copy)
-
 
             # if dtype:
             #    reader = ReaderRegistry.get_reader_for_dtype(dtype)(src, **kwargs_copy)
