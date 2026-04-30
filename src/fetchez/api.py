@@ -33,6 +33,7 @@ from .registry import (
     RecipeRegistry,
     SchemaRegistry,
     PresetRegistry,
+    ProfileRegistry,
 )
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,14 @@ def list_presets() -> Dict[str, Any]:
     return _search_registry(PresetRegistry)
 
 
+def list_profiles() -> Dict[str, Any]:
+    return _search_registry(ProfileRegistry)
+
+
+def search_profiles(term) -> Dict[str, Any]:
+    return _search_registry(ProfileRegistry, term)
+
+
 def search(term: str) -> Dict[str, Dict[str, Any]]:
     """Search across ALL Fetchez registries simultaneously."""
     return {
@@ -99,6 +108,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
         "presets": _search_registry(PresetRegistry, term),
+        "profiles": _search_registry(ProfileRegistry, term),
     }
 
 

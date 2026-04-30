@@ -15,8 +15,9 @@ import os
 import sys
 import yaml
 import click
-from fetchez.registry import ProfileRegistry
+from fetchez.registry import ProfileRegistry, ReaderRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.api import search_profiles
 
 
 @click.group(
@@ -30,25 +31,61 @@ def profiles_group():
     pass
 
 
+def _print_grouped_profiles(grouped_profiles):
+    click.secho("\nAvailable Profiles by Category:", fg="cyan", bold=True)
+    click.echo("=" * 60)
+
+    for cat in sorted(grouped_profiles.keys()):
+        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
+        for name, meta in sorted(grouped_profiles[cat], key=lambda x: x[0]):
+            reader = meta.get("reader").get("name", "unknown")
+            desc = meta.get("description", "No description provided.")
+
+            name_padded = f"{name:<16}"
+            reader_padded = f"[{reader:^6}]"
+
+            click.echo(
+                f"  {click.style(name_padded, bold=True, fg='green')} {click.style(reader_padded, fg='blue')} : {desc}"
+            )
+    click.echo("\nRun 'fetchez streams profiles info <name>' for arguments and recipe examples.\n")
+
+
 @profiles_group.command("list", cls=FetchezMainCommand)
-def list_profiles():
+@click.option("--search", "-s", help="Filter profiles by name or keyword.")
+def list_profiles(search):
     """List all available built-in and local profiles."""
 
-    ProfileRegistry.load_all()
-    registry = ProfileRegistry.get_registry()
+    ReaderRegistry.load_all()
+    registry = search_profiles(search)
+    grouped_profiles = {}
+    for name, meta in registry.items():
+        if name in meta.get("aliases", []):
+            continue
 
-    click.secho("\n📜 Available Module Profiles:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-    for name, meta in sorted(registry.items()):
-        # Quick summary for the list view
-        # project = meta.get("project", {})
-        desc = (
-            meta.get("description", "No description provided.").strip().split("\n")[0]
-        )
+        reader_meta = ReaderRegistry.get_info(meta.get("reader").get("name"))
+        cat = reader_meta.get("category", "uncategorized").title()
+        grouped_profiles.setdefault(cat, []).append((name, meta))
 
-        click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
-        click.echo(f" - {desc}")
-    click.echo("\nRun 'fetchez profiles info <name>' for details.\n")
+    _print_grouped_profiles(grouped_profiles)
+
+
+    # ProfileRegistry.load_all()
+    # registry = ProfileRegistry.get_registry()
+
+    # click.secho("\n📜 Available Stream-Reader Profiles:", fg="cyan", bold=True)
+    # click.echo("=" * 60)
+    # for name, meta in sorted(registry.items()):
+    #     # Quick summary for the list view
+    #     # project = meta.get("project", {})
+    #     desc = (
+    #         meta.get("description", "No description provided.").strip().split("\n")[0]
+    #     )
+    #     reader = meta.get("reader").get("name")
+
+    #     click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
+    #     click.secho(f"[ {reader} ]", fg="yellow", nl=False)
+    #     click.echo(f" - {desc}")
+    # click.echo("\nRun 'fetchez profiles info <name>' for details.\n")
 
 
 @profiles_group.command("info", cls=FetchezMainCommand)
@@ -64,23 +101,22 @@ def info_profiles(name):
         sys.exit(1)
 
     # project = meta.get("project", {})
-    click.secho(f"\n📜 BUNDLE SUMMARY: {name}", fg="cyan", bold=True)
+    click.secho(f"\n📜 PROFILE SUMMARY: {name}", fg="cyan", bold=True)
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    modules = meta.get("modules", [])
-    if modules:
-        click.echo(f"\n  Data Sources ({len(modules)}):")
-        for mod in modules:
-            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-            click.echo(f"    - {click.style(mod_name, fg='green')}")
+    reader = meta.get("reader").get("name")
 
-    global_hooks = meta.get("global_hooks", [])
-    if global_hooks:
-        click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
-        for hook in global_hooks:
-            hook_name = hook.get("name") or hook.get("preset") or "Unknown"
-            click.echo(f"    - {click.style(hook_name, fg='yellow')}")
+    if reader:
+        click.echo(f"\n  Supported Reader:")
+        click.echo(f"    - {click.style(reader, fg='green')}")
+
+    # global_hooks = meta.get("global_hooks", [])
+    # if global_hooks:
+    #     click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
+    #     for hook in global_hooks:
+    #         hook_name = hook.get("name") or hook.get("preset") or "Unknown"
+    #         click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("=" * 60 + "\n")
 
 

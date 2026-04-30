@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.cli.formats.readers
+fetchez.cli.streams.readers
 ~~~~~~~~~~~~~~~~
 
-Discoverability and documentation for processing readers.
+Discoverability and documentation for stream readers.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -15,7 +15,7 @@ import sys
 import click
 
 # from fetchez.api import list_readers
-from fetchez.registry import ReaderRegistry
+from fetchez.registry import ReaderRegistry, ProfileRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 
 
@@ -29,7 +29,7 @@ def readers_group():
 @readers_group.command("list", cls=FetchezMainCommand)
 @click.option("--search", "-s", help="Filter readers by name or keyword.")
 def readers_list(search):
-    """List all available processing readers grouped by category."""
+    """List all available stream readers grouped by category."""
 
     ReaderRegistry.load_all()
     registry = ReaderRegistry.get_registry()
@@ -88,5 +88,14 @@ def readers_info(name):
         click.secho("  Arguments:", fg="yellow", bold=True)
         for key, val in args_dict.items():
             click.echo(f"    - {click.style(key, bold=True)} {val['default']}")
+
+    ProfileRegistry.load_all()
+    profile_registry = ProfileRegistry.get_registry()
+    click.secho("\n  Available Profiles:", fg="yellow", bold=True)
+    for profile in profile_registry:
+        profile_meta = ProfileRegistry.get_yaml(profile)
+        profile_reader = profile_meta.get("reader").get("name")
+        if profile_reader == name:
+            click.echo(f"  - {click.style(profile_meta.get('name'), bold=True)}")
 
     click.echo("\n" + "-" * 40 + "\n")

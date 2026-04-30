@@ -1,4 +1,6 @@
 name: nos_hydro_csv
+description: NOS Hydro data for the csv reader
+stream-type: "list-stream"
 reader:
   name: "csvreader"
   args:
