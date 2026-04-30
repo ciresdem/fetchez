@@ -28,7 +28,7 @@ class DataStream(FetchHook):
     name = "stream-dump"
     meta_stage = "file"
     meta_desc = "Dump the contents of a stream."
-    meta_category = "format-stream"
+    meta_category = "streams"
     meta_requires = "Any"
     meta_aliases = ["stream_dump"]
 
