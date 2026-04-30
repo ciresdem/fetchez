@@ -30,7 +30,7 @@ class DataStream(FetchHook):
     name = "stream-init"
     meta_stage = "file"
     meta_desc = "Setup a data stream from input data."
-    meta_category = "format-stream"
+    meta_category = "stream"
     meta_requires = "file"
     meta_aliases = ["stream_init"]
 
@@ -62,13 +62,10 @@ class DataStream(FetchHook):
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
 
-            # print(dtype)
-            # print(ProfileRegistry.get_registry())
             # if dtype in ProfileRegistry.get_registry():
             # profile_args = ProfileRegistry.get_yaml(dtype)
             # print(profile_args)
             reader = ReaderRegistry.get_reader(src, dtype, **kwargs_copy)
-
             # if dtype:
             #    reader = ReaderRegistry.get_reader_for_dtype(dtype)(src, **kwargs_copy)
             # else:
@@ -90,6 +87,6 @@ class DataStream(FetchHook):
                 #     raw_stream, module_weight=w, module_unc=u
                 # )
                 # entry["stream_type"] = "xyz_recarray"
-                entry["stream_type"] = dtype
+                entry["stream_type"] = getattr(reader, "meta_category", "generic-stream")
 
         return entries

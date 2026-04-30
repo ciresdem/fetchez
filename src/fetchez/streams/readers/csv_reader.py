@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.formats.readers.csv_reader
+fetchez.streams.readers.csv_reader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Basic CSV reader.
+Basic CSV reader to create a generic 'list' stream.
 
 :copyright: (c) 2016 - 2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -21,6 +21,7 @@ class CSVReader(BaseReader):
     meta_dtype = "csv"
     meta_extensions = ["csv", "dat", "xyz", "txt"]
     meta_desc = "Read and stream CSV data as list or dict."
+    meta_category = "list-stream"
 
     def __init__(
         self,
@@ -57,7 +58,8 @@ class CSVReader(BaseReader):
                 if self.skiplines > 0:
                     self.skiplines -= 1
                     continue
-                chunk = [chunk[n] for n in fields]
+                if fields:
+                    chunk = [chunk[n] for n in fields]
                 yield chunk
 
         # with open(self.path, 'r') as f:

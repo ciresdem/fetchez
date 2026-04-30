@@ -1,7 +1,6 @@
 name: nos_hydro_csv
 reader:
   name: "csvreader"
-  type: "xyz-stream"
   args:
     delimiter: ","
     skiplines: 1

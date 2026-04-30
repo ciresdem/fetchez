@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.cli.formats
+fetchez.cli.streams
 ~~~~~~~~~~~~~~~~
 
 Discoverability and documentation for processing readers.
@@ -18,15 +18,15 @@ from fetchez.utils import FetchezMainGroup
 from .readers import readers_group
 from .profiles import profiles_group
 
-FORMATS_COMMANDS = ["readers", "profiles"]
+STREAMS_COMMANDS = ["readers", "profiles"]
 
 
-@click.group(cls=FetchezMainGroup, name="formats", fetchez_commands=FORMATS_COMMANDS)
-def formats_group():
-    """Discover, search, and learn about formats."""
+@click.group(cls=FetchezMainGroup, name="streams", fetchez_commands=STREAMS_COMMANDS)
+def streams_group():
+    """Discover, search, and learn about streams."""
 
     pass
 
 
-formats_group.add_command(readers_group, name="readers")
-formats_group.add_command(profiles_group, name="profiles")
+streams_group.add_command(readers_group, name="readers")
+streams_group.add_command(profiles_group, name="profiles")

@@ -25,7 +25,7 @@ from typing import Dict, Any, Type, Optional
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.schemas import BaseSchema
-from fetchez.formats import BaseReader
+from fetchez.streams import BaseReader
 
 logger = logging.getLogger(__name__)
 
@@ -401,24 +401,25 @@ class SchemaRegistry(PluginRegistry):
 
 class ReaderRegistry(PluginRegistry):
     base_class = BaseReader
-    builtin_pkg = "fetchez.formats.readers"
-    entry_point_group = "fetchez.formats.readers"
-    user_folder = "formats/readers"
+    builtin_pkg = "fetchez.streams.readers"
+    entry_point_group = "fetchez.streams.readers"
+    user_folder = "streams/readers"
 
     @classmethod
     def get_reader(cls, src, term: str, **kwargs):
         if ProfileRegistry.get_yaml(term):
             profile = ProfileRegistry.get_yaml(term)
             reader = cls.get_class(profile.get("reader").get("name"))
+            # reader.meta_category = profile.get("reader").get("stream_type", getattr(reader, "meta_category", "generic"))
             return reader(src, **profile.get("reader").get("args"), **kwargs)
         else:
             reader = cls.get_reader_for_dtype(term)
             if reader:
-                return reader(src, **profile.get("reader").get("args"), **kwargs)
+                return reader(src, **kwargs)
 
             reader = cls.get_reader_for_ext(src.split(".")[-1])
             if reader:
-                return reader(src, **profile.get("reader").get("args"), **kwargs)
+                return reader(src, **kwargs)
         return None
 
     @classmethod
@@ -534,13 +535,13 @@ class BundleRegistry(YamlRegistry):
     user_folder = "modules/bundles"
 
 
-# Profiles extend Formats
+# Profiles extend Streams
 class ProfileRegistry(YamlRegistry):
     """A registry for discovering and loading Format Profilesx."""
 
-    builtin_pkg = "fetchez.formats.profiles"
-    entry_point_group = "fetchez.formats.profiles"
-    user_folder = "formats/profiles"
+    builtin_pkg = "fetchez.streams.profiles"
+    entry_point_group = "fetchez.streams.profiles"
+    user_folder = "streams/profiles"
 
     # @classmethod
     # def reader_args_from_profile(cls, profile_def):
