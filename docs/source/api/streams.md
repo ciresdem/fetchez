@@ -2,7 +2,7 @@ Formats
 ========
 
 ```{eval-rst}
-.. automodule:: fetchez.formats
+.. automodule:: fetchez.streams
    :members:
    :undoc-members:
    :show-inheritance:

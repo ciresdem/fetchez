@@ -13,6 +13,6 @@ hooks
 spatial
 recipe
 schemas
-formats
+streams
 fred
 ```
