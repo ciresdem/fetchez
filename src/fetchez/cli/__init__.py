@@ -27,7 +27,7 @@ from .recipes import recipes_group
 
 # from .presets import presets_group
 # from .bundles import bundles_group
-from .formats import formats_group
+from .streams import streams_group
 
 
 # =============================================================================
@@ -87,7 +87,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
             # "presets",
             # "bundles",
             # "readers",
-            "formats",
+            "streams",
         ],
     },
     #     epilog=f"""
@@ -122,7 +122,7 @@ cli.add_command(hooks_group, name="hooks")
 cli.add_command(recipes_group, name="recipes")
 # cli.add_command(presets_group, name="presets")
 # cli.add_command(bundles_group, name="bundles")
-cli.add_command(formats_group, name="formats")
+cli.add_command(streams_group, name="streams")
 
 if __name__ == "__main__":
     cli()

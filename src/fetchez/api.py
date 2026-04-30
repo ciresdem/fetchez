@@ -33,6 +33,7 @@ from .registry import (
     RecipeRegistry,
     SchemaRegistry,
     PresetRegistry,
+    ProfileRegistry,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,12 +54,14 @@ def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]
         desc = meta.get("desc", getattr(meta, "meta_desc", ""))
         tags = [t.lower() for t in getattr(meta, "meta_tags", [])]
         aliases = [a.lower() for a in getattr(meta, "meta_aliases", [])]
+        category = meta.get("category", getattr(meta, "meta_category", ""))
 
         if (
             term_lower in name.lower()
             or term_lower in desc.lower()
             or term_lower in tags
             or term_lower in aliases
+            or term_lower in category.lower()
         ):
             found[name] = meta
 
@@ -89,6 +92,14 @@ def list_presets() -> Dict[str, Any]:
     return _search_registry(PresetRegistry)
 
 
+def list_profiles() -> Dict[str, Any]:
+    return _search_registry(ProfileRegistry)
+
+
+def search_profiles(term) -> Dict[str, Any]:
+    return _search_registry(ProfileRegistry, term)
+
+
 def search(term: str) -> Dict[str, Dict[str, Any]]:
     """Search across ALL Fetchez registries simultaneously."""
     return {
@@ -97,6 +108,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
         "presets": _search_registry(PresetRegistry, term),
+        "profiles": _search_registry(ProfileRegistry, term),
     }
 
 

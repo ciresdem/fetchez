@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.formats.base
+fetchez.streams.base
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Base fetchez Reader class to create 'streams'

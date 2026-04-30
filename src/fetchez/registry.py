@@ -25,7 +25,7 @@ from typing import Dict, Any, Type, Optional
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.schemas import BaseSchema
-from fetchez.formats import BaseReader
+from fetchez.streams import BaseReader
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +336,6 @@ class YamlRegistry:
         import yaml
 
         registry = cls.get_registry()
-
         try:
             config = yaml.safe_load(yaml_content)
             if not config:
@@ -374,6 +373,7 @@ class HookRegistry(PluginRegistry):
     user_folder = "hooks"
 
 
+# Schemas extend Recipes
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
     builtin_pkg = "fetchez.recipes.schemas"
@@ -401,9 +401,30 @@ class SchemaRegistry(PluginRegistry):
 
 class ReaderRegistry(PluginRegistry):
     base_class = BaseReader
-    builtin_pkg = "fetchez.formats.readers"
-    entry_point_group = "fetchez.formats.readers"
-    user_folder = "formats/readers"
+    builtin_pkg = "fetchez.streams.readers"
+    entry_point_group = "fetchez.streams.readers"
+    user_folder = "streams/readers"
+
+    @classmethod
+    def get_reader(cls, src, term: str, **kwargs):
+        if ProfileRegistry.get_yaml(term):
+            profile = ProfileRegistry.get_yaml(term)
+            if profile:
+                profile_reader = profile.get("reader", {})
+                reader_name = profile_reader.get("name", "")
+                reader = cls.get_class(reader_name)
+                if reader:
+                    profile_args = profile_reader.get("args", {})
+                    return reader(src, **profile_args, **kwargs)
+        else:
+            reader = cls.get_reader_for_dtype(term)
+            if reader:
+                return reader(src, **kwargs)
+
+            reader = cls.get_reader_for_ext(src.split(".")[-1])
+            if reader:
+                return reader(src, **kwargs)
+        return None
 
     @classmethod
     def get_reader_for_ext(cls, ext: str):
@@ -417,6 +438,8 @@ class ReaderRegistry(PluginRegistry):
     @classmethod
     def get_reader_for_dtype(cls, dtype: str):
         """Iterate through registered readers to find one that supports this dtype."""
+
+        # ProfileRegistry.load_all()
 
         for name, meta in cls.get_registry().items():
             if dtype.lower() in meta.get("dtype"):
@@ -459,6 +482,7 @@ class RecipeRegistry(YamlRegistry):
             logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
 
 
+# Presets extend Hooks
 class PresetRegistry(YamlRegistry):
     builtin_pkg = "fetchez.hooks.presets"
     entry_point_group = "fetchez.hooks.presets"
@@ -506,12 +530,34 @@ class PresetRegistry(YamlRegistry):
         return hooks
 
 
+# Bundles extend Modules
 class BundleRegistry(YamlRegistry):
     """A registry for discovering and loading Module Bundles (Data Packages)."""
 
     builtin_pkg = "fetchez.modules.bundles"
     entry_point_group = "fetchez.modules.bundles"
     user_folder = "modules/bundles"
+
+
+# Profiles extend Streams
+class ProfileRegistry(YamlRegistry):
+    """A registry for discovering and loading Format Profilesx."""
+
+    builtin_pkg = "fetchez.streams.profiles"
+    entry_point_group = "fetchez.streams.profiles"
+    user_folder = "streams/profiles"
+
+    # @classmethod
+    # def reader_args_from_profile(cls, profile_def):
+    #     """Convert yaml definition to list of Hook Objects."""
+
+    #     readers = {}
+    #     profile_id = profile_def.get("profile")
+    #     for p_def in profile_def.get("reader", []):
+    #         name = p_def.get("name")
+    #         kwargs = p_def.get("args", {})
+    #         readers[name] = kwargs
+    #     return readers
 
 
 # =============================================================================
