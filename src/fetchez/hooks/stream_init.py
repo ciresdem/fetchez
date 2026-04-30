@@ -30,7 +30,7 @@ class DataStream(FetchHook):
     name = "stream-init"
     meta_stage = "file"
     meta_desc = "Setup a data stream from input data."
-    meta_category = "stream"
+    meta_category = "streams"
     meta_requires = "file"
     meta_aliases = ["stream_init"]
 

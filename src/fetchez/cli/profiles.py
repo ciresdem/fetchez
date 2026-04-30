@@ -26,7 +26,7 @@ from fetchez.api import search_profiles
     fetchez_commands=["copy", "dump", "info", "list"],
 )
 def profiles_group():
-    """Discover, inspect, and copy module groups."""
+    """Discover, inspect, and copy stream format profiles."""
 
     pass
 
@@ -144,7 +144,7 @@ def dump_bundle(name):
 @profiles_group.command("copy", cls=FetchezMainCommand)
 @click.argument("name")
 def copy_bundle(name):
-    """Copy a module bundle to your local ~/.fetchez/ folder for editing."""
+    """Copy a reader profile to your local ~/.fetchez/ folder for editing."""
 
     ProfileRegistry.load_all()
     meta = ProfileRegistry.get_yaml(name)
