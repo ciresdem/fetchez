@@ -21,7 +21,7 @@ from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainComm
 
 @click.group(cls=FetchezMainGroup, name="readers", fetchez_commands=["list", "info"])
 def readers_group():
-    """Discover, search, and learn about format readers."""
+    """Discover, search, and learn about stream format readers."""
 
     pass
 
