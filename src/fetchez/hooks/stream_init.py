@@ -15,7 +15,7 @@ import logging
 
 from fetchez.spatial import Region
 from fetchez.hooks import FetchHook
-from fetchez.registry import ReaderRegistry
+from fetchez.registry import ReaderRegistry, ProfileRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ class DataStream(FetchHook):
 
     def run(self, entries):
         ReaderRegistry.load_all()
+        ProfileRegistry.load_all()
 
         for mod, entry in entries:
             if entry.get("stream"):
@@ -55,19 +56,26 @@ class DataStream(FetchHook):
                 continue
 
             kwargs_copy = self.reader_kwargs.copy()
+            kwargs_copy["region"] = getattr(mod, "region", None)
 
             dtype = entry.get("data_type")
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
 
-            kwargs_copy["region"] = getattr(mod, "region", None)
+            #print(dtype)
+            # print(ProfileRegistry.get_registry())
+            # if dtype in ProfileRegistry.get_registry():
+                # profile_args = ProfileRegistry.get_yaml(dtype)
+                # print(profile_args)
+            reader = ReaderRegistry.get_reader(src, dtype, **kwargs_copy)
+
 
             # if dtype:
             #    reader = ReaderRegistry.get_reader_for_dtype(dtype)(src, **kwargs_copy)
             # else:
-            reader = ReaderRegistry.get_reader_for_ext(src.split(".")[-1])(
-                src, **kwargs_copy
-            )
+            # reader = ReaderRegistry.get_reader_for_ext(src.split(".")[-1])(
+            #     src, **kwargs_copy
+            # )
 
             if not reader:
                 logger.warning(f"No reader could be determined for {dtype}: {entry}")

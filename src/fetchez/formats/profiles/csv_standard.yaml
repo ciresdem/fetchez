@@ -1,0 +1,8 @@
+name: csv_standard
+reader:
+  name: "csvreader"
+  type: "xyz-stream"
+  args:
+    delimiter: ","
+    skiplines: 1
+    fields: [2, 1, 3]

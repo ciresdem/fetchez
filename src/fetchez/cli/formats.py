@@ -16,8 +16,9 @@ import click
 # from fetchez.api import list_readers
 from fetchez.utils import FetchezMainGroup
 from .readers import readers_group
+from .profiles import profiles_group
 
-FORMATS_COMMANDS = ["readers"]
+FORMATS_COMMANDS = ["readers", "profiles"]
 
 
 @click.group(cls=FetchezMainGroup, name="formats", fetchez_commands=FORMATS_COMMANDS)
@@ -28,3 +29,4 @@ def formats_group():
 
 
 formats_group.add_command(readers_group, name="readers")
+formats_group.add_command(profiles_group, name="profiles")

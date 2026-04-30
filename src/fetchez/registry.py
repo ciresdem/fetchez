@@ -336,7 +336,6 @@ class YamlRegistry:
         import yaml
 
         registry = cls.get_registry()
-
         try:
             config = yaml.safe_load(yaml_content)
             if not config:
@@ -407,6 +406,22 @@ class ReaderRegistry(PluginRegistry):
     user_folder = "formats/readers"
 
     @classmethod
+    def get_reader(cls, src, term: str, **kwargs):
+        if ProfileRegistry.get_yaml(term):
+            profile = ProfileRegistry.get_yaml(term)
+            reader = cls.get_class(profile.get("reader").get("name"))
+            return reader(src, **profile.get("reader").get("args"), **kwargs)
+        else:
+            reader = cls.get_reader_for_dtype(term)
+            if reader:
+                return reader(src, **profile.get("reader").get("args"), **kwargs)
+
+            reader = cls.get_reader_for_ext(src.split(".")[-1])
+            if reader:
+                return reader(src, **profile.get("reader").get("args"), **kwargs)
+        return None
+
+    @classmethod
     def get_reader_for_ext(cls, ext: str):
         """Iterate through registered readers to find one that supports this extension."""
 
@@ -418,6 +433,8 @@ class ReaderRegistry(PluginRegistry):
     @classmethod
     def get_reader_for_dtype(cls, dtype: str):
         """Iterate through registered readers to find one that supports this dtype."""
+
+        # ProfileRegistry.load_all()
 
         for name, meta in cls.get_registry().items():
             if dtype.lower() in meta.get("dtype"):
@@ -515,6 +532,27 @@ class BundleRegistry(YamlRegistry):
     builtin_pkg = "fetchez.modules.bundles"
     entry_point_group = "fetchez.modules.bundles"
     user_folder = "modules/bundles"
+
+
+# Profiles extend Formats
+class ProfileRegistry(YamlRegistry):
+    """A registry for discovering and loading Format Profilesx."""
+
+    builtin_pkg = "fetchez.formats.profiles"
+    entry_point_group = "fetchez.formats.profiles"
+    user_folder = "formats/profiles"
+
+    # @classmethod
+    # def reader_args_from_profile(cls, profile_def):
+    #     """Convert yaml definition to list of Hook Objects."""
+
+    #     readers = {}
+    #     profile_id = profile_def.get("profile")
+    #     for p_def in profile_def.get("reader", []):
+    #         name = p_def.get("name")
+    #         kwargs = p_def.get("args", {})
+    #         readers[name] = kwargs
+    #     return readers
 
 
 # =============================================================================
