@@ -1,4 +1,4 @@
-name: csv_standard
+name: nos_hydro_csv
 reader:
   name: "csvreader"
   type: "xyz-stream"
