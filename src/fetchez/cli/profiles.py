@@ -108,7 +108,7 @@ def info_profiles(name):
     reader = meta.get("reader").get("name")
 
     if reader:
-        click.echo(f"\n  Supported Reader:")
+        click.secho(f"\n  Supported Reader:", fg="yellow", bold=True)
         click.echo(f"    - {click.style(reader, fg='green')}")
 
     # global_hooks = meta.get("global_hooks", [])
@@ -117,8 +117,8 @@ def info_profiles(name):
     #     for hook in global_hooks:
     #         hook_name = hook.get("name") or hook.get("preset") or "Unknown"
     #         click.echo(f"    - {click.style(hook_name, fg='yellow')}")
-    click.echo("=" * 60 + "\n")
-
+    click.echo("\n" + "=" * 60 + "\n")
+    # click.echo("\n" + "-" * 40 + "\n")
 
 @profiles_group.command("dump", cls=FetchezMainCommand)
 @click.argument("name")
