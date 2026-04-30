@@ -409,9 +409,13 @@ class ReaderRegistry(PluginRegistry):
     def get_reader(cls, src, term: str, **kwargs):
         if ProfileRegistry.get_yaml(term):
             profile = ProfileRegistry.get_yaml(term)
-            reader = cls.get_class(profile.get("reader").get("name"))
-            # reader.meta_category = profile.get("reader").get("stream_type", getattr(reader, "meta_category", "generic"))
-            return reader(src, **profile.get("reader").get("args"), **kwargs)
+            if profile:
+                profile_reader = profile.get("reader", {})
+                reader_name = profile_reader.get("name", "")
+                reader = cls.get_class(reader_name)
+                if reader:
+                    profile_args = profile_reader.get("args", {})
+                    return reader(src, **profile_args, **kwargs)
         else:
             reader = cls.get_reader_for_dtype(term)
             if reader:
