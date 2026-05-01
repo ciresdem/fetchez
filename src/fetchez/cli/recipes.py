@@ -205,8 +205,6 @@ def recipe_validate(name):
 
     validate_dependencies(base_config)
 
-    print(base_config.keys())
-
     for mod in base_config.get("modules", []):
         mod_name = mod.get("module")
         mod_keys = mod.keys()
@@ -214,7 +212,9 @@ def recipe_validate(name):
 
         for key in mod_keys:
             if key not in valid_keys:
-                click.secho(f"Module `{mod_name}` has unexpected reference to `{key}`", fg="red")
+                click.secho(
+                    f"Module `{mod_name}` has unexpected reference to `{key}`", fg="red"
+                )
                 errors += 1
 
         if not ModuleRegistry.get_class(mod_name) and mod_name not in [
