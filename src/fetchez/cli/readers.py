@@ -62,7 +62,9 @@ def readers_list(search):
 
             click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
 
-    click.echo(f"\nRun '{os.path.basename(sys.argv[0])} readers info <name>' for arguments and examples.\n")
+    click.echo(
+        f"\nRun '{os.path.basename(sys.argv[0])} readers info <name>' for arguments and examples.\n"
+    )
 
 
 @readers_group.command("info", cls=FetchezMainCommand)
