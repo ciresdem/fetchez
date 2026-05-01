@@ -213,7 +213,8 @@ def recipe_validate(name):
         for key in mod_keys:
             if key not in valid_keys:
                 click.secho(
-                    f"  Module `{mod_name}` has unexpected reference to `{key}`", fg="red"
+                    f"  Module `{mod_name}` has unexpected reference to `{key}`",
+                    fg="red",
                 )
                 errors += 1
 
