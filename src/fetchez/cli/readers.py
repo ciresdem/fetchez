@@ -25,7 +25,7 @@ def readers_group():
     """Discover, search, and learn about stream format readers.
 
     Format reader streams can be initiated with the `stream-init` hook which
-    will populate entry['stream'] and entry['stream-type'].
+    will populate entry['stream'] and entry['stream-type'] in the pipeline.
     """
 
     pass
