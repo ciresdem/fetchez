@@ -424,6 +424,7 @@ class ReaderRegistry(PluginRegistry):
             reader = cls.get_reader_for_ext(src.split(".")[-1])
             if reader:
                 return reader(src, **kwargs)
+
         return None
 
     @classmethod

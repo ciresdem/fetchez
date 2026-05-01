@@ -61,11 +61,11 @@ class DataStream(FetchHook):
             dtype = entry.get("data_type")
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
-
             # if dtype in ProfileRegistry.get_registry():
             # profile_args = ProfileRegistry.get_yaml(dtype)
             # print(profile_args)
             reader = ReaderRegistry.get_reader(src, dtype, **kwargs_copy)
+
             # if dtype:
             #    reader = ReaderRegistry.get_reader_for_dtype(dtype)(src, **kwargs_copy)
             # else:
@@ -81,6 +81,16 @@ class DataStream(FetchHook):
             mod.region = Region.from_list(mod.region)
 
             if raw_stream:
+                base_srs = "EPSG:4326"
+                if hasattr(reader, "get_srs"):
+                    base_srs = reader.get_srs() or base_srs
+
+                vert_srs = kwargs_copy.get("vert_srs")
+                if vert_srs and "+" not in base_srs:
+                    base_srs = f"{base_srs}+{vert_srs}"
+
+                entry["src_srs"] = base_srs
+
                 entry["stream"] = raw_stream
                 # --- Pass any schemas ---
                 # entry["stream"] = ensure_schema(
