@@ -22,7 +22,11 @@ from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainComm
 
 @click.group(cls=FetchezMainGroup, name="readers", fetchez_commands=["list", "info"])
 def readers_group():
-    """Discover, search, and learn about stream format readers."""
+    """Discover, search, and learn about stream format readers.
+
+    Format reader streams can be initiated with the `stream-init` hook which
+    will populate entry['stream'] and entry['stream-type'].
+    """
 
     pass
 
