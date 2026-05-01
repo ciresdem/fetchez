@@ -11,6 +11,7 @@ Discoverability and documentation for stream readers.
 :license: MIT, see LICENSE for more details.
 """
 
+import os
 import sys
 import click
 
@@ -49,7 +50,7 @@ def readers_list(search):
         cat = meta.get("category", "uncategorized").title()
         grouped_readers.setdefault(cat, []).append((name, meta))
 
-    click.secho("\nAvailable Readers by Category:", fg="cyan", bold=True)
+    click.secho("\n🌐 Available Readers by Category:", fg="cyan", bold=True)
     click.echo("=" * 60)
 
     for cat in sorted(grouped_readers.keys()):
@@ -61,7 +62,7 @@ def readers_list(search):
 
             click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
 
-    click.echo("\nRun 'fetchez readers info <name>' for arguments and examples.\n")
+    click.echo(f"\nRun '{os.path.basename(sys.argv[0])} readers info <name>' for arguments and examples.\n")
 
 
 @readers_group.command("info", cls=FetchezMainCommand)
@@ -77,7 +78,7 @@ def readers_info(name):
         click.secho(f"Error: Reader '{name}' not found.", fg="red")
         sys.exit(1)
 
-    click.secho(f"\n🪝 READER: {name}", fg="cyan", bold=True)
+    click.secho(f"\n🌐 READER: {name}", fg="cyan", bold=True)
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('desc', 'N/A')}")
     click.echo(f"  Category    : {meta.get('category', 'N/A')}\n")
@@ -96,6 +97,6 @@ def readers_info(name):
         profile_meta = ProfileRegistry.get_yaml(profile)
         profile_reader = profile_meta.get("reader").get("name")
         if profile_reader == name:
-            click.echo(f"  - {click.style(profile_meta.get('name'), bold=True)}")
+            click.echo(f"    - {click.style(profile_meta.get('name'), bold=True)}")
 
     click.echo("\n" + "-" * 40 + "\n")

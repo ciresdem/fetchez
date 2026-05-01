@@ -39,8 +39,9 @@ class DataStream(FetchHook):
     def run(self, entries):
         for mod, entry in entries:
             if entry.get("stream") or entry.get("raster_stream"):
-                contents = list(entry.get("stream"))
-                with PRINT_LOCK:
-                    pprint.pprint(contents)
+                for chunk in entry.get("stream"):
+                    contents = chunk
+                    with PRINT_LOCK:
+                        pprint.pprint(contents)
 
         return entries
