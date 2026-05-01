@@ -207,6 +207,17 @@ def recipe_validate(name):
 
     for mod in base_config.get("modules", []):
         mod_name = mod.get("module")
+        mod_keys = mod.keys()
+        valid_keys = ["module", "hooks", "args"]
+
+        for key in mod_keys:
+            if key not in valid_keys:
+                click.secho(
+                    f"  Module `{mod_name}` has unexpected reference to `{key}`",
+                    fg="red",
+                )
+                errors += 1
+
         if not ModuleRegistry.get_class(mod_name) and mod_name not in [
             "file",
             "local_fs",

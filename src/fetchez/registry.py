@@ -407,21 +407,25 @@ class ReaderRegistry(PluginRegistry):
 
     @classmethod
     def get_reader(cls, src, term: str, **kwargs):
-        if ProfileRegistry.get_yaml(term):
-            profile = ProfileRegistry.get_yaml(term)
-            if profile:
-                profile_reader = profile.get("reader", {})
-                reader_name = profile_reader.get("name", "")
-                reader = cls.get_class(reader_name)
-                if reader:
-                    profile_args = profile_reader.get("args", {})
-                    return reader(src, **profile_args, **kwargs)
+        profile = ProfileRegistry.get_yaml(term)
+        if profile:
+            logger.debug(f"Using reader-profile {profile}")
+            profile_reader = profile.get("reader", {})
+            reader_name = profile_reader.get("name", "")
+            reader = cls.get_class(reader_name)
+            if reader:
+                profile_args = profile_reader.get("args", {})
+                return reader(src, **profile_args, **kwargs)
         else:
+            logger.debug(f"No reader profile found, checking `{term}` data-type")
             reader = cls.get_reader_for_dtype(term)
             if reader:
+                logger.debug(f"Found `{reader.name}` for data-type: `{term}`")
                 return reader(src, **kwargs)
 
-            reader = cls.get_reader_for_ext(src.split(".")[-1])
+            _ext = src.split(".")[-1]
+            logger.debug("No reader dtype found, checking `{_ext}` in extensions")
+            reader = cls.get_reader_for_ext(_ext)
             if reader:
                 return reader(src, **kwargs)
 
@@ -440,10 +444,8 @@ class ReaderRegistry(PluginRegistry):
     def get_reader_for_dtype(cls, dtype: str):
         """Iterate through registered readers to find one that supports this dtype."""
 
-        # ProfileRegistry.load_all()
-
         for name, meta in cls.get_registry().items():
-            if dtype.lower() in meta.get("dtype"):
+            if dtype.lower() in meta.get("dtype", ""):
                 return cls.get_class(name)
         return None
 
