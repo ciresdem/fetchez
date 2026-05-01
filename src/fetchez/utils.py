@@ -586,6 +586,7 @@ def parse_source_string(source_str, default_hooks=None):
     for h_str in hook_parts:
         mod_dict["hooks"].append(parse_hook_string(h_str))
 
+    logger.debug(f"Parsed source string as: `{mod_name}` using hooks: {[x['name'] for x in mod_dict['hooks']]}")# {mod_dict['hooks']}")
     return mod_dict
 
 
