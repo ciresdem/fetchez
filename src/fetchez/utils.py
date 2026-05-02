@@ -658,12 +658,13 @@ def get_class_arguments(TargetCls, want_inherited=True):
         for name, data in all_params.items():
             param = data["param"]
             origin_cls = data["origin"]
+            origin_help = getattr(origin_cls, "_cli_arg_help", {})
 
             if param.default is inspect.Parameter.empty:
                 default_str = colorize("(required)", RED)
             else:
                 # default_str = f"(default: {param.default or 'None'})"
-                default_str = f"{param.default or 'None'}"
+                default_str = param.default or None# or 'None'}"
 
             type_str = ""
             if param.annotation is not inspect.Parameter.empty:
@@ -673,8 +674,10 @@ def get_class_arguments(TargetCls, want_inherited=True):
             inherit_str = ""
             if origin_cls is not TargetCls:
                 inherit_str = colorize(f" [from {origin_cls.__name__}]", CYAN)
+                desc_str = f" - {origin_help[name]}" if name in origin_help else ""
+            else:
+                desc_str = f" - {arg_help[name]}" if name in arg_help else ""
 
-            desc_str = f" - {arg_help[name]}" if name in arg_help else ""
             args_dict[name] = {
                 "type": type_str,
                 "default": default_str,

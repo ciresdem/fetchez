@@ -191,10 +191,10 @@ def get(
         logger.debug(f"No results found for {module} with given parameters.")
         return []
 
-    run_fetchez([mod_instance], threads=threads)
-
+    # Grab the final results from the fetchez pipeline
+    final_results = run_fetchez([mod_instance], threads=threads)
     downloaded_files = []
-    for entry in mod_instance.results:
+    for mod, entry in final_results:  # mod_instance.results:
         if entry.get("status") == 0:
             fn = entry.get("dst_fn")
             if fn and os.path.exists(fn):

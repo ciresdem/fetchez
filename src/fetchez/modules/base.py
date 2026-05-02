@@ -75,8 +75,8 @@ class FetchModule:
 
         self.min_year = utils.int_or(min_year)
         self.max_year = utils.int_or(max_year)
-        self.weight = float(weight)
-        self.uncertainty = float(uncertainty)
+        self.weight = utils.float_or(weight, 1.0)
+        self.uncertainty = utils.float_or(uncertainty, 0.0)
 
         # Default Headers (Can be overridden in subclass)
         self.headers = {"User-Agent": "fetchez/0.5.0"}

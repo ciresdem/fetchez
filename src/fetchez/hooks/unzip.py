@@ -177,10 +177,9 @@ class Unzip(FetchHook):
             # --- .GZ DECOMPRESSION (Single File) ---
             elif lower_path.endswith(".gz"):
                 extracted_path = file_path[:-3]
-
                 if not self.overwrite and os.path.exists(extracted_path):
                     logger.debug(
-                        f"Skipping gunzip (file exists): {os.path.basename(file_path)}"
+                        f"Skipping gunzip (file exists): {os.path.basename(extracted_path)}"
                     )
                     out_entries.append(
                         (mod, {**entry, "dst_fn": extracted_path, "status": 0})
