@@ -51,7 +51,7 @@ HARMONY_BASE_URL = "https://harmony.earthdata.nasa.gov"
     time_end="End Date (ISO 8601: 2020-02-01T00:00:00Z)",
     subset="Use Harmony API for subsetting (if supported)",
     filename_filter="Filter granules by filename pattern (wildcards supported)",
-    harmony_ping="Harmony ping query, ['status', 'pause', 'resume', 'cancel']"
+    harmony_ping="Harmony ping query, ['status', 'pause', 'resume', 'cancel']",
 )
 class EarthData(FetchModule):
     name = "earthdata"
@@ -367,7 +367,6 @@ class EarthData(FetchModule):
 
         if self.harmony_ping:
             if self.subset_job_id:
-                print('hi')
                 status = self.harmony_ping_for_status(
                     self.subset_job_id, self.harmony_ping
                 )

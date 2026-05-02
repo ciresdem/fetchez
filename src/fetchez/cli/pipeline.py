@@ -101,15 +101,17 @@ class PipelineExecutor(FetchezMainGroup):
 
             mod_args = []
             for key, val in class_args.items():
-                if key in ["self",
-                           "kwargs",
-                           "src_region",
-                           "callback",
-                           "outdir",
-                           "name",
-                           "params",
-                           "hook",
-                           "weight"]:
+                if key in [
+                    "self",
+                    "kwargs",
+                    "src_region",
+                    "callback",
+                    "outdir",
+                    "name",
+                    "params",
+                    "hook",
+                    "weight",
+                ]:
                     continue
 
                 mod_args.append([f"--{key}", val["desc"], val["default"]])

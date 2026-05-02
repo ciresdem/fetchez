@@ -1006,6 +1006,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
     return flat_results
 
+
 # =============================================================================
 # Fetch Module (Base & Default/Test Implementations)
 #
