@@ -68,7 +68,7 @@ class LocalFS(FetchModule):
         search_pattern = os.path.join(self.path, f"**/*{self.ext}")
         matched_files = 0
 
-        logger.info(f"Crawling {self.path} for '{self.ext}' files...")
+        logger.debug(f"Crawling {self.path} for '{self.ext}' files...")
 
         for filepath in glob.iglob(search_pattern, recursive=True):
             file_region = None
@@ -96,5 +96,5 @@ class LocalFS(FetchModule):
                 )
                 matched_files += 1
 
-        logger.info(f"LocalFS matched {matched_files} files in {self.region}")
+        logger.debug(f"LocalFS matched {matched_files} files in {self.region}")
         return self

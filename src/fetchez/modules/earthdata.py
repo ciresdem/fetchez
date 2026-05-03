@@ -18,6 +18,7 @@ import os
 import time
 import datetime
 import logging
+from tqdm import tqdm
 from typing import Dict, Optional
 
 from fetchez import core
@@ -50,6 +51,7 @@ HARMONY_BASE_URL = "https://harmony.earthdata.nasa.gov"
     time_end="End Date (ISO 8601: 2020-02-01T00:00:00Z)",
     subset="Use Harmony API for subsetting (if supported)",
     filename_filter="Filter granules by filename pattern (wildcards supported)",
+    harmony_ping="Harmony ping query, ['status', 'pause', 'resume', 'cancel']",
 )
 class EarthData(FetchModule):
     name = "earthdata"
@@ -178,7 +180,7 @@ class EarthData(FetchModule):
         if start_t != ".." or end_t != "..":
             harmony_data["datetime"] = f"{start_t}/{end_t}"
 
-        logger.info(f"Submitting Harmony Request for {self.short_name}...")
+        logger.debug(f"Submitting Harmony Request for {self.short_name}...")
 
         req = core.Fetch(self._harmony_url, headers=self.headers).fetch_req(
             params=harmony_data, timeout=30
@@ -225,7 +227,7 @@ class EarthData(FetchModule):
         """Execute standard CMR Granule Search."""
 
         params = self.earthdata_set_config()
-        logger.info(f"Searching CMR for {self.short_name}...")
+        logger.debug(f"Searching CMR for {self.short_name}...")
 
         req = core.Fetch(self._cmr_url).fetch_req(params=params)
 
@@ -239,7 +241,7 @@ class EarthData(FetchModule):
         except Exception as e:
             logger.error(f"Error parsing CMR response: {e}")
             return
-        logger.info(f"CMR returned {len(entries)} potential granules.")
+        logger.debug(f"CMR returned {len(entries)} potential granules.")
 
         # Prepare Shapely Polygon for precise filtering
         search_geom = None
@@ -293,69 +295,72 @@ class EarthData(FetchModule):
     def _run_harmony_subset(self):
         """Execute Harmony Subset Job."""
 
+        logger.info(f"id: {self.subset_job_id}")
         if not self.subset_job_id:
             status = self.harmony_make_request()
             if status and "jobID" in status:
                 self.subset_job_id = status["jobID"]
-                logger.info(f"Harmony Job Initiated: {self.subset_job_id}")
-                logger.info(
+                logger.debug(f"Harmony Job Initiated: {self.subset_job_id}")
+                logger.debug(
                     f"Harmony status url: {HARMONY_BASE_URL}/jobs/{self.subset_job_id}"
                 )
             else:
                 return
 
         if self.subset_job_id:
-            logger.info(f"Polling Harmony Job {self.subset_job_id}...")
+            logger.debug(f"Polling Harmony Job {self.subset_job_id}...")
 
-            while True:
-                try:
-                    status = self.harmony_ping_for_status(self.subset_job_id)
-                    if not status:
-                        time.sleep(10)
-                        continue
+            with tqdm(total=100) as pbar:
+                while True:
+                    try:
+                        status = self.harmony_ping_for_status(self.subset_job_id)
+                        if not status:
+                            time.sleep(10)
+                            continue
 
-                    progress = status.get("progress", 0)
-                    state = status.get("status", "unknown")
+                        progress = status.get("progress", 0)
+                        state = status.get("status", "unknown")
 
-                    if state == "successful":
-                        logger.info("Harmony Job Successful. Processing links...")
-                        for link in status.get("links", []):
-                            href = link.get("href", "")
-                            # Only grab data files
-                            if href.endswith((".h5", ".nc", ".tif", ".tiff")):
-                                base_name = os.path.basename(href)
-                                # Clean up query params if present
-                                if "?" in base_name:
-                                    base_name = base_name.split("?")[0]
+                        if state == "successful":
+                            logger.debug("Harmony Job Successful. Processing links...")
+                            for link in status.get("links", []):
+                                href = link.get("href", "")
+                                # Only grab data files
+                                if href.endswith((".h5", ".nc", ".tif", ".tiff")):
+                                    base_name = os.path.basename(href)
+                                    # Clean up query params if present
+                                    if "?" in base_name:
+                                        base_name = base_name.split("?")[0]
 
-                                self.add_entry_to_results(
-                                    url=href,
-                                    dst_fn=base_name,
-                                    data_type=f"{self.short_name}_subset",
-                                    job_id=self.subset_job_id,
-                                )
-                        break
+                                    self.add_entry_to_results(
+                                        url=href,
+                                        dst_fn=base_name,
+                                        data_type=f"{self.short_name}_subset",
+                                        job_id=self.subset_job_id,
+                                    )
+                            break
 
-                    elif state in ["failed", "canceled"]:
-                        logger.error(
-                            f"Harmony Job {state}: {status.get('message', '')}"
-                        )
-                        break
+                        elif state in ["failed", "canceled"]:
+                            logger.error(
+                                f"Harmony Job {state}: {status.get('message', '')}"
+                            )
+                            break
 
-                    elif state == "running":
-                        logger.info(f"Harmony Job Running: {progress}%")
+                        elif state == "running":
+                            pbar.update(float(progress) - pbar.n)
+                            logger.debug(f"Harmony Job Running: {progress}%")
+                            time.sleep(15)
+                        elif state == "paused":
+                            self.harmony_ping_for_status(self.subset_job_id, "resume")
+                            time.sleep(10)
+                        else:
+                            # queued, accepted, etc.
+                            logger.debug(f"Harmony Job Status: {state}")
+                            time.sleep(10)
+
+                    except Exception as e:
+                        logger.error(f"Harmony polling failed: {e}")
                         time.sleep(15)
-                    elif state == "paused":
-                        self.harmony_ping_for_status(self.subset_job_id, "resume")
-                        time.sleep(10)
-                    else:
-                        # queued, accepted, etc.
-                        logger.info(f"Harmony Job Status: {state}")
-                        time.sleep(10)
-
-                except Exception as e:
-                    logger.error(f"Harmony polling failed: {e}")
-                    time.sleep(15)
 
     def run(self):
         """Run the EarthData fetch module."""
@@ -366,7 +371,7 @@ class EarthData(FetchModule):
                     self.subset_job_id, self.harmony_ping
                 )
                 if status:
-                    logger.info(f"Ping Status: {status.get('status')}")
+                    logger.debug(f"Ping Status: {status.get('status')}")
             return []
 
         if self.region is None:
@@ -383,7 +388,12 @@ class EarthData(FetchModule):
 # =============================================================================
 # Shortcuts
 # =============================================================================
-@cli.cli_opts(help_text="NASA IceSat2 Data (ATL03/ATL08)")
+@cli.cli_opts(
+    help_text="NASA IceSat2 Data (ATL03/ATL08)",
+    short_name="Dataset Short Name (e.g. ATL03, ATL08, MUR-JPL-L4-GLOB-v4.1)",
+    version="Dataset Version (e.g. 007)",
+    subset="Use Harmony API for subsetting (if supported)",
+)
 class IceSat2(EarthData):
     """Shortcut for IceSat2 (ATL03/ATL08) data.
 

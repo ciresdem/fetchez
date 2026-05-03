@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-structure directories
 -- 'macros' go in their parent directories
 - Use click instead of argparse for CLI
+- core.run_fetchez now returns the final list of entries for use in the api and elsewhere.
+- Update run cli to allow for inherited options for modules.
+
+## BUGFIX
+- fix bug in earthdata.icesat2 for harmony fetching.
 
 ## [0.5.5 - 2026-04-24]
 ### ADDED

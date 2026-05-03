@@ -25,6 +25,7 @@ from fetchez.registry import (
 from fetchez.spatial import parse_region
 from fetchez.utils import (
     parse_hook_string,
+    get_class_arguments,
     colorize,
     CYAN,
     GREEN,
@@ -95,7 +96,25 @@ class PipelineExecutor(FetchezMainGroup):
 
         if mod_cls:
             help_text = getattr(mod_cls, "_cli_help_text", f"Run the {name} module.")
-            mod_args = _populate_subparser(mod_cls)
+            class_args = get_class_arguments(mod_cls)
+            # mod_args = _populate_subparser(mod_cls)
+
+            mod_args = []
+            for key, val in class_args.items():
+                if key in [
+                    "self",
+                    "kwargs",
+                    "src_region",
+                    "callback",
+                    "outdir",
+                    "name",
+                    "params",
+                    "hook",
+                    "weight",
+                ]:
+                    continue
+
+                mod_args.append([f"--{key}", val["desc"], val["default"]])
 
         if bundle_yml:
             help_text = bundle_yml.get("description", "")

@@ -1004,6 +1004,8 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
         except Exception as e:
             logger.error(f'Global collection-hook "{hook.name}" failed: {e}')
 
+    return flat_results
+
 
 # =============================================================================
 # Fetch Module (Base & Default/Test Implementations)
