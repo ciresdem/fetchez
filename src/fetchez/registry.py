@@ -424,7 +424,7 @@ class ReaderRegistry(PluginRegistry):
                 return reader(src, **kwargs)
 
             _ext = src.split(".")[-1]
-            logger.debug("No reader dtype found, checking `{_ext}` in extensions")
+            logger.debug(f"No reader dtype found, checking `{_ext}` in extensions")
             reader = cls.get_reader_for_ext(_ext)
             if reader:
                 return reader(src, **kwargs)

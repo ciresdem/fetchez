@@ -67,7 +67,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
 
     handler = TqdmLoggingHandler()
 
-    formatter = logging.Formatter("[ %(levelname)s ] %(name)s: %(message)s")
+    formatter = logging.Formatter("[ %(levelname)s ] %(module)s: %(message)s")
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
