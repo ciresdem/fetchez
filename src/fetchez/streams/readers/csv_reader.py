@@ -19,7 +19,7 @@ from .. import BaseReader
 class CSVReader(BaseReader):
     name = "csvreader"
     meta_dtype = "csv"
-    meta_extensions = ["csv", "dat", "xyz", "txt"]
+    meta_extensions = ["csv"]
     meta_desc = "Read and stream CSV data as list or dict."
     meta_category = "list-stream"
 
