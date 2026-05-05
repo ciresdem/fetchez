@@ -11,7 +11,6 @@ This file holds the FetchHook super class
 :license: MIT, see LICENSE for more details.
 """
 
-
 class FetchHook:
     """Base class for all Fetchez Hooks."""
 
@@ -40,29 +39,58 @@ class FetchHook:
 
     def __eq__(self, other):
         """Hooks are 'equal' if they are the same type and have identical dicts."""
-
         if not isinstance(other, type(self)):
             return False
         return self.__dict__ == other.__dict__
 
+    # ==========================================
+    # STREAM HELPERS
+    # ==========================================
+    def has_stream(self, entry):
+        """Check if an entry contains an active data stream."""
+
+        return entry.get("stream") is not None
+
+    def get_stream_type(self, entry):
+        """Retrieve the stream type."""
+
+        return entry.get("stream_type", "")
+
+    def is_raster_stream(self, entry):
+        """Check if the current stream is a raster-stream."""
+
+        return self.has_stream(entry) and self.get_stream_type(entry) == "raster-stream"
+
+    def is_point_stream(self, entry):
+        """Check if the current stream is a point-stream."""
+
+        # Leaving xyz_recarray for backward compatibility during the transition
+        return self.has_stream(entry) and self.get_stream_type(entry) in ["point-stream", "xyz_recarray"]
+
+    def is_list_stream(self, entry):
+        """Check if the current stream is a list-stream."""
+
+        return self.has_stream(entry) and self.get_stream_type(entry) == "list-stream"
+
+    # ==========================================
+    # PIPELINE
+    # ==========================================
     def teardown(self):
         """Cleanup.
-
         Called once after all processing is complete.
         Override this to close files, finalize grids, or print summaries.
         """
 
         pass
 
-    def run(self, entry):
+    def run(self, entries):
         """Execute the hook.
 
         Args:
-            entry: For 'file' stage: [url, path, type, status]
-                   For 'manifest'/'collection': The full list of results (so far) or context.
+            entries: A list of (module, entry) tuples representing the active pipeline.
 
         Returns:
-            Modified entry (for 'file' stage pipeline) or None.
+            Modified entries list.
         """
 
-        return entry
+        return entries
