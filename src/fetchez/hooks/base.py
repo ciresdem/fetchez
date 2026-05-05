@@ -11,6 +11,7 @@ This file holds the FetchHook super class
 :license: MIT, see LICENSE for more details.
 """
 
+
 class FetchHook:
     """Base class for all Fetchez Hooks."""
 
@@ -65,7 +66,10 @@ class FetchHook:
         """Check if the current stream is a point-stream."""
 
         # Leaving xyz_recarray for backward compatibility during the transition
-        return self.has_stream(entry) and self.get_stream_type(entry) in ["point-stream", "xyz_recarray"]
+        return self.has_stream(entry) and self.get_stream_type(entry) in [
+            "point-stream",
+            "xyz_recarray",
+        ]
 
     def is_list_stream(self, entry):
         """Check if the current stream is a list-stream."""

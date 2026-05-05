@@ -64,10 +64,14 @@ class CopernicusMarineSDB(FetchModule):
             return self
 
         if not self.username or not self.password:
-            logger.error("Copernicus Marine credentials required. Pass them or set env vars.")
+            logger.error(
+                "Copernicus Marine credentials required. Pass them or set env vars."
+            )
             return self
 
-        logger.info(f"[{self.name}] Querying Copernicus Marine for {self.dataset_id}...")
+        logger.info(
+            f"[{self.name}] Querying Copernicus Marine for {self.dataset_id}..."
+        )
 
         try:
             output_folder = os.path.join(self._outdir, self.name)
