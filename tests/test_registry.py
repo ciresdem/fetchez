@@ -4,7 +4,7 @@ import os
 import ast
 import fetchez.modules
 import fetchez.hooks
-from fetchez.registry import ModuleRegistry, HookRegistry
+from fetchez.registry import ModuleRegistry, HookRegistry, ReaderRegistry, ProfileRegistry
 from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
