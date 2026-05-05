@@ -32,7 +32,7 @@ class DataStream(FetchHook):
     meta_desc = "Setup a data stream from input data."
     meta_category = "streams"
     meta_requires = "file"
-    meta_aliases = ["stream_init"]
+    meta_aliases = ["stream_init", "stream_data"]
 
     def __init__(self, stream_type=None, **kwargs):
         super().__init__(**kwargs)
@@ -57,6 +57,8 @@ class DataStream(FetchHook):
 
             kwargs_copy = self.reader_kwargs.copy()
             kwargs_copy["region"] = getattr(mod, "region", None)
+            kwargs_copy["weight"] = getattr(mod, "weight", 1.0)
+            kwargs_copy["uncertainty"] = getattr(mod, "uncertainty", 0.0)
 
             dtype = entry.get("data_type")
             hook_dtype = kwargs_copy.pop("data_type", None)
