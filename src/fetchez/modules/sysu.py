@@ -14,6 +14,7 @@ https://zenodo.org/records/17958545
 import logging
 from fetchez import cli
 from fetchez.modules import FetchModule
+from fetchez.core import CUDEM_USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,8 @@ DOWNLOAD_URL = "https://zenodo.org/records/17958545/files/SYSU_Topo_v1.0.nc"
 
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "User-Agent": CUDEM_USER_AGENT,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",

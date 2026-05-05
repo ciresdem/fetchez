@@ -58,7 +58,7 @@ Or run a full processing pipeline from a YAML recipe:
 ```bash
 fetchez recipes run recipes/my_dem_project.yaml
 ```
-xs
+
 ### Python
 
 ```python

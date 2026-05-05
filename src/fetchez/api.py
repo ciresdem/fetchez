@@ -112,25 +112,6 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
     }
 
 
-# def search(term: Optional[str] = None) -> Dict[Any, Any]:
-#     """Search available modules by tag, description, or name."""
-
-#     ModuleRegistry.load_all()
-
-#     if not term:
-#         return ModuleRegistry.get_registry()
-
-#     results = ModuleRegistry.search_modules(term)
-#     if not results:
-#         return {}
-
-#     found_results = {}
-#     for mod_key in results:
-#         meta = ModuleRegistry.get_info(mod_key)
-#         found_results.update({mod_key: meta})
-#     return found_results
-
-
 def get(
     module: str,
     region: Optional[List[float] | str] = None,

@@ -32,7 +32,9 @@ def profiles_group():
 
 
 def _print_grouped_profiles(grouped_profiles):
-    click.secho("\nAvailable Profiles by Category:", fg="cyan", bold=True)
+    click.secho(
+        "\n📜 Available Format Stream Profiles by Category:", fg="cyan", bold=True
+    )
     click.echo("=" * 60)
 
     for cat in sorted(grouped_profiles.keys()):

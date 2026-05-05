@@ -278,10 +278,10 @@ class CopernicusDEM(FetchModule):
                     self.add_entry_to_results(
                         url=link,
                         dst_fn=clean_name,
-                        data_type=dtype,
+                        data_type="raster",  # dtype,
                         resolution=res,
                         srs="epsg:4326+3855",
-                        source="Copernicus",
+                        source=f"Copernicus {dtype}",
                         info=surv.get("Info", ""),
                     )
 

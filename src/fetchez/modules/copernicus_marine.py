@@ -77,6 +77,9 @@ class CopernicusMarineSDB(FetchModule):
             output_folder = os.path.join(self._outdir, self.name)
             os.makedirs(output_folder, exist_ok=True)
 
+            out_fn = f"{self.dataset_id}_{self.region.xmin}_{self.region.ymin}_{self.region.xmax}_{self.region.ymax}.nc"
+            out_path = os.path.join(output_folder, out_fn)
+
             copernicusmarine.subset(
                 dataset_id=self.dataset_id,
                 username=self.username,
@@ -86,17 +89,16 @@ class CopernicusMarineSDB(FetchModule):
                 minimum_latitude=self.region.ymin,
                 maximum_latitude=self.region.ymax,
                 output_directory=output_folder,
-                force_download=True,
+                output_filename=out_fn,
+                # overwrite_output_data=True,
             )
 
-            for filename in os.listdir(output_folder):
-                if filename.endswith(".nc") or filename.endswith(".tif"):
-                    filepath = os.path.join(output_folder, filename)
-                    self.add_entry_to_results(
-                        url=f"copernicus_marine://{self.dataset_id}",
-                        dst_fn=filepath,
-                        data_type="netcdf" if filename.endswith(".nc") else "raster",
-                    )
+            if os.path.exists(out_path):
+                self.add_entry_to_results(
+                    url=f"copernicus_marine://{self.dataset_id}",
+                    dst_fn=out_path,
+                    data_type="copernicus_sdb",
+                )
 
         except Exception as e:
             logger.error(f"[{self.name}] Official toolkit failed: {e}")
