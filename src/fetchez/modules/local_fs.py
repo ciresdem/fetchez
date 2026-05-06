@@ -40,7 +40,7 @@ class LocalFS(FetchModule):
 
     """Local data path Datalists."""
 
-    def __init__(self, path=".", ext=".tif", datatype="raster", **kwargs):
+    def __init__(self, path=".", ext=".tif", datatype=None, **kwargs):
         super().__init__(name="local_fs", **kwargs)
         self.path = os.path.abspath(path)
         self.ext = ext if ext.startswith(".") else f".{ext}"
