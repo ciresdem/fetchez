@@ -5,6 +5,8 @@ import ast
 import fetchez.modules
 import fetchez.hooks
 from fetchez.registry import ModuleRegistry, HookRegistry
+
+# ReaderRegistry, ProfileRegistry, BundleRegistry, SchemaRegistry
 from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
@@ -62,46 +64,6 @@ def test_alias_resolution():
 
     assert primary_cls is not None
     assert primary_cls is alias_cls
-
-
-# Hooks
-def test_hook_registry_integrity():
-    """Ensure all core hooks can be loaded and have required metadata."""
-
-    HookRegistry.load_builtins()
-
-    hooks = HookRegistry.get_registry()
-    assert len(hooks) > 0
-
-    # The standard metadata fields every hook MUST provide
-    required_attrs = ["name", "meta_stage", "meta_category", "meta_desc"]
-
-    for name, meta in hooks.items():
-        # Get the actual class object, not the string name!
-        hook_cls = HookRegistry.get_class(name)
-
-        assert hook_cls is not None, (
-            f"Failed to retrieve class object for hook '{name}'"
-        )
-        assert hasattr(hook_cls, "run"), f"Hook '{name}' missing 'run' method"
-
-        for attr in required_attrs:
-            assert hasattr(hook_cls, attr), (
-                f"Hook '{name}' ({hook_cls.__name__}) is missing required attribute: '{attr}'"
-            )
-
-
-def test_hook_stage_mapping():
-    class DummyHook(FetchHook):
-        meta_stage = "collection"
-
-    # Defaults to the class meta_stage
-    hook = DummyHook()
-    assert hook.stage == "collection"
-
-    # Can be overridden by the user at runtime
-    hook_override = DummyHook(stage="manifest")
-    assert hook_override.stage == "manifest"
 
 
 def test_optional_dependencies_are_protected():
@@ -174,3 +136,54 @@ def test_optional_dependencies_are_protected():
         + "\n".join(unprotected_imports)
     )
     assert not unprotected_imports, error_msg
+
+
+# Hooks
+def test_hook_registry_integrity():
+    """Ensure all core hooks can be loaded and have required metadata."""
+
+    HookRegistry.load_builtins()
+
+    hooks = HookRegistry.get_registry()
+    assert len(hooks) > 0
+
+    # The standard metadata fields every hook MUST provide
+    required_attrs = ["name", "meta_stage", "meta_category", "meta_desc"]
+
+    for name, meta in hooks.items():
+        # Get the actual class object, not the string name!
+        hook_cls = HookRegistry.get_class(name)
+
+        assert hook_cls is not None, (
+            f"Failed to retrieve class object for hook '{name}'"
+        )
+        assert hasattr(hook_cls, "run"), f"Hook '{name}' missing 'run' method"
+
+        for attr in required_attrs:
+            assert hasattr(hook_cls, attr), (
+                f"Hook '{name}' ({hook_cls.__name__}) is missing required attribute: '{attr}'"
+            )
+
+
+def test_hook_stage_mapping():
+    class DummyHook(FetchHook):
+        meta_stage = "collection"
+
+    # Defaults to the class meta_stage
+    hook = DummyHook()
+    assert hook.stage == "collection"
+
+    # Can be overridden by the user at runtime
+    hook_override = DummyHook(stage="manifest")
+    assert hook_override.stage == "manifest"
+
+
+def test_hook_alias_resolution():
+    HookRegistry.load_builtins()
+
+    primary_cls = HookRegistry.get_class("stream-init")
+    alias_cls = HookRegistry.get_class("stream_data")
+
+    assert primary_cls is not None
+    assert alias_cls is not None
+    assert primary_cls is alias_cls

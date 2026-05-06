@@ -40,6 +40,12 @@ def hooks_group():
       2. In CLI Commands: Appended directly to data sources using the --hook switch or globally with --globl-hook.
 
     \b
+    * Hooks take a fetchez entry dictionary as input and they return a fetchez dictionary as output.
+    * Along the way, they may manipulate that entry dictionary in different ways, such as by modifying entry
+      values, creating artifacts, adding data streams, adding metadata, etc.
+    * Use `fetchez hooks info <hook-name>` to get more information about what a hook does.
+
+    \b
     CLI String Syntax (Source + Hooks):
       <source> --arg val --hook <hook_name>:arg=val,arg2=val
 
