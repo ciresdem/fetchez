@@ -403,7 +403,6 @@ class Recipe:
         logger.info(f"📄 Full processing receipt saved to: {receipt_filename}")
         logger.info("=" * 67)
 
-
     def validate(self):
         """Validates the recipe for syntax, missing plugins, dependencies, and logical errors.
         Returns:
@@ -423,7 +422,9 @@ class Recipe:
             out_file = hook_dict.get("args", {}).get("output")
             if out_file:
                 if out_file in claimed_outputs:
-                    errors.append(f"[{context_name}] Output Collision: Multiple hooks are attempting to write to '{out_file}'.")
+                    errors.append(
+                        f"[{context_name}] Output Collision: Multiple hooks are attempting to write to '{out_file}'."
+                    )
                 claimed_outputs.add(out_file)
 
         # Validate Modules
@@ -434,13 +435,18 @@ class Recipe:
 
             for key in mod_keys:
                 if key not in valid_keys:
-                    errors.append(f"Module `{mod_name}` has unexpected reference to `{key}`")
+                    errors.append(
+                        f"Module `{mod_name}` has unexpected reference to `{key}`"
+                    )
 
-            if not ModuleRegistry.get_class(mod_name) and mod_name not in ["file", "local_fs"]:
+            if not ModuleRegistry.get_class(mod_name) and mod_name not in [
+                "file",
+                "local_fs",
+            ]:
                 errors.append(f"Missing Module: '{mod_name}'")
 
             # Check Module-level Hooks
-            mod_hook_counts = {}
+            # mod_hook_counts = {}
             for hook in mod.get("hooks", []):
                 h_name = hook.get("name")
                 HookCls = HookRegistry.get_class(h_name)
@@ -453,12 +459,14 @@ class Recipe:
                 if hasattr(HookCls, "_validate_deps"):
                     passed, msg = HookCls()._validate_deps()
                     if not passed:
-                        errors.append(f"[{mod_name} -> {h_name}] Missing Dependency: {msg}")
+                        errors.append(
+                            f"[{mod_name} -> {h_name}] Missing Dependency: {msg}"
+                        )
 
                 check_output_collision(hook, f"Module: {mod_name}")
 
         # Validate Global Hooks
-        global_hook_counts = {}
+        # global_hook_counts = {}
         for hook in self.config.get("global_hooks", []):
             h_name = hook.get("name")
             HookCls = HookRegistry.get_class(h_name)

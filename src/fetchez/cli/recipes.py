@@ -157,7 +157,9 @@ def recipe_validate(name):
 
     base_config = _load_yaml(name)
     if not base_config:
-        click.secho(f"Error: Recipe '{name}' not found locally or in the registry.", fg="red")
+        click.secho(
+            f"Error: Recipe '{name}' not found locally or in the registry.", fg="red"
+        )
         sys.exit(1)
 
     click.secho(f"Validating {name}...", fg="blue")
@@ -168,7 +170,9 @@ def recipe_validate(name):
     if is_valid:
         click.secho("Recipe appears valid!", fg="green", bold=True)
     else:
-        click.secho(f"\n[ VALIDATION FAILED WITH {len(errors)} ERRORS ]", fg="red", bold=True)
+        click.secho(
+            f"\n[ VALIDATION FAILED WITH {len(errors)} ERRORS ]", fg="red", bold=True
+        )
         for error in errors:
             click.echo(f"  {error}")
         click.echo("\nPlease modify the recipe and try again.\n")
