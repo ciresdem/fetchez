@@ -451,7 +451,7 @@ class Recipe:
 
                 # Dependency Check
                 if hasattr(HookCls, "_validate_deps"):
-                    passed, msg = HookCls._validate_deps()
+                    passed, msg = HookCls()._validate_deps()
                     if not passed:
                         errors.append(f"[{mod_name} -> {h_name}] Missing Dependency: {msg}")
 
@@ -469,7 +469,7 @@ class Recipe:
 
             # Dependency Check
             if hasattr(HookCls, "_validate_deps"):
-                passed, msg = HookCls._validate_deps()
+                passed, msg = HookCls()._validate_deps()
                 if not passed:
                     errors.append(f"[Global -> {h_name}] Missing Dependency: {msg}")
 
