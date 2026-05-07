@@ -932,7 +932,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                                 )
                                 collections.deque(stream, maxlen=0)
                             except Exception as e:
-                                logger.error(
+                                logger.exception(
                                     f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
                                 )
 
