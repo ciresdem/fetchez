@@ -405,9 +405,10 @@ class Recipe:
 
     def validate(self):
         """Validates the recipe for syntax, missing plugins, dependencies, and logical errors.
+
         Returns:
-            bool: True if valid, False if errors exist.
-            list: List of error messages.
+          bool: True if valid, False if errors exist.
+          list: List of error messages.
         """
 
         ModuleRegistry.load_all()
