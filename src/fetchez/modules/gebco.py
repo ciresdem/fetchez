@@ -13,7 +13,6 @@ or full global downloads from BODC.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import math
 import logging
 import urllib.parse
@@ -35,6 +34,7 @@ GEBCO_DAP_URLS = {
     "sub_ice": "https://dap.ceda.ac.uk/thredds/dodsC/bodc/gebco/global/gebco_2026/sub_ice_topo/netcdf/GEBCO_2026_sub_ice_topo.nc",
 }
 
+
 class GEBCO(FetchModule):
     """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS.
     Requires ZERO external dependencies (No GDAL required).
@@ -51,11 +51,23 @@ class GEBCO(FetchModule):
         self.include_tid = str(include_tid).lower() in ["true", "1", "yes"]
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [-180, 180, -90, 90]:
-            logger.error("You must provide a strict bounding region (-R) to use the NCSS subsetter!")
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the NCSS subsetter!"
+            )
             return
 
-        w, e, s, n = self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
 
         base_query = {
             "north": n,
@@ -64,7 +76,7 @@ class GEBCO(FetchModule):
             "east": e,
             "horizStride": 1,
             "addLatLon": "true",
-            "accept": "netcdf"
+            "accept": "netcdf",
         }
 
         grid_base = GEBCO_NCSS_URLS.get(self.layer, GEBCO_NCSS_URLS["grid"])
@@ -103,11 +115,23 @@ class GEBCO_OpenDAP(FetchModule):
         self.include_tid = str(include_tid).lower() in ["true", "1", "yes"]
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [-180, 180, -90, 90]:
-            logger.error("You must provide a strict bounding region (-R) to use the OpenDAP subsetter!")
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the OpenDAP subsetter!"
+            )
             return
 
-        w, e, s, n = self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
 
         # GEBCO is 15 arc-seconds (240 pixels per degree)
         # Grid Extents: -180 to 180 (X), -90 to 90 (Y)
@@ -122,7 +146,9 @@ class GEBCO_OpenDAP(FetchModule):
         grid_base = GEBCO_DAP_URLS.get(self.layer, GEBCO_DAP_URLS["grid"])
         z_var = "elevation"
 
-        grid_query = f"?{z_var}[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+        grid_query = (
+            f"?{z_var}[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+        )
         # grid_query = f"?{z_var}[0:1:0][0:1:0],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
         grid_url = f"{grid_base}.dods{grid_query}"
 
@@ -132,7 +158,9 @@ class GEBCO_OpenDAP(FetchModule):
 
         if self.include_tid:
             tid_base = GEBCO_DAP_URLS["tid"]
-            tid_query = f"?tid[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+            tid_query = (
+                f"?tid[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+            )
             tid_url = f"{tid_base}.nc{tid_query}"
             tid_fn = f"gebco_2026_tid_{w}_{e}_{s}_{n}.nc"
             self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="netcdf")
