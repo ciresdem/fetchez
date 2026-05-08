@@ -468,7 +468,7 @@ class Fetch:
                     return req
 
             except Exception as e:
-                logger.warning(f"Attempt {attempt + 1}/{tries} failed: {e}")
+                logger.debug(f"Attempt {attempt + 1}/{tries} failed: {e}")
                 if current_timeout:
                     current_timeout *= 2
                 if current_read_timeout:
@@ -610,7 +610,7 @@ class Fetch:
                     if req.status_code == 416:
                         # Range No Good: Local file is likely corrupt.
                         # Delete .part and retry from scratch (next loop iteration)
-                        logger.warning(
+                        logger.debug(
                             f"Invalid Range for {os.path.basename(dst_fn)}. Restarting..."
                         )
                         if os.path.exists(part_fn):
@@ -704,7 +704,7 @@ class Fetch:
             ) as e:
                 if attempt < tries - 1:
                     wait_time = (attempt + 1) * 2
-                    logger.warning(f"Download failed: {e}. Retrying in {wait_time}s...")
+                    logger.debug(f"Download failed: {e}. Retrying in {wait_time}s...")
                     time.sleep(wait_time)
                 else:
                     logger.warning(f"Failed to download {self.url}: {e}")
@@ -888,7 +888,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                         original_entry.update({"status": status})
                         if status != 0:
                             logger.error(
-                                f"Failed: {os.path.basename(original_entry['dst_fn'])}"
+                                f"Failed to fetch: {os.path.basename(original_entry['dst_fn'])}"
                             )
                     except Exception as e:
                         logger.error(f"Worker exception: {e}")
@@ -932,7 +932,7 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                                 )
                                 collections.deque(stream, maxlen=0)
                             except Exception as e:
-                                logger.error(
+                                logger.exception(
                                     f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
                                 )
 

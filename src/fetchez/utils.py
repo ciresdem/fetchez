@@ -323,6 +323,7 @@ def fn_url_p(fn):
 
 def inc2str(inc):
     """Convert a WGS84 geographic increment to a string identifier."""
+
     import fractions
 
     return str(fractions.Fraction(str(inc * 3600)).limit_denominator(10)).replace(

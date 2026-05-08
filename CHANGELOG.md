@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.2 - 20260-04-30]
+## [0.6.3 - 2026-05-07]
+### CHANGED
+- Update gebco fetchez module to fetch new 2026 grid, and allow subsetting!
+- Moved recipe validation from cli to fetchez.recipe
+- Updated verbosity in fetchez.core
+
+
+## [0.6.2 - 2026-04-30]
 ### ADDED
 - ProfileRegistry - streams
 - ReaderRegistry - streams
@@ -21,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - core.run_fetchez now returns the final list of entries for use in the api and elsewhere.
 - Update run cli to allow for inherited options for modules.
 
-## BUGFIX
+### BUGFIX
 - fix bug in earthdata.icesat2 for harmony fetching.
 
 ## [0.5.5 - 2026-04-24]

@@ -23,39 +23,6 @@ from .schemas import schemas_group
 RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run", "schemas"]
 
 
-def validate_dependencies(recipe_obj):
-    """Interrogates all modules and hooks to ensure heavy dependencies exist."""
-
-    errors = []
-
-    # Check all global hooks
-    for hook in getattr(recipe_obj, "global_hooks", []):
-        if hasattr(hook, "_validate_deps"):
-            passed, msg = hook._validate_deps()
-            if not passed:
-                errors.append(f"[{hook.name}] {msg}")
-
-    # Check all streaming hooks inside the modules
-    for mod in getattr(recipe_obj, "modules", []):
-        for hook in getattr(mod, "hooks", []):
-            if hasattr(hook, "_validate_deps"):
-                passed, msg = hook._validate_deps()
-                if not passed:
-                    errors.append(f"[{mod.name} -> {hook.name}] {msg}")
-
-    if errors:
-        click.secho("\n[ DEPENDENCY VALIDATION CHECK FAILED ]", fg="red", bold=True)
-        click.secho(
-            "The following dependencies are missing for this recipe:", fg="yellow"
-        )
-        for error in errors:
-            click.echo(f"   {error}")
-        click.echo(
-            "\nPlease install the required packages or modify the recipe and try again.\n"
-        )
-        sys.exit(1)
-
-
 def _load_yaml(target):
     base_config = None
     if os.path.exists(target) and not os.path.isdir(target):
@@ -186,12 +153,7 @@ def copy_recipe(name):
 @recipes_group.command("validate", cls=FetchezMainCommand)
 @click.argument("name")
 def recipe_validate(name):
-    """Check a recipe for syntax errors and missing modules/hooks."""
-
-    from fetchez.registry import ModuleRegistry, HookRegistry
-
-    ModuleRegistry.load_all()
-    HookRegistry.load_all()
+    """Check a recipe for syntax errors, logical issues, and missing dependencies."""
 
     base_config = _load_yaml(name)
     if not base_config:
@@ -200,57 +162,20 @@ def recipe_validate(name):
         )
         sys.exit(1)
 
-    errors = 0
     click.secho(f"Validating {name}...", fg="blue")
 
-    validate_dependencies(base_config)
+    recipe_obj = Recipe.from_dict(base_config)
+    is_valid, errors = recipe_obj.validate()
 
-    for mod in base_config.get("modules", []):
-        mod_name = mod.get("module")
-        mod_keys = mod.keys()
-        valid_keys = ["module", "hooks", "args"]
-
-        for key in mod_keys:
-            if key not in valid_keys:
-                click.secho(
-                    f"  Module `{mod_name}` has unexpected reference to `{key}`",
-                    fg="red",
-                )
-                errors += 1
-
-        if not ModuleRegistry.get_class(mod_name) and mod_name not in [
-            "file",
-            "local_fs",
-        ]:
-            click.secho(f"  Missing Module: '{mod_name}'", fg="red")
-            errors += 1
-        else:
-            click.secho(f"  Valid Module: '{mod_name}'", fg="green")
-
-        for hook in mod.get("hooks", []):
-            if not HookRegistry.get_class(hook.get("name")):
-                click.secho(
-                    f"  Missing Hook: '{hook.get('name')}' (in module {mod_name})",
-                    fg="red",
-                )
-                errors += 1
-            else:
-                click.secho(
-                    f"  Valid Hook: '{hook.get('name')}' (in module {mod_name})",
-                    fg="green",
-                )
-
-    for hook in base_config.get("global_hooks", []):
-        if not HookRegistry.get_class(hook.get("name")):
-            click.secho(f"  Missing Global Hook: '{hook.get('name')}'", fg="red")
-            errors += 1
-        else:
-            click.secho(f"  Valid Hook: '{hook.get('name')}'", fg="green")
-
-    if errors == 0:
+    if is_valid:
         click.secho("Recipe appears valid!", fg="green", bold=True)
     else:
-        click.secho(f"Failed validation with {errors} errors.", fg="red", bold=True)
+        click.secho(
+            f"\n[ VALIDATION FAILED WITH {len(errors)} ERRORS ]", fg="red", bold=True
+        )
+        for error in errors:
+            click.echo(f"  {error}")
+        click.echo("\nPlease modify the recipe and try again.\n")
         sys.exit(1)
 
 

@@ -58,6 +58,9 @@ class Sidecar(FetchHook):
             try:
                 with open(meta_fn, "w") as f:
                     json.dump(meta_data, f, indent=2)
+
+                # Add sidecar as an artifact to the entry
+                entry.setdefault("artifacts", {})[self.name] = meta_fn
             except Exception as e:
                 logger.warning(f"Failed to write sidecar for {filepath}: {e}")
 
