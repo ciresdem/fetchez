@@ -432,7 +432,7 @@ class Recipe:
         for mod in self.config.get("modules", []):
             mod_name = mod.get("module")
             mod_keys = mod.keys()
-            valid_keys = ["module", "bundle", "hooks", "args", "region"]
+            valid_keys = ["module", "bundle", "hooks", "args", "region", "description", "_comment"]
 
             for key in mod_keys:
                 if key not in valid_keys:

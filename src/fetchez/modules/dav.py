@@ -33,7 +33,7 @@ try:
     HAS_FIONA = True
 except ImportError:
     HAS_FIONA = False
-# # Lightweight Geospatial Dependencies
+# Lightweight Geospatial Dependencies
 # try:
 #     import shapefile  # pip install pyshp
 #     from pyproj import CRS, Transformer
@@ -261,6 +261,7 @@ class DAV(FetchModule):
                         props_lower.get("name")
                         or props_lower.get("location")
                         or props_lower.get("tile_name")
+                        or props_lower.get("filename")
                     )
                     tile_url = (
                         props_lower.get("url")
