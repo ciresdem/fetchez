@@ -57,8 +57,6 @@ class GEBCO(FetchModule):
 
         w, e, s, n = self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax
 
-        # 1. Formulate the NCSS Bounding Box Query
-        # THREDDS does all the array indexing for us!
         base_query = {
             "north": n,
             "south": s,
@@ -69,19 +67,15 @@ class GEBCO(FetchModule):
             "accept": "netcdf"
         }
 
-        # 2. Fetch the Elevation Grid
         grid_base = GEBCO_NCSS_URLS.get(self.layer, GEBCO_NCSS_URLS["grid"])
         grid_query = base_query.copy()
         grid_query["var"] = "elevation"
 
-        # Safely URL-encode the parameters
         grid_url = f"{grid_base}?{urllib.parse.urlencode(grid_query)}"
         grid_fn = f"gebco_2026_{self.layer}_{w}_{e}_{s}_{n}.nc"
 
-        # Hand to Fetchez's standard async HTTP downloader
         self.add_entry_to_results(url=grid_url, dst_fn=grid_fn, data_type="netcdf")
 
-        # 3. Fetch the TID Mask
         if self.include_tid:
             tid_base = GEBCO_NCSS_URLS["tid"]
             tid_query = base_query.copy()
@@ -124,12 +118,8 @@ class GEBCO_OpenDAP(FetchModule):
         y1 = max(0, int(math.floor((s + 90) * 240)))
         y2 = min(43200, int(math.ceil((n + 90) * 240)))
 
-        # 2. Formulate the HTTP NetCDF Request
-        # By appending .nc to the URL, THREDDS returns a physical file!
         # Query format: ?variable[y1:1:y2][x1:1:x2],lat[y1:1:y2],lon[x1:1:x2]
-
         grid_base = GEBCO_DAP_URLS.get(self.layer, GEBCO_DAP_URLS["grid"])
-        # Standard GEBCO var is 'elevation', Sub-ice is also 'elevation'
         z_var = "elevation"
 
         grid_query = f"?{z_var}[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
@@ -138,15 +128,11 @@ class GEBCO_OpenDAP(FetchModule):
 
         grid_fn = f"gebco_2026_{self.layer}_{w}_{e}_{s}_{n}.nc"
 
-        # Hand the URL straight to Fetchez's standard async HTTP downloader!
         self.add_entry_to_results(url=grid_url, dst_fn=grid_fn, data_type="netcdf")
 
-        # 3. Handle the TID Mask seamlessly
         if self.include_tid:
             tid_base = GEBCO_DAP_URLS["tid"]
-
             tid_query = f"?tid[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
             tid_url = f"{tid_base}.nc{tid_query}"
-
             tid_fn = f"gebco_2026_tid_{w}_{e}_{s}_{n}.nc"
             self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="netcdf")
