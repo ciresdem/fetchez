@@ -21,6 +21,12 @@ from fetchez.modules import FetchModule
 logger = logging.getLogger(__name__)
 
 # Base NCSS endpoints for GEBCO 2026
+GEBCO_WCS_URLS = {
+    "grid": "https://dap.ceda.ac.uk/thredds/wcs/bodc/gebco/global/gebco_2026/ice_surface_elevation/netcdf/GEBCO_2026.nc",
+    "tid": "https://dap.ceda.ac.uk/thredds/wcs/bodc/gebco/global/gebco_2026/type_identifier_grid/netcdf/gebco_2026_tid.nc",
+    "sub_ice": "https://dap.ceda.ac.uk/thredds/wcs/bodc/gebco/global/gebco_2026/sub_ice_topo/netcdf/GEBCO_2026_sub_ice_topo.nc",
+}
+
 GEBCO_NCSS_URLS = {
     "grid": "https://dap.ceda.ac.uk/thredds/ncss/bodc/gebco/global/gebco_2026/ice_surface_elevation/netcdf/GEBCO_2026.nc",
     "tid": "https://dap.ceda.ac.uk/thredds/ncss/bodc/gebco/global/gebco_2026/type_identifier_grid/netcdf/gebco_2026_tid.nc",
@@ -76,12 +82,84 @@ class GEBCO(FetchModule):
         )
 
         base_query = {
+            "request": "GetCoverage",
+            "version": "1.0.0",
+            "service": "WCS",
+            "coverage": "elevation",
+            "bbox": self.region.format("bbox"),
+            "format": "geotiff_float",
+        }
+
+        grid_base = GEBCO_WCS_URLS.get(self.layer, GEBCO_WCS_URLS["grid"])
+        grid_query = base_query.copy()
+        grid_query["coverage"] = "elevation"
+
+        # grid_url = f"{grid_base}?{urllib.parse.urlencode(grid_query)}"
+        grid_fn = f"gebco_2026_{self.layer}_{w}_{e}_{s}_{n}.tif"
+
+        query_string = urllib.parse.urlencode(base_query)
+        grid_url = f"{grid_base}?{query_string}"
+
+        self.add_entry_to_results(url=grid_url, dst_fn=grid_fn, data_type="netcdf")
+
+        if self.include_tid:
+            tid_base = GEBCO_WCS_URLS["tid"]
+            tid_query = base_query.copy()
+            tid_query["coverage"] = "tid"
+
+            tid_url = f"{tid_base}?{urllib.parse.urlencode(tid_query)}"
+            tid_fn = f"gebco_2026_tid_{w}_{e}_{s}_{n}.tif"
+
+            self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="rio")
+
+
+class GEBCO_NCSS(FetchModule):
+    """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS.
+    Requires ZERO external dependencies (No GDAL required).
+    Downloads true, mathematically cropped .nc files!
+    """
+
+    name = "gebco_ncss"
+    meta_category = "Bathymetry"
+    meta_desc = "General Bathymetric Chart of the Oceans (GEBCO)"
+    meta_agency = "GEBCO / IHO / IOC"
+    meta_tags = ["gebco", "bathymetry", "global", "wcs", "tid"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain / Attribution"
+    meta_urls = {"home": "https://www.gebco.net/"}
+
+    def __init__(self, layer="grid", include_tid=False, **kwargs):
+        super().__init__(name="gebco_opendap", **kwargs)
+        self.layer = layer.lower()
+        self.include_tid = str(include_tid).lower() in ["true", "1", "yes"]
+
+    def run(self):
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the NCSS subsetter!"
+            )
+            return
+
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
+
+        base_query = {
             "north": n,
             "south": s,
             "west": w,
             "east": e,
-            "horizStride": 1,
-            "addLatLon": "true",
+            # "horizStride": 1,
+            # "addLatLon": "true",
             "accept": "netcdf",
         }
 
