@@ -43,7 +43,13 @@ class GEBCO(FetchModule):
 
     name = "gebco"
     meta_category = "Bathymetry"
-    meta_desc = "GEBCO 2026 via NCSS Bounding Box Subsetting"
+    meta_desc = "General Bathymetric Chart of the Oceans (GEBCO)"
+    meta_agency = "GEBCO / IHO / IOC"
+    meta_tags = ["gebco", "bathymetry", "global", "wcs", "tid"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain / Attribution"
+    meta_urls = {"home": "https://www.gebco.net/"}
 
     def __init__(self, layer="grid", include_tid=False, **kwargs):
         super().__init__(name="gebco_opendap", **kwargs)
@@ -107,6 +113,12 @@ class GEBCO_OpenDAP(FetchModule):
     name = "gebco_opendap"
     meta_category = "Bathymetry"
     meta_desc = "GEBCO 2026 via OpenDAP Array Subsetting"
+    meta_agency = "GEBCO / IHO / IOC"
+    meta_tags = ["gebco", "bathymetry", "global", "wcs", "tid"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain / Attribution"
+    meta_urls = {"home": "https://www.gebco.net/"}
 
     def __init__(self, layer="grid", include_tid=False, **kwargs):
         super().__init__(name="gebco_opendap", **kwargs)
