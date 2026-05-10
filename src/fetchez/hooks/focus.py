@@ -32,7 +32,7 @@ class FocusSink(FetchHook):
 
     name = "focus-sink"
     meta_desc = "Focus the pipeline to an 'artifact'"
-    meta_stage = "post"
+    meta_stage = "collection"  # post
     meta_category = "pipeline"
     meta_aliases = ["focus_sink"]
 
