@@ -22,7 +22,7 @@ class SetDataType(FetchHook):
 
     Useful for mapping generic files to specific parser profiles.
 
-    Usage: --hook set_datatype:type=nos_legacy_xyz
+    Usage: --hook set_datatype:data_type=nos_legacy_xyz
     """
 
     name = "set-datatype"

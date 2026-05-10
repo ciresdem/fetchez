@@ -154,7 +154,7 @@ class FetchezMainGroup(click.Group):
                 cat_cmds = [
                     (
                         f"{colorize(colorize(name, CYAN), BOLD):<30}",
-                        cmd.get_short_help_str(limit=80),
+                        cmd.get_short_help_str(),  # limit=80
                     )
                     for name, cmd in commands
                     if name in cmd_names
@@ -556,6 +556,7 @@ def parse_hook_string(hook_str, default_name=None):
 
 def parse_source_string(source_str, default_hooks=None):
     """Parses a source string into a Fetchez module dictionary.
+
     Supports local file auto-detection and chaining hooks via '+'.
     Safely ignores '+' delimiters when they are wrapped in double quotes.
     """
@@ -565,7 +566,7 @@ def parse_source_string(source_str, default_hooks=None):
     mod_part = parts[0]
     hook_parts = parts[1:]
 
-    # Re-use the quote-aware logic from parse_hook_string for the module part
+    # Parse the hook strng
     mod_parsed = parse_hook_string(mod_part)
     mod_name = mod_parsed["name"]
     args = mod_parsed.get("args", {})

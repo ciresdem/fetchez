@@ -96,7 +96,7 @@ class CDSE(FetchModule):
         # Initial Authentication
         self.access_token = self.refresh_token()
 
-        self.headers["User-Agent"] =  CUDEM_USER_AGENT
+        self.headers["User-Agent"] = CUDEM_USER_AGENT
 
     @property
     def headers(self):
