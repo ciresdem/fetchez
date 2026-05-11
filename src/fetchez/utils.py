@@ -607,14 +607,18 @@ def compile_sources(sources):
             partial_recipe = BundleRegistry.get_yaml(str(src))
             if "modules" in partial_recipe:
                 compiled_modules.extend(partial_recipe["modules"])
-                logger.debug(f"Imported {len(partial_recipe['modules'])} modules from {src}")
+                logger.debug(
+                    f"Imported {len(partial_recipe['modules'])} modules from {src}"
+                )
         elif str(src).lower().endswith((".yaml", ".yml")) and os.path.exists(src):
             try:
                 with open(src, "r") as f:
                     partial_recipe = yaml.safe_load(f)
                     if "modules" in partial_recipe:
                         compiled_modules.extend(partial_recipe["modules"])
-                        logger.debug(f"Imported {len(partial_recipe['modules'])} modules from {src}")
+                        logger.debug(
+                            f"Imported {len(partial_recipe['modules'])} modules from {src}"
+                        )
             except Exception as e:
                 logger.debug(f"Failed to read modules from {src}: {e}")
                 continue
