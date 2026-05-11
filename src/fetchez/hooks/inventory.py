@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Inventory(FetchHook):
     name = "inventory"
     meta_desc = "Output a metadata inventory (JSON/CSV)"
-    meta_stage = "pre"
+    meta_stage = "manifest"  # pre
     meta_category = "metadata"
 
     def __init__(self, output="inventory.json", out_format="json", **kwargs):

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class DryRun(FetchHook):
     name = "dryrun"
     meta_desc = "Clear the download queue (simulate only)."
-    meta_stage = "pre"
+    meta_stage = "manifest"  # pre
     meta_category = "pipeline"
 
     def run(self, entries):

@@ -28,7 +28,7 @@ class FilenameFilter(FetchHook):
     meta_desc = "Filter results by filename. Usage: --hook fn_filter:match=.tif"
     meta_stage = "file"
     meta_category = "pipeline"
-    meta_aliases = ["filename_filter"]
+    meta_aliases = ["filename_filter", "fn_filter"]
 
     def __init__(self, match=None, exclude=None, regex=False, **kwargs):
         """

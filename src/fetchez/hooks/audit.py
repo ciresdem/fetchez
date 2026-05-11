@@ -28,7 +28,7 @@ class Audit(FetchHook):
 
     name = "audit"
     meta_desc = "Save a run summary of fetch entries to disk."
-    meta_stage = "post"
+    meta_stage = "collection"
     meta_category = "metadata"
 
     def __init__(self, output="audit.json", out_format="json", **kwargs):

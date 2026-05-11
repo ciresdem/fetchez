@@ -30,7 +30,7 @@ class Flatten(FetchHook):
 
     name = "flatten"
     meta_desc = "Flatten the output directory structure."
-    meta_stage = "pre"
+    meta_stage = "manifest"  # pre
     meta_category = "file-op"
 
     def __init__(self, mode="module", **kwargs):

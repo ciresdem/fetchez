@@ -65,12 +65,13 @@ def _print_grouped_hooks(grouped_hooks):
         click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
         for name, meta in sorted(grouped_hooks[cat], key=lambda x: x[0]):
             provider = meta.get("mod", "").split(".")[0]
+            stage = meta.get("stage")
             if "fetchez_user_hooks" in provider:
                 provider = "user"
             desc = meta.get("desc", "No description provided.")
 
             name_padded = f"{name:<16}"
-            provider_padded = f"[{provider:^9}]"
+            provider_padded = f"[{stage:^9}]"
 
             click.echo(
                 f"  {click.style(name_padded, bold=True, fg='green')} {click.style(provider_padded, fg='blue')} : {desc}"

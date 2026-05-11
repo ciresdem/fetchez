@@ -23,7 +23,7 @@ class TransferLog(FetchHook):
 
     name = "transfer-log"
     meta_desc = "Generates a clear report of download successes and failures."
-    meta_stage = "post"
+    meta_stage = "collection"  # post
     meta_category = "metadata"
     meta_aliases = ["transfer_log"]
 
