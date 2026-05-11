@@ -45,14 +45,14 @@ class DataStream(FetchHook):
 
         for mod, entry in entries:
             if entry.get("stream"):
-                logger.warning(
+                logger.debug(
                     f"Entry {entry} already has an attached {entry.get('stream_type')} stream..."
                 )
                 continue
 
             src = entry.get("dst_fn")
             if not src:
-                logger.warning(f"There is nothing to stream here, {entry}.")
+                logger.debug(f"There is nothing to stream here, {entry}.")
                 continue
 
             kwargs_copy = self.reader_kwargs.copy()

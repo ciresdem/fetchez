@@ -594,6 +594,38 @@ def parse_source_string(source_str, default_hooks=None):
     return mod_dict
 
 
+def compile_sources(sources):
+
+    import yaml
+    from fetchez.registry import BundleRegistry
+
+    BundleRegistry.load_all()
+
+    compiled_modules = []
+    for src in sources:
+        if str(src) in BundleRegistry.get_registry().keys():
+            partial_recipe = BundleRegistry.get_yaml(str(src))
+            if "modules" in partial_recipe:
+                compiled_modules.extend(partial_recipe["modules"])
+                logger.debug(f"Imported {len(partial_recipe['modules'])} modules from {src}")
+        elif str(src).lower().endswith((".yaml", ".yml")) and os.path.exists(src):
+            try:
+                with open(src, "r") as f:
+                    partial_recipe = yaml.safe_load(f)
+                    if "modules" in partial_recipe:
+                        compiled_modules.extend(partial_recipe["modules"])
+                        logger.debug(f"Imported {len(partial_recipe['modules'])} modules from {src}")
+            except Exception as e:
+                logger.debug(f"Failed to read modules from {src}: {e}")
+                continue
+        elif src == "-":
+            continue  # TODO: add stdin support
+        else:
+            compiled_modules.append(parse_source_string(src))
+
+    return compiled_modules
+
+
 def parse_hook_string_(h_str):
     """Helper to parse 'hook:arg=val' strings."""
 
