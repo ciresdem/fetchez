@@ -44,7 +44,7 @@ def _load_yaml(target):
     fetchez_commands=RECIPE_COMMANDS,
 )
 def recipes_group():
-    """Discover, inspect, and copy complete pipeline workflows."""
+    """Execute, Discover, inspect, and copy complete pipeline workflows."""
 
     pass
 
