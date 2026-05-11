@@ -860,8 +860,8 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
         f"Starting parallel fetch: {total_files} files with {threads} threads."
     )
     final_results_with_owner = []
-
     active_hooks_full = []
+
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
             futures = {
@@ -919,19 +919,17 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
 
                     active_stream_hooks = utils.merge_hooks(ls_hooks, gs_hooks)
                     active_hooks_full.append(active_stream_hooks)
-
                     if active_stream_hooks:
                         # If stream hooks exist but no stream is active.
                         has_stream = any(
                             item.get("stream") is not None
                             for _, item in current_entries
                         )
-
                         if not has_stream:
                             try:
                                 from fetchez.registry import HookRegistry
 
-                                HookRegistry.load_builtin()
+                                HookRegistry.load_builtins()
                                 # Dynamically fetch the default initiator
                                 init_hook_cls = HookRegistry.get_class("stream-init")
                                 if init_hook_cls:
