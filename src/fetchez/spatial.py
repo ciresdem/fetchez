@@ -561,7 +561,6 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
             #         minx, maxx = min(xs), max(xs)
             #         miny, maxy = min(ys), max(ys)
 
-
     except Exception as e:
         logger.warning(f"Failed to parse vector bounds from {fn}: {e}")
 
