@@ -42,6 +42,7 @@ def _populate_subparser(module_cls):
         return []
 
     sig = inspect.signature(module_cls.__init__)
+
     arg_help = getattr(module_cls, "_cli_arg_help", {})
     params = []
 
@@ -267,5 +268,4 @@ def process_pipeline(commands, region, export, global_hook, schema, threads):
         click.secho(f"Pipeline recipe exported to {export}", fg="green", bold=True)
     else:
         click.secho("Executing dynamic pipeline...", fg="cyan", bold=True, err=True)
-        # Because config perfectly matches the YAML schema, the Recipe engine can just run it!
         Recipe.from_dict(config).run()

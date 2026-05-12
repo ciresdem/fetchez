@@ -30,7 +30,7 @@ class Rename(FetchHook):
 
     name = "rename"
     meta_desc = "Rename files using regex"
-    meta_stage = "pre"
+    meta_stage = "manifest"  # pre
     meta_category = "file-op"
 
     def __init__(self, match=None, replace="", **kwargs):

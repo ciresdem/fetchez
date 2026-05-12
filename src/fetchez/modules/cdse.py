@@ -24,6 +24,8 @@ from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
+from fetchez.core import CUDEM_USER_AGENT
+
 logger = logging.getLogger(__name__)
 
 CDSE_CATALOGUE_URL = "https://catalogue.dataspace.copernicus.eu/odata/v1"
@@ -61,7 +63,7 @@ class CDSE(FetchModule):
     def __init__(
         self,
         collection_name="SENTINEL-2",
-        product_type="S2MSI2A",
+        product_type="S2MSI1C",
         cloud_cover=None,
         start_date="",
         end_date="",
@@ -93,6 +95,8 @@ class CDSE(FetchModule):
 
         # Initial Authentication
         self.access_token = self.refresh_token()
+
+        self.headers["User-Agent"] = CUDEM_USER_AGENT
 
     @property
     def headers(self):
@@ -293,5 +297,9 @@ class CDSE(FetchModule):
 class Sentinel2_CDSE(CDSE):
     """Convenience alias for the CDSE Module defaulted to Sentinel-2."""
 
+    name = "sentinel2_cdse"
+
     def __init__(self, **kwargs):
+        kwargs.pop("collection_name")
+        kwargs.pop("product_type")
         super().__init__(collection_name="SENTINEL-2", product_type="S2MSI1C", **kwargs)

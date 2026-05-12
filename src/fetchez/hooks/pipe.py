@@ -26,7 +26,7 @@ PRINT_LOCK = threading.Lock()
 class PipeOutput(FetchHook):
     name = "pipe"
     meta_desc = "Print absolute file paths to stdout for piping."
-    meta_stage = "post"
+    meta_stage = "collection"  # post
     meta_category = "pipeline"
 
     def run(self, entries):

@@ -542,6 +542,12 @@ class BundleRegistry(YamlRegistry):
     entry_point_group = "fetchez.modules.bundles"
     user_folder = "modules/bundles"
 
+    @classmethod
+    def expand_bundle(cls, name):
+        bundle_def = cls.get_yaml(name)
+        if bundle_def:
+            return bundle_def.get("modules")
+
 
 # Profiles extend Streams
 class ProfileRegistry(YamlRegistry):

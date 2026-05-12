@@ -6,6 +6,7 @@ fetchez.core
 ~~~~~~~~~~~~~
 
 This module is the core of the Fetchez library.
+
 It handles the initialization of fetchers, connection pooling,
 threading, and the base FetchModule class.
 
@@ -859,8 +860,8 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
         f"Starting parallel fetch: {total_files} files with {threads} threads."
     )
     final_results_with_owner = []
-
     active_hooks_full = []
+
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
             futures = {
@@ -898,27 +899,62 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                     gf_hooks = [h for h in global_hooks if h.stage == "file"]
                     lf_hooks = [h for h in mod.hooks if h.stage == "file"]
 
-                    # active_hooks = utils.merge_hooks(gf_hooks, lf_hooks)
-                    active_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
-                    # active_hooks = lf_hooks + gf_hooks
-                    active_hooks_full.append(active_hooks)
+                    active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
+                    active_hooks_full.append(active_file_hooks)
 
                     current_entries = [(mod, original_entry)]
 
-                    for hook in active_hooks:
+                    for hook in active_file_hooks:
                         try:
-                            # Hook runs on current entry list
                             current_entries = hook.run(current_entries)
                             if current_entries is None:
                                 current_entries = []
-
                             utils._log_hook_history(current_entries, hook)
                         except Exception as e:
-                            logger.error(f'File hook "{hook.name}" failed: {e}')
+                            logger.exception(f'File hook "{hook.name}" failed: {e}')
 
-                    # --- STREAM ---
-                    # If any hook set up a generator stream (e.g. SimpleStack, Filters),
-                    # we must exhaust it here to trigger the processing.
+                    # --- Stream Hooks ---
+                    gs_hooks = [h for h in global_hooks if h.stage == "stream"]
+                    ls_hooks = [h for h in mod.hooks if h.stage == "stream"]
+
+                    active_stream_hooks = utils.merge_hooks(ls_hooks, gs_hooks)
+                    active_hooks_full.append(active_stream_hooks)
+                    if active_stream_hooks:
+                        # If stream hooks exist but no stream is active.
+                        has_stream = any(
+                            item.get("stream") is not None
+                            for _, item in current_entries
+                        )
+                        if not has_stream:
+                            try:
+                                from fetchez.registry import HookRegistry
+
+                                HookRegistry.load_builtins()
+                                # Dynamically fetch the default initiator
+                                init_hook_cls = HookRegistry.get_class("stream-init")
+                                if init_hook_cls:
+                                    logger.debug(
+                                        f"Auto-initializing stream for {mod.name}"
+                                    )
+                                    current_entries = init_hook_cls().run(
+                                        current_entries
+                                    )
+                            except Exception as e:
+                                logger.warning(f"Could not auto-initialize stream: {e}")
+
+                        # Run the stream transforms
+                        for hook in active_stream_hooks:
+                            try:
+                                current_entries = hook.run(current_entries)
+                                if current_entries is None:
+                                    current_entries = []
+                                utils._log_hook_history(current_entries, hook)
+                            except Exception as e:
+                                logger.exception(
+                                    f'Stream hook "{hook.name}" failed: {e}'
+                                )
+
+                    # --- Stream Exhaustion ---
                     processed_entries = []
                     for owner, item in current_entries:
                         stream = item.get("stream")

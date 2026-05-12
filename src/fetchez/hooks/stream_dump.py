@@ -26,7 +26,7 @@ class DataStream(FetchHook):
     """Auto-detects file type and attaches a stream."""
 
     name = "stream-dump"
-    meta_stage = "file"
+    meta_stage = "stream"
     meta_desc = "Dump the contents of a stream."
     meta_category = "streams"
     meta_requires = "Any"

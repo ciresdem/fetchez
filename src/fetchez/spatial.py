@@ -488,8 +488,9 @@ class Region:
             logger.warning(f"Region has no valid associated srs: {self.srs}")
             return self
 
-        if self.srs.upper() == dst_srs.upper():
-            return self
+        if isinstance(self.srs, str) and isinstance(dst_srs, str):
+            if self.srs.upper() == dst_srs.upper():
+                return self
 
         if not HAS_PYPROJ:
             logger.error(
@@ -532,15 +533,18 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
         )
         return None
 
+    regions = []
     try:
         with fiona.open(fn, "r") as src:
-            minx, miny, maxx, maxy = src.bounds
-
-            # TODO:
+            # --- Single region of whole vector: ---
+            # minx, miny, maxx, maxy = src.bounds
+            # return [Region(minx, maxx, miny, maxy)]
             # if src.crs and src.crs.to_epsg() != 4326:
             #     if not HAS_PYPROJ:
             #         logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
             #     else:
+            #         original_region = Region
+
             #         transformer = Transformer.from_crs(src.crs, "EPSG:4326", always_xy=True)
             #         # Transform the corners
             #         xs, ys = zip(*[
@@ -552,12 +556,29 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
             #         minx, maxx = min(xs), max(xs)
             #         miny, maxy = min(ys), max(ys)
 
-            return [Region(minx, maxx, miny, maxy)]
+            # --- Region for each feature in vector: ---
+            for feature in src:
+                geom = shape(feature.get("geometry"))
+                if geom:
+                    minx, miny, maxx, maxy = geom.bounds
+                    # regions.append(Region(minx, maxx, miny, maxy))
+                    original_region = Region(minx, maxx, miny, maxy)
+
+                    if src.crs and src.crs.to_epsg() != 4326:
+                        if not HAS_PYPROJ:
+                            logger.error(
+                                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
+                            )
+                        else:
+                            original_region.srs = src.crs
+                            original_region.warp()
+
+                    regions.append(original_region)
 
     except Exception as e:
-        logger.warning(f"Failed to parse vector bounds from {fn}: {e}")
+        logger.exception(f"Failed to parse vector bounds from {fn}: {e}")
 
-    return None
+    return regions
 
 
 def region_from_geojson(fn: str) -> Optional[List[Region]]:

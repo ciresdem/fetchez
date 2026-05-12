@@ -154,7 +154,7 @@ class FetchezMainGroup(click.Group):
                 cat_cmds = [
                     (
                         f"{colorize(colorize(name, CYAN), BOLD):<30}",
-                        cmd.get_short_help_str(limit=80),
+                        cmd.get_short_help_str(),  # limit=80
                     )
                     for name, cmd in commands
                     if name in cmd_names
@@ -556,6 +556,7 @@ def parse_hook_string(hook_str, default_name=None):
 
 def parse_source_string(source_str, default_hooks=None):
     """Parses a source string into a Fetchez module dictionary.
+
     Supports local file auto-detection and chaining hooks via '+'.
     Safely ignores '+' delimiters when they are wrapped in double quotes.
     """
@@ -565,7 +566,7 @@ def parse_source_string(source_str, default_hooks=None):
     mod_part = parts[0]
     hook_parts = parts[1:]
 
-    # Re-use the quote-aware logic from parse_hook_string for the module part
+    # Parse the hook strng
     mod_parsed = parse_hook_string(mod_part)
     mod_name = mod_parsed["name"]
     args = mod_parsed.get("args", {})
@@ -591,6 +592,42 @@ def parse_source_string(source_str, default_hooks=None):
         f"Parsed source string as: `{mod_name}` using hooks: {[x['name'] for x in mod_dict['hooks']]}"
     )  # {mod_dict['hooks']}")
     return mod_dict
+
+
+def compile_sources(sources):
+
+    import yaml
+    from fetchez.registry import BundleRegistry
+
+    BundleRegistry.load_all()
+
+    compiled_modules = []
+    for src in sources:
+        if str(src) in BundleRegistry.get_registry().keys():
+            partial_recipe = BundleRegistry.get_yaml(str(src))
+            if "modules" in partial_recipe:
+                compiled_modules.extend(partial_recipe["modules"])
+                logger.debug(
+                    f"Imported {len(partial_recipe['modules'])} modules from {src}"
+                )
+        elif str(src).lower().endswith((".yaml", ".yml")) and os.path.exists(src):
+            try:
+                with open(src, "r") as f:
+                    partial_recipe = yaml.safe_load(f)
+                    if "modules" in partial_recipe:
+                        compiled_modules.extend(partial_recipe["modules"])
+                        logger.debug(
+                            f"Imported {len(partial_recipe['modules'])} modules from {src}"
+                        )
+            except Exception as e:
+                logger.debug(f"Failed to read modules from {src}: {e}")
+                continue
+        elif src == "-":
+            continue  # TODO: add stdin support
+        else:
+            compiled_modules.append(parse_source_string(src))
+
+    return compiled_modules
 
 
 def parse_hook_string_(h_str):

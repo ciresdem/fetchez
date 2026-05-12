@@ -226,6 +226,7 @@ class FetchModule:
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
         """Standardized method for fetching a single result entry."""
+
         try:
             parsed_url = urllib.parse.urlparse(entry["url"])
             if parsed_url.scheme == "ftp":
@@ -254,6 +255,7 @@ class FetchModule:
         At minimum, `url`, `dst_fn` and `data_type` are required.
         Any additional keyword arguments will be added to the entry dictionary.
         """
+
         if utils.str_or(dst_fn) is not None:
             # Only join with outdir if dst_fn isn't already an absolute path
             if not os.path.isabs(dst_fn):

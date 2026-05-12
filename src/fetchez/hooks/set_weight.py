@@ -39,7 +39,7 @@ class SetWeight(FetchHook):
 
     name = "set-weight"
     meta_desc = "Assigns weights to entries"
-    meta_stage = "pre"
+    meta_stage = "manifest"  # pre
     meta_category = "metadata"
     meta_aliases = ["set_weight"]
 

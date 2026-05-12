@@ -23,6 +23,7 @@ class FetchHook:
 
     # 'manifest':   Runs before downloads, manipulating the URL/metadata list.
     # 'file':       Runs per-file immediately after download/generation.
+    # 'stream":     Runs on entry['stream'] right after the file stage.
     # 'collection': Runs once after all per-file operations are finished.
     meta_stage = "file"
 
@@ -33,7 +34,7 @@ class FetchHook:
         stage_aliases = {"pre": "manifest", "post": "collection"}
         mapped_stage = stage_aliases.get(raw_stage.lower(), raw_stage.lower())
 
-        if mapped_stage in ["manifest", "file", "collection"]:
+        if mapped_stage in ["manifest", "file", "stream", "collection"]:
             self.stage = mapped_stage
         else:
             self.stage = "file"  # Fallback
