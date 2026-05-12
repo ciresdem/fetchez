@@ -532,10 +532,19 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
         )
         return None
 
+    regions = []
     try:
         with fiona.open(fn, "r") as src:
-            minx, miny, maxx, maxy = src.bounds
+            # --- Single region of whole vector: ---
+            # minx, miny, maxx, maxy = src.bounds
+            # return [Region(minx, maxx, miny, maxy)]
 
+            # --- Region for each feature in vector: ---
+            for feature in src:
+                geom = shape(feature.get("geometry"))
+                if geom:
+                    minx, miny, maxx, maxy = geom.bounds
+                    regions.append(Region(minx, maxx, miny, maxy))
             # TODO:
             # if src.crs and src.crs.to_epsg() != 4326:
             #     if not HAS_PYPROJ:
@@ -552,12 +561,11 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
             #         minx, maxx = min(xs), max(xs)
             #         miny, maxy = min(ys), max(ys)
 
-            return [Region(minx, maxx, miny, maxy)]
 
     except Exception as e:
         logger.warning(f"Failed to parse vector bounds from {fn}: {e}")
 
-    return None
+    return regions
 
 
 def region_from_geojson(fn: str) -> Optional[List[Region]]:
