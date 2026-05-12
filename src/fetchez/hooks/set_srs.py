@@ -17,7 +17,7 @@ from fetchez.hooks import FetchHook
 logger = logging.getLogger(__name__)
 
 
-class SetDataType(FetchHook):
+class SetSrs(FetchHook):
     """Overrides the src_srs attribute of pipeline entries.
 
     Useful for mapping generic files to specific parser profiles.
