@@ -566,7 +566,9 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
 
                     if src.crs and src.crs.to_epsg() != 4326:
                         if not HAS_PYPROJ:
-                            logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
+                            logger.error(
+                                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
+                            )
                         else:
                             original_region.srs = src.crs
                             original_region.warp()
