@@ -122,12 +122,13 @@ class GMRT(FetchModule):
         self.headers = GMRT_HEADERS
 
     def run(self):
-        """Run the GMRT fetching module."""
+        """Run the GMRT fetching module. Prefers pre-rendered tiles for stability."""
 
         if self.region is None or self.gmrt_region is None:
             return []
 
         w, e, s, n = self.gmrt_region
+        ext = "tif" if self.fmt == "geotiff" else "grd"
 
         self.data = {
             "north": n,
@@ -137,34 +138,69 @@ class GMRT(FetchModule):
             "mformat": "json",
             "resolution": self.res,
             "format": self.fmt,
-            "layer": self.layer,
+            # "layer": self.layer,
         }
 
+        try:
+            req_urls = core.Fetch(GMRT_GRID_URLS_URL, headers=self.headers).fetch_req(
+                params=self.data, tries=5, timeout=10
+            )
+
+            if req_urls and req_urls.status_code == 200:
+                logger.info(req_urls.url)
+                urls = req_urls.json()
+
+                if urls and isinstance(urls, list):
+                    logger.debug(
+                        f"[GMRT] Found {len(urls)} pre-rendered static tiles for region."
+                    )
+                    for url in urls:
+                        import urllib.parse
+                        import os
+
+                        parsed = urllib.parse.urlparse(url)
+                        dst_fn = os.path.basename(parsed.path)
+
+                        if not dst_fn or not dst_fn.endswith(f".{ext}"):
+                            dst_fn = f"gmrt_{self.layer}_{self.res}_{hash(url)}.{ext}"
+
+                        self.add_entry_to_results(
+                            url=url,
+                            dst_fn=dst_fn,
+                            data_type="gmrt",
+                            srs="epsg:4326",
+                            bounds=self.gmrt_region,
+                            resolution=self.res,
+                            date=utils.this_date(),
+                            layer=self.layer,
+                        )
+
+                    if self.results:
+                        return self
+
+        except Exception as e:
+            logger.exception(
+                f"[GMRT] Failed to fetch static tile URLs: {e}. Falling back to dynamic gridder..."
+            )
+
         req = core.Fetch(GMRT_GRID_URL, headers=self.headers).fetch_req(
-            params=self.data, tries=10, timeout=2
+            params=self.data, tries=10, timeout=15
         )
 
-        if req is not None:
-            ext = "tif" if self.fmt == "geotiff" else "grd"
-
-            # Construct filename
+        if req is not None and req.status_code == 200:
             r_str = f"w{w:.2f}_s{s:.2f}"
             outf = f"gmrt_{self.layer}_{self.res}_{r_str}.{ext}"
 
-            # Populate `self.results`
-            # add some useful info at the end...
             self.add_entry_to_results(
                 url=req.url,
                 dst_fn=outf,
                 data_type="gmrt",
-                srs="epsg:4326",  # vertical is mss
-                bounds=self.gmrt_region,  # (w, e, s, n)
-                resolution=self.res,  # e.g., 'max' or '30m'
-                date=utils.this_date(),  # e.g., '2025' (GMRT is a synthesis)
-                remote_size=req.headers.get(
-                    "Content-Length"
-                ),  # Useful for progress bars
-                layer=self.layer,  # 'topo' vs 'topo-mask'
+                srs="epsg:4326",
+                bounds=self.gmrt_region,
+                resolution=self.res,
+                date=utils.this_date(),
+                remote_size=req.headers.get("Content-Length"),
+                layer=self.layer,
             )
 
         return self
