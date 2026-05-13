@@ -83,16 +83,23 @@ class DataStream(FetchHook):
             mod.region = Region.from_list(mod.region)
 
             if raw_stream:
-                base_srs = "EPSG:4326"
-                if hasattr(reader, "get_srs"):
-                    base_srs = reader.get_srs() or base_srs
+                existing_srs = entry.get("src_srs")
 
-                vert_srs = kwargs_copy.get("vert_srs")
-                if vert_srs and "+" not in base_srs:
-                    base_srs = f"{base_srs}+{vert_srs}"
+                if existing_srs:
+                    base_srs = existing_srs
+                    logger.debug(f"[{self.name}] Using pre-defined SRS: {base_srs}")
+                else:
+                    base_srs = "EPSG:4326"
+                    if hasattr(reader, "get_srs"):
+                        base_srs = reader.get_srs() or base_srs
+
+                    vert_srs = kwargs_copy.get("vert_srs")
+                    if vert_srs and "+" not in base_srs:
+                        base_srs = f"{base_srs}+{vert_srs}"
+
+                    logger.debug(f"[{self.name}] Using SRS: {base_srs}")
 
                 entry["src_srs"] = base_srs
-
                 entry["stream"] = raw_stream
                 # --- Pass any schemas ---
                 # entry["stream"] = ensure_schema(
