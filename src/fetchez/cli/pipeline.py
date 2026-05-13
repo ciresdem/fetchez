@@ -121,7 +121,7 @@ class PipelineExecutor(FetchezMainGroup):
             help_text = bundle_yml.get("description", "")
             mod_args = []
 
-        @click.command(name=name, help=help_text, hidden=False, cls=FetchezMainCommand)
+        @click.command(name=name, help=help_text, hidden=True, cls=FetchezMainCommand)
         @click.option("--weight", type=float, default=1.0)
         @click.option("--hook", multiple=True, help="Attach a processing hook")
         @add_options(mod_args)

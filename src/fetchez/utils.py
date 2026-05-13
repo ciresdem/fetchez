@@ -702,7 +702,7 @@ def get_class_arguments(TargetCls, want_inherited=True):
                 default_str = colorize("(required)", RED)
             else:
                 # default_str = f"(default: {param.default or 'None'})"
-                default_str = param.default or None  # or 'None'}"
+                default_str = param.default  # or None  # or 'None'}"
 
             type_str = ""
             if param.annotation is not inspect.Parameter.empty:
