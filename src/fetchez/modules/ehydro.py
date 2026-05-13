@@ -160,6 +160,8 @@ class eHydro(FetchModule):
                 data_type="bathymetry",
                 agency="USACE",
                 title=f"Survey {sid} ({year})",
+                params=attrs,
+                date=year,
             )
             matches += 1
 

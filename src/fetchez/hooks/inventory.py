@@ -42,6 +42,7 @@ class Inventory(FetchHook):
                     "data_type": entry.get("data_type"),
                     "date": entry.get("date", ""),
                 }
+                item.update(entry)
                 inventory_list.append(item)
 
             with open(self.output, "w") as f:
