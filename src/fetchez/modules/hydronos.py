@@ -70,7 +70,7 @@ class HydroNOS(FetchModule):
         super().__init__(name="hydronos", **kwargs)
         self.where = where
         self.datatype = datatype
-        self.layer = layer or 0
+        self.layer = utils.int_or(layer, 0)
         self.survey_id = survey_id
         self.exclude_survey_id = exclude_survey_id
         self.min_year = utils.float_or(min_year)

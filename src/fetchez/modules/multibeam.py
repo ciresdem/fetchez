@@ -322,7 +322,7 @@ class MBDB(FetchModule):
         super().__init__(name="mbdb", **kwargs)
         self.where = where
         self.want_inf = want_inf
-        self.layer = layer or 0
+        self.layer = utils.int_or(layer, 0)
         self._mb_features_query_url = f"{MBDB_FEATURES_URL}/{self.layer}/query?"
 
     def check_inf_region(self, mb_url: str) -> Tuple[str, Optional[Tuple]]:
