@@ -70,13 +70,13 @@ class HydroNOS(FetchModule):
         super().__init__(name="hydronos", **kwargs)
         self.where = where
         self.datatype = datatype
-        self.layer = layer
+        self.layer = layer or 0
         self.survey_id = survey_id
         self.exclude_survey_id = exclude_survey_id
         self.min_year = utils.float_or(min_year)
         self.max_year = utils.float_or(max_year)
 
-        self._nos_query_url = f"{NOS_DYNAMIC_URL}/{layer}/query?"
+        self._nos_query_url = f"{NOS_DYNAMIC_URL}/{self.layer}/query?"
 
     def run(self):
         """Run the hydronos fetches module."""
@@ -109,7 +109,7 @@ class HydroNOS(FetchModule):
             return self
 
         features = response.get("features", [])
-        logger.debug(f"Found {len(features)} surveys.")
+        logger.debug(f"Found {len(features)} HydroNOS surveys.")
 
         for feature in features:
             attrs = feature.get("attributes", {})
