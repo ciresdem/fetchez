@@ -45,7 +45,7 @@ class Seanoe(FetchModule):
     meta_region = "Global"
     meta_resolution = "1 arc-minute (~2km)"
     meta_license = "Creative Commons Attribution 4.0 International"
-    meta_urls = {"home": "https://www.seanoe.org/data/00742/85408/"}
+    meta_urls = {"home": "https://zenodo.org/records/17958545/"}
 
     FILENAME = "SYSU_Topo_v1.0.nc"
 
