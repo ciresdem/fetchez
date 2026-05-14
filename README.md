@@ -7,7 +7,7 @@
 <p align="center"><strong>Fetch geospatial data with ease.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/continuous-dems/fetchez"><img src="https://img.shields.io/badge/version-0.6.4-blue.svg" alt="Version"></a>
+  <a href="https://github.com/continuous-dems/fetchez"><img src="https://img.shields.io/badge/version-0.6.5-blue.svg" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.12+-yellow.svg" alt="Python"></a>
   <a href="https://badge.fury.io/py/fetchez"><img src="https://badge.fury.io/py/fetchez.svg" alt="PyPI version"></a>
@@ -20,7 +20,7 @@ Originally developed as the core fetching engine for the [CUDEM](https://github.
 
 ---
 
-### ❓ Why Fetchez?
+## ❓ Why Fetchez?
 
 Geospatial data engineering is traditionally fragmented. You often need one script to query an API, another tool to download the files, a GIS application to clip the data, and complex shell scripts to tie it all together.
 
@@ -34,6 +34,8 @@ Geospatial data engineering is traditionally fragmented. You often need one scri
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
+* **Execution Lifecycle:** Fetchez formally separates data engineering into distinct phases (`manifest` -> `file` -> `stream` -> `collection`). This guarantees that file unzipping, in-memory point filtering, and final raster creation always happen in the correct order.
+
 * **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks, etc.
 
 ---
@@ -42,6 +44,13 @@ Geospatial data engineering is traditionally fragmented. You often need one scri
 
 ```bash
 pip install fetchez
+```
+
+**Optional Extensions:**
+To enable advanced vector boundary support (Shapefiles/GeoPackages for regions), install with the vector extras:
+
+```bash
+pip install fetchez[vector]
 ```
 
 ## 🐄 Quickstart
@@ -67,6 +76,9 @@ import fetchez
 # Fetch Electronic Nautical Chart data from NOAA
 files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000', 'audit'])
 ```
+
+### DEM Building with Globato
+While Fetchez handles the data retrieval and point-streaming, its sister project **Globato** provides the `multi_stack` accumulators and multi-resolution interpolation engines needed to turn those streams into production-grade Digital Elevation Models. [Check it out!](https://github.com/continuous-dems/globato)
 
 ---
 
