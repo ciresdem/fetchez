@@ -78,7 +78,7 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 ```
 
 ### DEM Building with Globato
-While Fetchez handles the data retrieval and point-streaming, its sister project **Globato** provides the `multi_stack` accumulators and multi-resolution interpolation engines needed to turn those streams into production-grade Digital Elevation Models.
+While Fetchez handles the data retrieval and point-streaming, its sister project **Globato** provides the `multi_stack` accumulators and multi-resolution interpolation engines needed to turn those streams into production-grade Digital Elevation Models. [Check it out!](https://github.com/continuous-dems/globato)
 
 ---
 
