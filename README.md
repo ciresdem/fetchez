@@ -34,7 +34,7 @@ Geospatial data engineering is traditionally fragmented. You often need one scri
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
 
-* **Execution Lifecycle:** Fetchez formally separates data engineering into distinct phases (`manifest` -> `file` -> `stream` -> `collection`). This guarantees that file unzipping, in-memory point filtering, and final raster creation always happen in the correct order.
+* **Execution Lifecycle:** Fetchez formally separates data engineering into distinct phases (`manifest` -> `file` -> `stream` -> `collection`). This guarantees that file operations, in-memory stream processing, and final collection operations always happen in the correct order.
 
 * **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks, etc.
 
