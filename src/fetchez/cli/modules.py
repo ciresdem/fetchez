@@ -190,9 +190,8 @@ def update_cache():
     click.secho(
         f"✨ Successfully rebuilt cache! Found {unique_mods} active modules.",
         fg="green",
-        bold=True
+        bold=True,
     )
 
-# modules_group.add_command(update_cache)
 
 modules_group.add_command(bundles_group, name="bundles")
