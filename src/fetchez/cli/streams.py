@@ -23,7 +23,18 @@ STREAMS_COMMANDS = ["readers", "profiles"]
 
 @click.group(cls=FetchezMainGroup, name="streams", fetchez_commands=STREAMS_COMMANDS)
 def streams_group():
-    """Discover, search, and learn about streams."""
+    """Discover, search, and learn about streams.
+
+    \b
+    When Fetchez downloads a file (like a GeoTIFF or NetCDF), it can use Streams
+    to read the data piece-by-piece in memory. This prevents massive datasets from
+    crashing your computer's RAM and gives control over how to process different
+    datasets.
+
+    \b
+    This command group lets you explore the internal 'Readers' that parse the
+    files, and the 'Profiles' that tell those readers exactly how to behave.
+    """
 
     pass
 

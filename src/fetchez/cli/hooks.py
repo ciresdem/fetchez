@@ -46,6 +46,13 @@ def hooks_group():
     * Use `fetchez hooks info <hook-name>` to get more information about what a hook does.
 
     \b
+    Hooks run in different stages of the pipeline:
+      1. Manifest    : Runs on the initial file manifest before any fetching begins.
+      2. File        : Runs of a fetched or local file.
+      3. Stream      : Runs on an in-memory data stream of the fetched file.
+      4. Collection  : Runs on the final collection of data that has been through the previous stages.
+
+    \b
     CLI String Syntax (Source + Hooks):
       <source> --arg val --hook <hook_name>:arg=val,arg2=val
 

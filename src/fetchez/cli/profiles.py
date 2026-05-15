@@ -26,7 +26,13 @@ from fetchez.api import search_profiles
     fetchez_commands=["copy", "dump", "info", "list"],
 )
 def profiles_group():
-    """Discover, inspect, and copy stream format profiles."""
+    """Discover, inspect, and copy stream format profiles.
+
+    \b
+    Different datasets are formatted differently (e.g., one NetCDF uses 'lon'
+    and 'lat', another uses 'x' and 'y'). Profiles are YAML dictionaries that
+    tell a Reader exactly how to parse a specific dataset's format.
+    """
 
     pass
 

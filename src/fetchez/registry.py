@@ -18,6 +18,8 @@ import json
 import pkgutil
 import importlib
 import importlib.util
+import importlib.metadata
+import importlib.resources
 import inspect
 import logging
 from typing import Dict, Any, Type, Optional
@@ -26,6 +28,7 @@ from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.schemas import BaseSchema
 from fetchez.streams import BaseReader
+from fetchez.utils import get_class_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -108,10 +111,8 @@ class PluginRegistry:
     def load_installed_plugins(cls):
         """Load external pip-installed extensions via entry_points."""
 
-        from importlib.metadata import entry_points
-
         try:
-            eps = entry_points(group=cls.entry_point_group)
+            eps = importlib.metadata.entry_points(group=cls.entry_point_group)
             for ep in eps:
                 plugin_module = ep.load()
                 # Scan the loaded extension for submodules
@@ -124,7 +125,7 @@ class PluginRegistry:
                             mod = importlib.import_module(modname)
                             cls._register_from_module(mod)
                         except Exception as e:
-                            logger.warning(
+                            logger.exception(
                                 f"Failed to load external plugin {modname}: {e}"
                             )
         except Exception as e:
@@ -163,6 +164,16 @@ class PluginRegistry:
             try:
                 with open(cache_path, "r") as f:
                     registry.update(json.load(f))
+
+                    meta = registry.pop("__meta__", {})
+                    if not cls._cache_is_valid(meta):
+                        logger.debug(
+                            f"Cache {cache_path} invalidated by system change. Rebuilding..."
+                        )
+                        cls.clear_cache()
+                        cls.load_all()
+                        cls.save_cache()
+                        return
                 return
             except Exception as e:
                 logger.debug(f"Cache read failed: {e}")
@@ -183,8 +194,122 @@ class PluginRegistry:
             }
             clean_registry[k] = clean_meta
 
-        with open(cls._get_cache_path(), "w") as f:
-            json.dump(clean_registry, f, indent=2)
+        # The System State
+        clean_registry["__meta__"] = cls._build_cache_meta()
+
+        try:
+            with open(cls._get_cache_path(), "w") as f:
+                json.dump(clean_registry, f, indent=2)
+        except Exception as e:
+            logger.debug(f"Failed to save cache: {e}")
+
+    @classmethod
+    def clear_cache(cls):
+        """Deletes the JSON cache file for this specific registry."""
+
+        cache_path = cls._get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                os.remove(cache_path)
+                logger.debug(f"Deleted cache file: {cache_path}")
+                return True
+            except Exception as e:
+                logger.error(f"Failed to delete cache file {cache_path}: {e}")
+                return False
+        return False
+
+    @classmethod
+    def _build_cache_meta(cls):
+        """Generates a snapshot of the current system state."""
+
+        try:
+            import fetchez
+
+            fetchez_ver = getattr(fetchez, "__version__", "unknown")
+        except ImportError:
+            fetchez_ver = "unknown"
+
+        meta = {
+            "fetchez_version": fetchez_ver,
+            "python_version": sys.version,
+            "user_mtime": 0,
+            "pkg_versions": {},
+        }
+
+        # Local User Plugins
+        user_folder = (
+            os.path.join(os.path.expanduser("~/.fetchez"), cls.user_folder)
+            if cls.user_folder
+            else None
+        )
+        if user_folder and os.path.exists(user_folder):
+            mtimes = [os.path.getmtime(user_folder)]
+            for f in os.listdir(user_folder):
+                if f.endswith(".py"):
+                    mtimes.append(os.path.getmtime(os.path.join(user_folder, f)))
+            meta["user_mtime"] = max(mtimes)
+
+        # External Packages
+        try:
+            registry = cls.get_registry()
+            packages = set()
+
+            for key, val in registry.items():
+                if "import_path" in val:
+                    base_pkg = val["import_path"].split(".")[0]
+                    if base_pkg not in ["fetchez", "builtins", "fetchez_user_modules"]:
+                        packages.add(base_pkg)
+
+            for pkg in packages:
+                try:
+                    meta["pkg_versions"][pkg] = importlib.metadata.version(pkg)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        return meta
+
+    @classmethod
+    def _cache_is_valid(cls, meta):
+        """Checks if the cached system state matches the current system state."""
+
+        if meta.get("python_version") != sys.version:
+            return False
+
+        try:
+            import fetchez
+
+            if meta.get("fetchez_version") != getattr(
+                fetchez, "__version__", "unknown"
+            ):
+                return False
+        except ImportError:
+            pass
+
+        # User Plugins
+        user_folder = os.path.expanduser(cls.user_folder) if cls.user_folder else None
+        if user_folder and os.path.exists(user_folder):
+            mtimes = [os.path.getmtime(user_folder)]
+            for f in os.listdir(user_folder):
+                if f.endswith(".py"):
+                    mtimes.append(os.path.getmtime(os.path.join(user_folder, f)))
+            if meta.get("user_mtime") != max(mtimes):
+                return False
+
+        # External Packages
+        try:
+            for pkg, cached_version in meta.get("pkg_versions", {}).items():
+                try:
+                    current_version = importlib.metadata.version(pkg)
+                    if current_version != cached_version:
+                        return False
+                except Exception:
+                    return False  # Package was uninstalled
+        except Exception:
+            pass
+
+        return True
 
     @classmethod
     def _register_from_module(cls, module):
@@ -218,6 +343,11 @@ class PluginRegistry:
 
                 meta["import_path"] = f"{obj.__module__}.{obj.__name__}"
 
+                if hasattr(module, "__file__") and module.__file__:
+                    meta["file_path"] = module.__file__
+
+                meta["cli_args"] = get_class_arguments(obj)
+
                 registry[mod_key] = meta
                 for alias in meta["aliases"]:
                     registry[alias] = meta
@@ -241,9 +371,25 @@ class PluginRegistry:
 
         if "import_path" in meta:
             mod_path, class_name = meta["import_path"].rsplit(".", 1)
-            module = importlib.import_module(mod_path)
-            actual_cls = getattr(module, class_name)
 
+            try:
+                # Standard import for pip-installed and built-in modules
+                module = importlib.import_module(mod_path)
+            except ModuleNotFoundError:
+                # Fallback for dynamic local user plugins
+                file_path = meta.get("file_path")
+                if file_path and os.path.exists(file_path):
+                    spec = importlib.util.spec_from_file_location(mod_path, file_path)
+                    if spec and spec.loader:
+                        module = importlib.util.module_from_spec(spec)
+                        sys.modules[mod_path] = module
+                        spec.loader.exec_module(module)
+                    else:
+                        return None
+                else:
+                    return None
+
+            actual_cls = getattr(module, class_name)
             return actual_cls
 
         return None
@@ -294,8 +440,6 @@ class YamlRegistry:
     @classmethod
     def load_all(cls):
         cls.get_registry()
-        import importlib.metadata
-        import importlib.resources
 
         try:
             eps = importlib.metadata.entry_points(group=cls.entry_point_group)
@@ -600,9 +744,6 @@ class _RecipeRegistry:
         # if cls._registry:
         #     return
 
-        import importlib.metadata
-        import importlib.resources
-
         try:
             eps = importlib.metadata.entry_points(group=cls.entry_point_group)
         except TypeError:
@@ -680,8 +821,6 @@ class _PresetRegistry:
     @classmethod
     def load_all(cls):
         cls.get_registry()
-        import importlib.metadata
-        import importlib.resources
 
         try:
             eps = importlib.metadata.entry_points(group=cls.entry_point_group)

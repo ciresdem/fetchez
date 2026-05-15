@@ -21,7 +21,14 @@ from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainComm
 
 @click.group(cls=FetchezMainGroup, name="schemas", fetchez_commands=["list", "info"])
 def schemas_group():
-    """Discover, search, and learn about recipe schemas."""
+    """Discover, search, and learn about recipe schemas.
+
+    \b
+    Schemas are strict validation rulesets that can be applied to Recipes.
+    They ensure that any data flowing through the pipeline adheres to specific
+    domain standards (e.g., forcing all output to be in EPSG:4326, or requiring
+    mandatory metadata tags).
+    """
 
     pass
 

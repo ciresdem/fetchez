@@ -25,7 +25,17 @@ from fetchez.utils import FetchezMainGroup, FetchezMainCommand
     fetchez_commands=["copy", "dump", "info", "list"],
 )
 def bundles_group():
-    """Discover, inspect, and copy module groups."""
+    """Discover, inspect, and copy module groups.
+
+    \b
+    Bundles are pre-configured YAML lists of Modules. Instead of manually
+    typing out multiple different data sources and their specific arguments,
+    you can call a single Bundle that contains them all.
+
+    \b
+    Usage:
+      Bundles act exactly like Modules. You can pass them directly to `fetchez run`.
+    """
 
     pass
 
