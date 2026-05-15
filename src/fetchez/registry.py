@@ -26,6 +26,7 @@ from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.schemas import BaseSchema
 from fetchez.streams import BaseReader
+from fetchez.utils import get_class_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +125,7 @@ class PluginRegistry:
                             mod = importlib.import_module(modname)
                             cls._register_from_module(mod)
                         except Exception as e:
-                            logger.warning(
+                            logger.exception(
                                 f"Failed to load external plugin {modname}: {e}"
                             )
         except Exception as e:
@@ -187,6 +188,21 @@ class PluginRegistry:
             json.dump(clean_registry, f, indent=2)
 
     @classmethod
+    def clear_cache(cls):
+        """Deletes the JSON cache file for this specific registry."""
+
+        cache_path = cls._get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                os.remove(cache_path)
+                logger.debug(f"Deleted cache file: {cache_path}")
+                return True
+            except Exception as e:
+                logger.error(f"Failed to delete cache file {cache_path}: {e}")
+                return False
+        return False
+
+    @classmethod
     def _register_from_module(cls, module):
         """Inspect a module and dynamically extract its metadata."""
 
@@ -218,6 +234,11 @@ class PluginRegistry:
 
                 meta["import_path"] = f"{obj.__module__}.{obj.__name__}"
 
+                if hasattr(module, "__file__") and module.__file__:
+                    meta["file_path"] = module.__file__
+
+                meta["cli_args"] = get_class_arguments(obj)
+
                 registry[mod_key] = meta
                 for alias in meta["aliases"]:
                     registry[alias] = meta
@@ -241,9 +262,25 @@ class PluginRegistry:
 
         if "import_path" in meta:
             mod_path, class_name = meta["import_path"].rsplit(".", 1)
-            module = importlib.import_module(mod_path)
-            actual_cls = getattr(module, class_name)
 
+            try:
+                # Standard import for pip-installed and built-in modules
+                module = importlib.import_module(mod_path)
+            except ModuleNotFoundError:
+                # Fallback for dynamic local user plugins
+                file_path = meta.get("file_path")
+                if file_path and os.path.exists(file_path):
+                    spec = importlib.util.spec_from_file_location(mod_path, file_path)
+                    if spec and spec.loader:
+                        module = importlib.util.module_from_spec(spec)
+                        sys.modules[mod_path] = module
+                        spec.loader.exec_module(module)
+                    else:
+                        return None
+                else:
+                    return None
+
+            actual_cls = getattr(module, class_name)
             return actual_cls
 
         return None

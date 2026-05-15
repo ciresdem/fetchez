@@ -76,7 +76,6 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
 @click.group(
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
-    help="Fetch geospatial data with ease.",
     fetchez_commands={
         "Execution": ["run"],
         "Discovery and Management": [
@@ -90,9 +89,29 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
             "streams",
         ],
     },
-    #     epilog=f"""
+    # epilog="https://fetchez.readthedocs.io/en/latest/index.html"
+)
+@click.version_option(package_name="fetchez")
+@click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
+@click.option("--quiet", is_flag=True, help="Suppress non-error output.")
+def cli(verbose, quiet):
+    """Fetch geospatial data with ease.
+
+    \b
+    Fetchez is a streaming ETL pipeline for geospatial data.
+    It allows you to download data from remote modules (like NOAA or Copernicus),
+    pipe that data through processing hooks (like clipping or reprojecting),
+    and save the results to disk. All in a single command.
+
+    \b
+    Core Concepts:
+      1. Modules  : Data Sources (see `fetchez modules`)
+      2. Hooks    : Processing Steps (see `fetchez hooks`)
+      3. Streams  : Data Streaming (see `fetchez streams`)
+      4. Recipes  : YAML files that define complex pipelines (see `fetchez recipes`)
+    """
     # \b
-    # {colorize(colorize('Examples', GREEN), BOLD)}:
+    # Examples:
     #   # Quick fetch for a specific location
     #   $ fetchez run -R loc:seattle tides
     #   \b
@@ -104,13 +123,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
     #   \b
     #   # Export a dynamic CLI command into a reusable YAML recipe
     #   $ fetchez run -R loc:hawaii --export my_pipeline.yaml bluetopo
-    #     """
-)
-@click.version_option(package_name="fetchez")
-@click.option("--verbose", is_flag=True, help="Enable verbose debug logging.")
-@click.option("--quiet", is_flag=True, help="Suppress non-error output.")
-def cli(verbose, quiet):
-    """Fetchez CLI."""
+    # """,
 
     setup_logging(quiet=quiet, verbose=verbose)
 

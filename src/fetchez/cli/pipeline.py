@@ -35,37 +35,37 @@ from fetchez.utils import (
 )
 
 
-def _populate_subparser(module_cls):
-    """Introspect module __init__ to populate subparser arguments."""
+# def _populate_subparser(module_cls):
+#     """Introspect module __init__ to populate subparser arguments."""
 
-    if not module_cls:
-        return []
+#     if not module_cls:
+#         return []
 
-    sig = inspect.signature(module_cls.__init__)
+#     sig = inspect.signature(module_cls.__init__)
 
-    arg_help = getattr(module_cls, "_cli_arg_help", {})
-    params = []
+#     arg_help = getattr(module_cls, "_cli_arg_help", {})
+#     params = []
 
-    for name, param in sig.parameters.items():
-        if name in [
-            "self",
-            "kwargs",
-            "src_region",
-            "callback",
-            "outdir",
-            "name",
-            "params",
-            "hook",
-        ]:
-            continue
+#     for name, param in sig.parameters.items():
+#         if name in [
+#             "self",
+#             "kwargs",
+#             "src_region",
+#             "callback",
+#             "outdir",
+#             "name",
+#             "params",
+#             "hook",
+#         ]:
+#             continue
 
-        help_str = arg_help.get(name, f"Set {name} parameter")
-        default = (
-            param.default if param.default is not inspect.Parameter.empty else None
-        )
-        params.append([f"--{name}", help_str, default])
+#         help_str = arg_help.get(name, f"Set {name} parameter")
+#         default = (
+#             param.default if param.default is not inspect.Parameter.empty else None
+#         )
+#         params.append([f"--{name}", help_str, default])
 
-    return params
+#     return params
 
 
 def add_options(options):
@@ -80,28 +80,43 @@ def add_options(options):
 # class PipelineExecutor(click.Group):
 class PipelineExecutor(FetchezMainGroup):
     def list_commands(self, ctx):
-        ModuleRegistry.load_all()
+        ModuleRegistry.load_fast()
         BundleRegistry.load_all()
         mod_list = list(ModuleRegistry.get_registry().keys())
         mod_list.extend(list(BundleRegistry.get_registry().keys()))
         return sorted(mod_list)
 
     def get_command(self, ctx, name):
-        ModuleRegistry.load_all()
+        ModuleRegistry.load_fast()
         BundleRegistry.load_all()
-        mod_cls = ModuleRegistry.get_class(name)
+        mod_meta = ModuleRegistry.get_info(name)
         bundle_yml = BundleRegistry.get_yaml(name)
 
-        if not mod_cls and not bundle_yml:
+        if not mod_meta and not bundle_yml:
             return None
 
-        if mod_cls:
-            help_text = getattr(mod_cls, "_cli_help_text", f"Run the {name} module.")
-            class_args = get_class_arguments(mod_cls)
+        if mod_meta:
+            help_text = mod_meta.get("cli_help_text", f"Run the {name} module")
+            # help_text = getattr(mod_cls, "_cli_help_text", f"Run the {name} module.")
+            # class_args = get_class_arguments(mod_cls)
             # mod_args = _populate_subparser(mod_cls)
-
             mod_args = []
-            for key, val in class_args.items():
+
+            # mod_args = []
+            # for key, val in class_args.items():
+            #     if key in [
+            #         "self",
+            #         "kwargs",
+            #         "src_region",
+            #         "callback",
+            #         "outdir",
+            #         "name",
+            #         "params",
+            #         "hook",
+            #         "weight",
+            #     ]:
+            #         continue
+            for key, val in mod_meta.get("cli_args", {}).items():
                 if key in [
                     "self",
                     "kwargs",
@@ -114,8 +129,8 @@ class PipelineExecutor(FetchezMainGroup):
                     "weight",
                 ]:
                     continue
-
                 mod_args.append([f"--{key}", val["desc"], val["default"]])
+                # mod_args.append([f"--{key}", val["desc"], val["default"]])
 
         if bundle_yml:
             help_text = bundle_yml.get("description", "")
@@ -127,7 +142,7 @@ class PipelineExecutor(FetchezMainGroup):
         @add_options(mod_args)
         def dynamic_module_cmd(weight, hook, **kwargs):
             parsed_hooks = [parse_hook_string(h) for h in hook]
-            module_type = "module" if mod_cls else "bundle"
+            module_type = "module" if mod_meta else "bundle"
             return {
                 "type": "module",
                 module_type: name,
@@ -201,7 +216,7 @@ class PipelineExecutor(FetchezMainGroup):
 @click.command(
     cls=PipelineExecutor,
     chain=True,
-    help="Fetch/download data and execute processing pipelines.",
+    # epilog="\bhttps://fetchez.readthedocs.io/en/latest/index.html"
 )
 @click.option("-R", "--region", help="Bounding box (W/E/S/N)")
 @click.option("--global-hook", multiple=True, help="Attach a global processing hook")
@@ -213,8 +228,38 @@ class PipelineExecutor(FetchezMainGroup):
     "--export", type=click.Path(), help="Export to YAML instead of executing."
 )
 @click.pass_context
+# """Initializes the context before the chained subcommands run."""
 def pipeline_group(ctx, region, export, global_hook, schema, threads):
-    """Initializes the context before the chained subcommands run."""
+    """Fetch/download data and execute processing pipelines.
+
+    \b
+    How CLI Pipelines Work:
+      The `run` command allows you to chain multiple Data Modules together
+      and apply Processing Hooks to them.
+
+    \b
+      * Module Arguments follow the module name (e.g., `copernicus --datatype 3`).
+      * Module Hooks (--hook) apply only to the module they follow.
+      * Global Hooks (--global-hook) apply to all data flowing through the pipeline.
+
+    \b
+    Syntax:
+      fetchez run -R <W/E/S/N> [--global-hook <name>] <module_1> [--hook <name>] <module_2> ...
+
+    \b
+    * Run `fetchez modules list` to see a full list of supported modules.
+    """
+
+    # \b
+    # Examples:
+    #   # Fetch lidar data from NOAAs Digtial Coast and filter out files containing the word "noise"
+    #   $ fetchez run -R loc:seattle digital_coast --hook filename_filter:exclude=noise,stage=manifest
+
+    #   # Fetch multibeam and topography, and run an audit on everything
+    #   $ fetchez run -R -120/-119/33/34 --global-hook audit mbdb tnm
+
+    #   # Export a complex CLI pipeline to a YAML recipe without running it
+    #   $ fetchez run -R loc:hawaii --export hawaii_recipe.yaml copernicus --weight 1.5 mbdb
 
     ctx.ensure_object(dict)
     src_region = parse_region(region) if region else None

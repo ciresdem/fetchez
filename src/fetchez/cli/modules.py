@@ -17,7 +17,7 @@ from fetchez.registry import ModuleRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 from .bundles import bundles_group
 
-MODULES_COMMANDS = ["info", "list", "search", "bundles"]
+MODULES_COMMANDS = ["info", "list", "search", "bundles", "update-cache"]
 
 
 @click.group(
@@ -73,7 +73,7 @@ def module_search(term):
 def module_list(search):
     """List all available modules grouped by category."""
 
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_fast()
     registry = ModuleRegistry.get_registry()
 
     valid_keys = ModuleRegistry.search_modules(search) if search else registry.keys()
@@ -164,5 +164,35 @@ def module_info(name):
         # click.echo("      hooks:")
     click.echo("-" * 40 + "\n")
 
+
+@modules_group.command("update-cache", cls=FetchezMainCommand)
+def update_cache():
+    """Forces a clean rescan of all built-in, Globato, and user-defined modules.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/modules/ folder and it isn't showing up.
+    """
+
+    from fetchez.registry import ModuleRegistry
+
+    cleared = ModuleRegistry.clear_cache()
+    if cleared:
+        click.secho("Flushed existing module cache.", fg="yellow")
+    else:
+        click.echo("No existing cache found. Starting fresh.")
+
+    click.echo("Scanning environment for Fetchez modules...")
+
+    ModuleRegistry.load_all()
+    registry = ModuleRegistry.get_registry()
+    unique_mods = len(set(meta.get("import_path") for meta in registry.values()))
+
+    click.secho(
+        f"✨ Successfully rebuilt cache! Found {unique_mods} active modules.",
+        fg="green",
+        bold=True
+    )
+
+# modules_group.add_command(update_cache)
 
 modules_group.add_command(bundles_group, name="bundles")
