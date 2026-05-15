@@ -13,7 +13,6 @@ Genreate and run a fetchez pipeline.
 
 import click
 import yaml
-import inspect
 from fetchez.recipe import Recipe
 from fetchez.registry import (
     ModuleRegistry,
@@ -25,7 +24,6 @@ from fetchez.registry import (
 from fetchez.spatial import parse_region
 from fetchez.utils import (
     parse_hook_string,
-    get_class_arguments,
     colorize,
     CYAN,
     GREEN,
@@ -33,39 +31,6 @@ from fetchez.utils import (
     FetchezMainGroup,
     FetchezMainCommand,
 )
-
-
-# def _populate_subparser(module_cls):
-#     """Introspect module __init__ to populate subparser arguments."""
-
-#     if not module_cls:
-#         return []
-
-#     sig = inspect.signature(module_cls.__init__)
-
-#     arg_help = getattr(module_cls, "_cli_arg_help", {})
-#     params = []
-
-#     for name, param in sig.parameters.items():
-#         if name in [
-#             "self",
-#             "kwargs",
-#             "src_region",
-#             "callback",
-#             "outdir",
-#             "name",
-#             "params",
-#             "hook",
-#         ]:
-#             continue
-
-#         help_str = arg_help.get(name, f"Set {name} parameter")
-#         default = (
-#             param.default if param.default is not inspect.Parameter.empty else None
-#         )
-#         params.append([f"--{name}", help_str, default])
-
-#     return params
 
 
 def add_options(options):
@@ -97,25 +62,7 @@ class PipelineExecutor(FetchezMainGroup):
 
         if mod_meta:
             help_text = mod_meta.get("cli_help_text", f"Run the {name} module")
-            # help_text = getattr(mod_cls, "_cli_help_text", f"Run the {name} module.")
-            # class_args = get_class_arguments(mod_cls)
-            # mod_args = _populate_subparser(mod_cls)
             mod_args = []
-
-            # mod_args = []
-            # for key, val in class_args.items():
-            #     if key in [
-            #         "self",
-            #         "kwargs",
-            #         "src_region",
-            #         "callback",
-            #         "outdir",
-            #         "name",
-            #         "params",
-            #         "hook",
-            #         "weight",
-            #     ]:
-            #         continue
             for key, val in mod_meta.get("cli_args", {}).items():
                 if key in [
                     "self",
@@ -130,7 +77,6 @@ class PipelineExecutor(FetchezMainGroup):
                 ]:
                     continue
                 mod_args.append([f"--{key}", val["desc"], val["default"]])
-                # mod_args.append([f"--{key}", val["desc"], val["default"]])
 
         if bundle_yml:
             help_text = bundle_yml.get("description", "")
