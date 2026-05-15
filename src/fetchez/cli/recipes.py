@@ -190,7 +190,9 @@ def run_recipe(name):
 
     if os.path.exists(name):
         Recipe.from_file(name).run()
-        click.secho("✨ Pipeline execution completed successfully!", fg="green", bold=True)
+        click.secho(
+            "✨ Pipeline execution completed successfully!", fg="green", bold=True
+        )
         return
 
     meta = RecipeRegistry.get_yaml(name)
