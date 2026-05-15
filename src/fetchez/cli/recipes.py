@@ -44,7 +44,17 @@ def _load_yaml(target):
     fetchez_commands=RECIPE_COMMANDS,
 )
 def recipes_group():
-    """Execute, Discover, inspect, and copy complete pipeline workflows."""
+    """Execute, Discover, inspect, and copy complete pipeline workflows.
+
+    \b
+    Recipes are YAML files that define an entire ETL pipeline from start to finish.
+    They contain the project metadata, the requested Data Modules, and the
+    Processing Hooks used to filter and stack the data.
+
+    \b
+    Recipes make your data pipelines 100% reproducible. You can version-control
+    them, share them with colleagues, or run them in batch mode over multiple regions.
+    """
 
     pass
 
