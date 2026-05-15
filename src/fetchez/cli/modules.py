@@ -183,7 +183,7 @@ def update_cache():
 
     click.echo("Scanning environment for Fetchez modules...")
 
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_fast()
     registry = ModuleRegistry.get_registry()
     unique_mods = len(set(meta.get("import_path") for meta in registry.values()))
 
