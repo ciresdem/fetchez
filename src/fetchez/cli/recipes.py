@@ -190,6 +190,7 @@ def run_recipe(name):
 
     if os.path.exists(name):
         Recipe.from_file(name).run()
+        click.secho("✨ Pipeline execution completed successfully!", fg="green", bold=True)
         return
 
     meta = RecipeRegistry.get_yaml(name)
@@ -200,6 +201,7 @@ def run_recipe(name):
         sys.exit(1)
 
     Recipe.from_dict(meta).run()
+    click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 
 
 recipes_group.add_command(schemas_group, name="schemas")
