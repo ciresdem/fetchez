@@ -26,7 +26,13 @@ MODULES_COMMANDS = ["info", "list", "search", "bundles", "update-cache"]
     fetchez_commands=MODULES_COMMANDS,
 )
 def modules_group():
-    """Discover, search, and learn about data sources."""
+    """Discover, search, and learn about data sources.
+
+    \b
+    Modules are the starting point of any Fetchez pipeline. They are responsible
+    for discovering and downloading data from remote agencies (like NOAA, USGS,
+    Copernicus) or loading it from your local file system.
+    """
 
     pass
 

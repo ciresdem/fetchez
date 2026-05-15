@@ -24,8 +24,19 @@ from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainComm
 def readers_group():
     """Discover, search, and learn about stream format readers.
 
-    Format reader streams can be initiated with the `stream-init` hook which
-    will populate entry['stream'] and entry['stream-type'] in the pipeline.
+    \b
+    Readers are the underlying Python classes (like 'rasterio-reader' or
+    'netcdf_reader') that open downloaded files and convert them into standard
+    streams or chunks for processing.
+
+    \b
+    Usage:
+      You rarely call Readers directly. They are automatically triggered by the
+      `stream-init` hook based on the file extension or the data's 'Profile'.
+
+    \b
+      Format reader streams can be initiated with the `stream-init` hook which
+      will populate entry['stream'] and entry['stream-type'] in the pipeline.
     """
 
     pass

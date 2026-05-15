@@ -25,7 +25,18 @@ from fetchez.utils import FetchezMainGroup, FetchezMainCommand
     fetchez_commands=["copy", "dump", "info", "list"],
 )
 def presets_group():
-    """Discover, inspect, and copy processing macros."""
+    """Discover, inspect, and copy processing macros.
+
+    \b
+    Presets are YAML macros that chain multiple processing Hooks together
+    under a single name. If you frequently run the exact same sequence of
+    filters, you can save them as a Preset and call them with one word.
+
+    \b
+    Usage:
+      Presets act exactly like Hooks. You can pass them to `--hook`, `--global-hook`,
+      or list them in your Recipe's hook list.
+    """
 
     pass
 
