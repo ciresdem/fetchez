@@ -16,17 +16,11 @@ import logging
 from typing import Optional
 
 from fetchez.utils import TqdmLoggingHandler, FetchezMainGroup
-# , colorize, GREEN, BOLD
 
 from .pipeline import pipeline_group
 from .modules import modules_group
 from .hooks import hooks_group
-
-# from .schemas import schemas_group
 from .recipes import recipes_group
-
-# from .presets import presets_group
-# from .bundles import bundles_group
 from .streams import streams_group
 
 
@@ -101,7 +95,7 @@ def cli(verbose, quiet):
     Fetchez is a streaming ETL pipeline for geospatial data.
     It allows you to download data from remote modules (like NOAA or Copernicus),
     pipe that data through processing hooks (like clipping or reprojecting),
-    and save the results to disk. All in a single command.
+    and save the results to disk. All in a single command or a YAML recipe.
 
     \b
     Core Concepts:
@@ -131,11 +125,9 @@ def cli(verbose, quiet):
 cli.add_command(pipeline_group, name="run")
 cli.add_command(modules_group, name="modules")
 cli.add_command(hooks_group, name="hooks")
-# cli.add_command(schemas_group, name="schemas")
 cli.add_command(recipes_group, name="recipes")
-# cli.add_command(presets_group, name="presets")
-# cli.add_command(bundles_group, name="bundles")
 cli.add_command(streams_group, name="streams")
+
 
 if __name__ == "__main__":
     cli()
