@@ -42,10 +42,7 @@ GEBCO_DAP_URLS = {
 
 
 class GEBCO(FetchModule):
-    """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS.
-    Requires ZERO external dependencies (No GDAL required).
-    Downloads true, mathematically cropped .nc files!
-    """
+    """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS."""
 
     name = "gebco"
     meta_category = "Bathymetry"
@@ -114,10 +111,7 @@ class GEBCO(FetchModule):
 
 
 class GEBCO_NCSS(FetchModule):
-    """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS.
-    Requires ZERO external dependencies (No GDAL required).
-    Downloads true, mathematically cropped .nc files!
-    """
+    """Fetch GEBCO 2026 bathymetry dynamically via THREDDS NCSS."""
 
     name = "gebco_ncss"
     meta_category = "Bathymetry"
