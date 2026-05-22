@@ -926,7 +926,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                             for _, item in current_entries
                         )
                         # Make sure a custom stream-init isn't set by the entry
-                        has_stream_init = "stream-init" in [item.name for item in active_stream_hooks]
+                        has_stream_init = "stream-init" in [
+                            item.name for item in active_stream_hooks
+                        ]
 
                         if not has_stream and not has_stream_init:
                             try:
