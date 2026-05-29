@@ -50,11 +50,23 @@ class GEBCO(GEBCO_Base):
         self.year = str(year)
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [-180, 180, -90, 90]:
-            logger.error("You must provide a strict bounding region (-R) to use the WCS subsetter!")
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the WCS subsetter!"
+            )
             return
 
-        w, e, s, n = (self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax)
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
 
         base_query = {
             "request": "GetCoverage",
@@ -105,11 +117,23 @@ class GEBCO_NCSS(GEBCO_Base):
         self.year = str(year)
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [-180, 180, -90, 90]:
-            logger.error("You must provide a strict bounding region (-R) to use the NCSS subsetter!")
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the NCSS subsetter!"
+            )
             return
 
-        w, e, s, n = (self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax)
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
 
         base_query = {
             "north": n,
@@ -161,11 +185,23 @@ class GEBCO_OpenDAP(GEBCO_Base):
         self.year = str(year)
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [-180, 180, -90, 90]:
-            logger.error("You must provide a strict bounding region (-R) to use the OpenDAP subsetter!")
+        if not getattr(self, "region", None) or self.region.to_list() == [
+            -180,
+            180,
+            -90,
+            90,
+        ]:
+            logger.error(
+                "You must provide a strict bounding region (-R) to use the OpenDAP subsetter!"
+            )
             return
 
-        w, e, s, n = (self.region.xmin, self.region.xmax, self.region.ymin, self.region.ymax)
+        w, e, s, n = (
+            self.region.xmin,
+            self.region.xmax,
+            self.region.ymin,
+            self.region.ymax,
+        )
 
         x1 = max(0, int(math.floor((w + 180) * 240)))
         x2 = min(86400, int(math.ceil((e + 180) * 240)))
@@ -176,7 +212,9 @@ class GEBCO_OpenDAP(GEBCO_Base):
         grid_base = self._get_gebco_url(self.layer, service="dodsC")
         z_var = "elevation"
 
-        grid_query = f"?{z_var}[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+        grid_query = (
+            f"?{z_var}[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+        )
         grid_url = f"{grid_base}.dods{grid_query}"
 
         grid_fn = f"gebco_{self.year}_{self.layer}_{w}_{e}_{s}_{n}.nc"
@@ -185,7 +223,9 @@ class GEBCO_OpenDAP(GEBCO_Base):
 
         if self.include_tid:
             tid_base = self._get_gebco_url("tid", service="dodsC")
-            tid_query = f"?tid[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+            tid_query = (
+                f"?tid[{y1}:1:{y2}][{x1}:1:{x2}],lat[{y1}:1:{y2}],lon[{x1}:1:{x2}]"
+            )
             tid_url = f"{tid_base}.nc{tid_query}"
             tid_fn = f"gebco_{self.year}_tid_{w}_{e}_{s}_{n}.nc"
             self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="netcdf")
