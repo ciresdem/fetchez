@@ -72,6 +72,10 @@ def list_modules() -> Dict[str, Any]:
     return _search_registry(ModuleRegistry)
 
 
+def search_modules(term) -> Dict[str, Any]:
+    return _search_registry(ModuleRegistry, term)
+
+
 def list_hooks() -> Dict[str, Any]:
     return _search_registry(HookRegistry)
 
