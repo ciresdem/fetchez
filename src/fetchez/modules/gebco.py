@@ -30,7 +30,7 @@ class GEBCO_Base(FetchModule):
     meta_resolution = "15 arc-seconds (~500m)"
     meta_license = "Public Domain / Attribution"
     meta_urls = {"home": "https://www.gebco.net/"}
-    
+
     def _get_gebco_url(self, layer, service):
         base = f"https://dap.ceda.ac.uk/thredds/{service}/bodc/gebco/global/gebco_{self.year}"
         if layer == "tid":
