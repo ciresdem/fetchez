@@ -73,7 +73,7 @@ def module_search(term):
 def module_list(search):
     """List all available modules grouped by category."""
 
-    registry = search_modules(term)
+    registry = search_modules(search)
     grouped_modules = {}
     for name, meta in registry.items():
         if name in meta.get("aliases", []):
