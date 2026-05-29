@@ -497,6 +497,16 @@ def fmod2dict(fmod: str, dict_args: Optional[Dict[str, Any]] = None) -> Dict[str
     return dict_args
 
 
+def parse_arg_to_list(val, cast_type):
+    if val is None:
+        return []
+    if isinstance(val, list):
+        return [cast_type(v) for v in val]
+    if isinstance(val, str) and "/" in val:
+        return [cast_type(v) for v in val.split("/")]
+    return [cast_type(val)]
+
+
 def parse_hook_string(hook_str, default_name=None):
     """Parses 'name:key=val,key2=val2' into a dictionary for recipes and pipelines.
     Safely ignores delimiters (:,=) when they are wrapped in double quotes.
