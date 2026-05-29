@@ -254,7 +254,6 @@ class DAV(FetchModule):
 
                 for feature in src.filter(bbox=bbox):
                     props = feature.get("properties", {})
-
                     props_lower = {k.lower(): v for k, v in props.items()}
 
                     tile_name = (
@@ -373,8 +372,33 @@ class DAV(FetchModule):
             attrs = dataset.get("attributes", {})
             fid = attrs.get("id")
             name = attrs.get("title")
+            year_val = attrs.get("year")
             f_datatype = attrs.get("dataType")
             links_list = attrs.get("links", [])
+
+            if self.min_year or self.max_year:
+                import re
+                years = []
+
+                # Check the explicit 'year' key first, then fallback to the title
+                for source in [year_val, name]:
+                    if source:
+                        matches = re.findall(r'\b(19\d{2}|20\d{2})\b', str(source))
+                        if matches:
+                            years = [int(y) for y in matches]
+                            break
+
+                if years:
+                    dataset_year = max(years)
+
+                    if self.min_year and dataset_year < self.min_year:
+                        continue
+                    if self.max_year and dataset_year > self.max_year:
+                        continue
+                else:
+                    # If no year can be parsed, log it but keep the data
+                    # so we don't accidentally drop valid datasets with bad metadata.
+                    logger.debug(f"Could not parse year for DAV dataset {fid}. Allowing through filter.")
 
             if self.survey_id and (int(self.survey_id.strip()) != int(fid.strip())):
                 continue
