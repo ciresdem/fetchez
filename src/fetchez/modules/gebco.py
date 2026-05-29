@@ -48,6 +48,8 @@ class GEBCO(GEBCO_Base):
         self.layer = layer.lower()
         self.include_tid = str(include_tid).lower() in ["true", "1", "yes"]
         self.year = str(year)
+        if self.min_year is not None or self.max_year is not None:
+            self.year = min([int(x) for x in [self.min_year, self.max_year, self.year] if x is not None])
 
     def run(self):
         if not getattr(self, "region", None) or self.region.to_list() == [
