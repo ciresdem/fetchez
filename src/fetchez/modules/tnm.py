@@ -23,6 +23,7 @@ from fetchez import cli
 logger = logging.getLogger(__name__)
 
 TNM_API_PRODUCTS_URL = "https://tnmaccess.nationalmap.gov/api/v1/products?"
+TNM_API_DATASETS_URL = "https://tnmaccess.nationalmap.gov/api/v1/datasets?"
 
 DATASET_CODES = [
     "National Boundary Dataset (NBD)",
