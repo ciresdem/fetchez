@@ -21,6 +21,16 @@ logger = logging.getLogger(__name__)
 class GEBCO_Base(FetchModule):
     """Base class to dynamically construct GEBCO THREDDS URLs based on year."""
 
+    name = "gebco"
+    meta_category = "Bathymetry"
+    meta_desc = "General Bathymetric Chart of the Oceans (GEBCO)"
+    meta_agency = "GEBCO / IHO / IOC"
+    meta_tags = ["gebco", "bathymetry", "global", "wcs", "tid"]
+    meta_region = "Global"
+    meta_resolution = "15 arc-seconds (~500m)"
+    meta_license = "Public Domain / Attribution"
+    meta_urls = {"home": "https://www.gebco.net/"}
+    
     def _get_gebco_url(self, layer, service):
         base = f"https://dap.ceda.ac.uk/thredds/{service}/bodc/gebco/global/gebco_{self.year}"
         if layer == "tid":
