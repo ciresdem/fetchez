@@ -614,8 +614,11 @@ def compile_sources(sources):
             try:
                 with open(src, "r") as f:
                     partial_recipe = yaml.safe_load(f)
-                    if "modules" in partial_recipe:
-                        compiled_modules.extend(partial_recipe["modules"])
+                    modules = partial_recipe.get("modules")
+                    if not modules:
+                        modules = partial_recipe.get("config").get("modules")
+                    if modules:
+                        compiled_modules.extend(modules)
                         logger.debug(
                             f"Imported {len(partial_recipe['modules'])} modules from {src}"
                         )
