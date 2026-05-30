@@ -18,6 +18,9 @@ Usage::
 
     # Advanced (With Hooks)
     files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000'])
+
+:copyright: (c) 2010-2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
 """
 
 import os
@@ -88,12 +91,24 @@ def list_recipes() -> Dict[str, Any]:
     return _search_registry(RecipeRegistry)
 
 
+def search_recipes(term) -> Dict[str, Any]:
+    return _search_registry(RecipeRegistry, term)
+
+
 def list_schemas() -> Dict[str, Any]:
     return _search_registry(SchemaRegistry)
 
 
+def search_schemas(term) -> Dict[str, Any]:
+    return _search_registry(SchemaRegistry, term)
+
+
 def list_presets() -> Dict[str, Any]:
     return _search_registry(PresetRegistry)
+
+
+def search_presets(term) -> Dict[str, Any]:
+    return _search_registry(PresetRegistry, term)
 
 
 def list_profiles() -> Dict[str, Any]:
