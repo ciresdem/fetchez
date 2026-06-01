@@ -94,6 +94,8 @@ def hook_search(term):
     registry = search_hooks(term)
     grouped_hooks = {}
     for name, meta in registry.items():
+        if name in meta.get("aliases", []):
+            continue
         cat = meta.get("category", "uncategorized").title()
         grouped_hooks.setdefault(cat, []).append((name, meta))
 
@@ -110,7 +112,6 @@ def hook_list(search):
     for name, meta in registry.items():
         if name in meta.get("aliases", []):
             continue
-
         cat = meta.get("category", "uncategorized").title()
         grouped_hooks.setdefault(cat, []).append((name, meta))
 

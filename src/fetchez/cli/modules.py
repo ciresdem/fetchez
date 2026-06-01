@@ -13,6 +13,7 @@ Discoverability and documentation for fetching modules.
 
 import click
 import sys
+from fetchez.api import search_modules
 from fetchez.registry import ModuleRegistry
 from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
 from .bundles import bundles_group
@@ -37,30 +38,7 @@ def modules_group():
     pass
 
 
-@modules_group.command("search", cls=FetchezMainCommand)
-@click.argument("term")
-def module_search(term):
-    """Search all available modules by keyword."""
-
-    ModuleRegistry.load_all()
-    registry = ModuleRegistry.get_registry()
-
-    valid_keys = ModuleRegistry.search_modules(term)
-
-    grouped_modules = {}
-    for name in valid_keys:
-        meta = registry[name]
-        # Skip aliases to keep the list clean
-        if name in meta.get("aliases", []):
-            continue
-
-        cat = meta.get("category", "Other Modules").title()
-        grouped_modules.setdefault(cat, []).append((name, meta))
-
-    if not grouped_modules:
-        click.secho(f"No modules found matching '{term}'.", fg="yellow")
-        return
-
+def _print_grouped_modules(grouped_modules):
     click.secho("\n🌍 Available Data Modules:", fg="yellow", bold=True)
     click.echo("=" * 60)
 
@@ -72,6 +50,22 @@ def module_search(term):
             click.echo(f"  {click.style(name_padded, bold=True, fg='cyan')} : {desc}")
 
     click.echo("\nRun 'fetchez modules info <name>' for detailed metadata.\n")
+
+
+@modules_group.command("search", cls=FetchezMainCommand)
+@click.argument("term")
+def module_search(term):
+    """Search all available modules by keyword."""
+
+    registry = search_modules(term)
+    grouped_modules = {}
+    for name, meta in registry.items():
+        if name in meta.get("aliases", []):
+            continue
+        cat = meta.get("category", "uncategorized").title()
+        grouped_modules.setdefault(cat, []).append((name, meta))
+
+    _print_grouped_modules(grouped_modules)
 
 
 @modules_group.command("list", cls=FetchezMainCommand)
@@ -79,36 +73,15 @@ def module_search(term):
 def module_list(search):
     """List all available modules grouped by category."""
 
-    ModuleRegistry.load_fast()
-    registry = ModuleRegistry.get_registry()
-
-    valid_keys = ModuleRegistry.search_modules(search) if search else registry.keys()
-
+    registry = search_modules(search)
     grouped_modules = {}
-    for name in valid_keys:
-        meta = registry[name]
-        # Skip aliases to keep the list clean
+    for name, meta in registry.items():
         if name in meta.get("aliases", []):
             continue
-
-        cat = meta.get("category", "Other Modules").title()
+        cat = meta.get("category", "uncategorized").title()
         grouped_modules.setdefault(cat, []).append((name, meta))
 
-    if not grouped_modules:
-        click.secho(f"No modules found matching '{search}'.", fg="yellow")
-        return
-
-    click.secho("\n🌍 Available Data Modules:", fg="yellow", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_modules.keys()):
-        click.secho(f"\n[ {cat} ]", fg="green", bold=True)
-        for name, meta in sorted(grouped_modules[cat], key=lambda x: x[0]):
-            desc = meta.get("desc", "No description provided.")
-            name_padded = f"{name:<16}"
-            click.echo(f"  {click.style(name_padded, bold=True, fg='cyan')} : {desc}")
-
-    click.echo("\nRun 'fetchez modules info <name>' for detailed metadata.\n")
+    _print_grouped_modules(grouped_modules)
 
 
 @modules_group.command("info", cls=FetchezMainCommand)
