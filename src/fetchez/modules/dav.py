@@ -255,7 +255,6 @@ class DAV(FetchModule):
                 for feature in src.filter(bbox=bbox):
                     props = feature.get("properties", {})
                     props_lower = {k.lower(): v for k, v in props.items()}
-
                     tile_name = (
                         props_lower.get("name")
                         or props_lower.get("location")
@@ -266,7 +265,7 @@ class DAV(FetchModule):
                         props_lower.get("url")
                         or props_lower.get("path")
                         or props_lower.get("url_link")
-                    )
+                    ).rstrip()
 
                     if not tile_url or not tile_name:
                         continue
@@ -375,7 +374,6 @@ class DAV(FetchModule):
             year_val = attrs.get("year")
             f_datatype = attrs.get("dataType")
             links_list = attrs.get("links", [])
-
             if self.min_year or self.max_year:
                 import re
 
