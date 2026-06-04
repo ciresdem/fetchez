@@ -69,7 +69,7 @@ class PipelineExecutor(FetchezMainGroup):
                     "kwargs",
                     "src_region",
                     "callback",
-                    "outdir",
+                    # "outdir",
                     "name",
                     "params",
                     "hook",
