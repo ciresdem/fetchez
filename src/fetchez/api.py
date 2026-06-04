@@ -165,7 +165,10 @@ def get(
     active_hooks = []
     if hooks:
         for h_str in hooks:
-            hook_config = parse_hook_string(h_str)
+            if isinstance(h_str, str):
+                hook_config = parse_hook_string(h_str)
+            elif isinstance(h_str, dict):
+                hook_config = h_str.copy()
             HookCls = HookRegistry.get_class(hook_config.get("name"))
             if HookCls:
                 active_hooks.append(HookCls(**hook_config.get("args", {})))
