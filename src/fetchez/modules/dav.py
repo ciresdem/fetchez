@@ -265,7 +265,9 @@ class DAV(FetchModule):
                         props_lower.get("url")
                         or props_lower.get("path")
                         or props_lower.get("url_link")
-                    ).rstrip()
+                    )
+                    if isinstance(tile_url, str):
+                        tile_url = tile_url.rstrip()
 
                     if not tile_url or not tile_name:
                         continue
