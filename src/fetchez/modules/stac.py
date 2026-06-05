@@ -27,6 +27,12 @@ try:
 except ImportError:
     HAS_STAC = False
 
+try:
+    import planetary_computer
+    HAS_PC = True
+except ImportError:
+    HAS_PC = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,10 +96,10 @@ class STACModule(FetchModule):
 
         try:
             client = pystac_client.Client.open(self.api_url)
-            # w, e, s, n = self.reigon
-            # bbox = (w, s, e, n)
+            w, e, s, n = self.region
+            bbox = (w, s, e, n)
             search_params = {
-                "bbox": self.region,
+                "bbox": bbox,  # self.region,
                 "max_items": self.limit,
             }
 
@@ -137,6 +143,19 @@ class STACModule(FetchModule):
                     asset = item.assets[key]
                     href = asset.href
 
+                    if "planetarycomputer" in self.api_url:
+                        if HAS_PC:
+                            href = planetary_computer.sign(href)
+                        else:
+                            logger.warning(
+                                "Planetary Computer URL detected, but 'planetary-computer' "
+                                "library is missing. Download may fail with 403 Forbidden."
+                            )
+
+                    date_str = (
+                        item.datetime.strftime("%Y%m%d") if item.datetime else "nodate"
+                    )
+
                     date_str = (
                         item.datetime.strftime("%Y%m%d") if item.datetime else "nodate"
                     )
@@ -159,3 +178,51 @@ class STACModule(FetchModule):
 
         except Exception as e:
             logger.error(f"STAC Query failed: {e}", exc_info=True)
+
+
+@cli.cli_opts(
+    help_text="USGS 3DEP Seamless DEMs via Planetary Computer STAC",
+)
+class STAC_3DEP_Seamless(STACModule):
+    name = "stac_3dep"
+    meta_category = "Topography"
+    meta_desc = "USGS 3DEP Seamless DEMs (1/3 arc-sec, 1 arc-sec, 10m) via STAC"
+    meta_aliases = ["stac_ned", "pc_3dep"]
+
+    def __init__(self, **kwargs):
+        # 3DEP seamless DEMs live in the '3dep-seamless' collection
+        kwargs.pop("url")
+        kwargs.pop("collections")
+        kwargs.pop("assets")
+        kwargs.pop("limit")
+        super().__init__(
+            url="https://planetarycomputer.microsoft.com/api/stac/v1",
+            collections="3dep-seamless",
+            assets="data",
+            limit=1000,
+            **kwargs
+        )
+
+
+@cli.cli_opts(
+    help_text="USGS 3DEP Lidar COPC via Planetary Computer STAC",
+)
+class STAC_3DEP_Lidar(STACModule):
+    name = "stac_lidar"
+    meta_category = "Topography"
+    meta_desc = "USGS 3DEP Lidar Point Clouds (COPC/LAZ) via STAC"
+    meta_aliases = ["stac_laz", "pc_lidar"]
+
+    def __init__(self, **kwargs):
+        # 3DEP Lidar lives in the '3dep-lidar-copc' collection
+        kwargs.pop("url")
+        kwargs.pop("collections")
+        kwargs.pop("assets")
+        kwargs.pop("limit")
+        super().__init__(
+            url="https://planetarycomputer.microsoft.com/api/stac/v1",
+            collections="3dep-lidar-copc",
+            assets="data",
+            limit=1000,
+            **kwargs
+        )
