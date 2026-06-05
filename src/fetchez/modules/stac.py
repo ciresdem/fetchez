@@ -29,6 +29,7 @@ except ImportError:
 
 try:
     import planetary_computer
+
     HAS_PC = True
 except ImportError:
     HAS_PC = False
@@ -200,7 +201,7 @@ class STAC_3DEP_Seamless(STACModule):
             collections="3dep-seamless",
             assets="data",
             limit=1000,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -224,5 +225,5 @@ class STAC_3DEP_Lidar(STACModule):
             collections="3dep-lidar-copc",
             assets="data",
             limit=1000,
-            **kwargs
+            **kwargs,
         )
