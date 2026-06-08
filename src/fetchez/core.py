@@ -652,7 +652,17 @@ class Fetch:
                         if attempt < tries - 1:
                             time.sleep(2)
                             continue
-                        raise ConnectionError(f"Status {req.status_code}")
+                        status_msg = f"Status {req.status_code}"
+                        try:
+                            body = req.json()
+                            extras = ", ".join(
+                                f"{k}: {body[k]}" for k in ("error", "message") if k in body
+                            )
+                            if extras:
+                                status_msg += f" ({extras})"
+                        except Exception:
+                            pass
+                        raise ConnectionError(status_msg)
 
                     with open(part_fn, mode) as f:
                         # desc = utils.str_truncate_middle(self.url, n=60)
