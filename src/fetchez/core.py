@@ -656,7 +656,9 @@ class Fetch:
                         try:
                             body = req.json()
                             extras = ", ".join(
-                                f"{k}: {body[k]}" for k in ("error", "message") if k in body
+                                f"{k}: {body[k]}"
+                                for k in ("error", "message")
+                                if k in body
                             )
                             if extras:
                                 status_msg += f" ({extras})"
