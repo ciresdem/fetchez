@@ -455,6 +455,19 @@ class Fetch:
                         current_read_timeout += 10
                     continue
 
+                elif req.status_code == 429:  # Too Many Requests
+                    retry_after = req.headers.get("Retry-After")
+                    wait_time = (
+                        int(retry_after)
+                        if retry_after and retry_after.isdigit()
+                        else 30 * (attempt + 1)
+                    )
+                    logger.warning(
+                        f"Rate limited (429) by {self.url}. Waiting {wait_time}s before retry..."
+                    )
+                    time.sleep(wait_time)
+                    continue
+
                 elif req.status_code == 416:  # Range Not Satisfiable
                     # If range fails, try fetching whole file
                     if "Range" in self.headers:
