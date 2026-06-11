@@ -310,6 +310,9 @@ class EarthData(FetchModule):
         if self.subset_job_id:
             logger.debug(f"Polling Harmony Job {self.subset_job_id}...")
 
+            # States where Harmony is still working and polling should continue.
+            _IN_PROGRESS_STATES = {"running", "paused", "accepted", "queued"}
+
             with tqdm(total=100) as pbar:
                 while True:
                     try:
@@ -346,6 +349,13 @@ class EarthData(FetchModule):
                             )
                             break
 
+                        elif state == "complete_with_errors":
+                            logger.warning(
+                                f"Harmony Job completed with errors: {status.get('message', '')}. "
+                                f"Partial results may be available."
+                            )
+                            break
+
                         elif state == "running":
                             pbar.update(float(progress) - pbar.n)
                             logger.debug(f"Harmony Job Running: {progress}%")
@@ -353,10 +363,16 @@ class EarthData(FetchModule):
                         elif state == "paused":
                             self.harmony_ping_for_status(self.subset_job_id, "resume")
                             time.sleep(10)
-                        else:
-                            # queued, accepted, etc.
+                        elif state in _IN_PROGRESS_STATES:
                             logger.debug(f"Harmony Job Status: {state}")
                             time.sleep(10)
+                        else:
+                            # Unrecognised terminal-or-unknown state — do not loop forever.
+                            logger.warning(
+                                f"Harmony Job returned unrecognised status '{state}'; "
+                                f"stopping poll."
+                            )
+                            break
 
                     except Exception as e:
                         logger.error(f"Harmony polling failed: {e}")
