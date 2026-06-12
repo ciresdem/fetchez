@@ -35,6 +35,7 @@ class SetWeight(FetchHook):
     The 'rules' dictionary keys are matched against:
     - The module name (e.g., 'nos_hydro')
     - The 'datatype' entry field (e.g., 'bag', 'xyz')
+    - The filename, or a subset of the filename
     """
 
     name = "set-weight"
@@ -62,15 +63,20 @@ class SetWeight(FetchHook):
 
             dst_fn = entry.get("dst_fn")
             if dst_fn:
+                keys_to_check.append(dst_fn)
                 _, ext = os.path.splitext(dst_fn)
                 if ext:
                     keys_to_check.append(ext.lower().lstrip("."))
 
             assigned_weight = self.default
             match_found = False
-
             for key in keys_to_check:
-                if key in self.rules:
+                for rule_key in self.rules.keys():
+                    if rule_key.lower() in key.lower():
+                        assigned_weight = self.rules[rule_key]
+                        match_found = True
+                        break
+                if not match_found and key in self.rules:
                     assigned_weight = self.rules[key]
                     match_found = True
                     break
