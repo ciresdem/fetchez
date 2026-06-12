@@ -850,6 +850,33 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
 # Hooks
 # =============================================================================
 def merge_hooks(global_hooks, local_hooks):
+    """Merge global and local hooks.
+
+    Order: Globals first, then Locals.
+
+    Duplicate removal has been removed to allow nested sub-pipelines,
+    but we log a debug warning if exact duplicates cross the global/local boundary.
+    """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    merged = list(global_hooks)
+
+    for h in local_hooks:
+        if h in global_hooks:
+            logger.debug(
+                f"Duplicate hook '{h.name}' detected in both global and local scopes. "
+                "Preserving both to support sequential sub-pipelines."
+            )
+        merged.append(h)
+
+    return merged
+
+
+# Depreciated due to removing duplicates!
+def _merge_hooks(global_hooks, local_hooks):
     """Merge global and local hooks, removing exact duplicates.
 
     Order: Globals first, then Locals.
