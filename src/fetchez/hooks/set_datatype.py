@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.hooks.set_weight
+fetchez.hooks.set_datatype
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Assigns processing weights to data entries based on module name or patterns.
+Assigns the data_tpe to data entries based on module name or patterns.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -19,33 +19,35 @@ from fetchez.utils import parse_arg_to_dict
 logger = logging.getLogger(__name__)
 
 
-class SetWeight(FetchHook):
-    """Assigns weights to entries based on rules.
+class SetDatatype(FetchHook):
+    """Overrides the data_type attribute of pipeline entries based on rules.
 
     Usage:
-        # Universal default
-        --hook set_weight:default=0.5
+        # Override all to 'bag'
+        --hook set_datatype:default=bag
 
-        # Rule-based override
-        --hook set_weight:rules=nos_hydro=10.0/lidar=5.0/csb=0.5
+        # Override based on extension
+        --hook set_datatype:rules=laz=lidar/tif=raster
 
-        # Specific match_key override
-        --hook set_weight:match_key=year,rules=2015=2.0/2016=3.5
+        # Override based on a specific attribute
+        --hook set_datatype:match_key=year,rules=2015=bag/2016=xyz
     """
 
-    name = "set-weight"
-    meta_desc = "Assigns weights to entries"
-    meta_stage = "manifest"  # pre
+    name = "set-datatype"
+    meta_desc = "Override the data_type of pipeline entries based on rules."
+    meta_stage = "manifest"
     meta_category = "metadata"
-    meta_aliases = ["set_weight"]
+    meta_aliases = ["set_datatype"]
 
-    def __init__(self, default=1.0, rules=None, match_key=None, **kwargs):
+    def __init__(
+        self, data_type=None, default=None, rules=None, match_key=None, **kwargs
+    ):
         super().__init__(**kwargs)
-        self.default = float(default)
+        self.default = default if default is not None else data_type
         self.match_key = match_key
 
-        self.rules = parse_arg_to_dict(rules, cast_type=float)
-        self.rules = {str(k).lower(): float(v) for k, v in self.rules.items()}
+        self.rules = parse_arg_to_dict(rules, cast_type=str)
+        self.rules = {str(k).lower(): str(v) for k, v in self.rules.items()}
 
     def run(self, entries):
         for mod, entry in entries:
@@ -61,12 +63,8 @@ class SetWeight(FetchHook):
             else:
                 if getattr(mod, "name", None):
                     keys_to_check.append(str(mod.name).lower())
-
                 if entry.get("data_type"):
                     keys_to_check.append(str(entry.get("data_type")).lower())
-                elif entry.get("datatype"):
-                    keys_to_check.append(str(entry.get("datatype")).lower())
-
                 dst_fn = entry.get("dst_fn")
                 if dst_fn:
                     keys_to_check.append(dst_fn.lower())
@@ -74,27 +72,25 @@ class SetWeight(FetchHook):
                     if ext:
                         keys_to_check.append(ext.lower().lstrip("."))
 
-            assigned_weight = self.default
+            assigned_dt = self.default
             match_found = False
 
             for key in keys_to_check:
                 for rule_key, rule_val in self.rules.items():
                     if rule_key in key:
-                        assigned_weight = rule_val
+                        assigned_dt = rule_val
                         match_found = True
                         break
                 if match_found:
                     break
 
-            entry["weight"] = assigned_weight
-
-            if match_found:
-                logger.debug(
-                    f"Assigned weight {assigned_weight} to {os.path.basename(entry.get('dst_fn', ''))} (Matched rule)"
-                )
-            else:
-                logger.debug(
-                    f"Assigned default weight {assigned_weight} to {os.path.basename(entry.get('dst_fn', ''))}"
-                )
+            if assigned_dt is not None:
+                old_dt = entry.get("data_type", "unknown")
+                if old_dt != assigned_dt:
+                    entry["data_type"] = assigned_dt
+                    logger.debug(
+                        f"Changed data_type from '{old_dt}' to '{assigned_dt}' "
+                        f"for {os.path.basename(entry.get('dst_fn', ''))}"
+                    )
 
         return entries
