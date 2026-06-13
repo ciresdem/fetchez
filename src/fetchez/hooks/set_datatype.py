@@ -39,9 +39,9 @@ class SetDatatype(FetchHook):
     meta_category = "metadata"
     meta_aliases = ["set_datatype"]
 
-    def __init__(self, default=None, rules=None, match_key=None, **kwargs):
+    def __init__(self, data_type=None, default=None, rules=None, match_key=None, **kwargs):
         super().__init__(**kwargs)
-        self.default = default
+        self.default = default if default is not None else data_type
         self.match_key = match_key
 
         self.rules = parse_arg_to_dict(rules, cast_type=str)
