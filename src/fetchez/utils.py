@@ -529,9 +529,10 @@ def parse_arg_to_dict(val, cast_type=str):
         val = val.strip()
 
         # JSON
-        if val.startswith('{') and val.endswith('}'):
+        if val.startswith("{") and val.endswith("}"):
             try:
                 import json
+
                 parsed = json.loads(val)
                 return {str(k).strip(): cast_type(v) for k, v in parsed.items()}
             except Exception:
