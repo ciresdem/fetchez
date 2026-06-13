@@ -498,6 +498,11 @@ def fmod2dict(fmod: str, dict_args: Optional[Dict[str, Any]] = None) -> Dict[str
 
 
 def parse_arg_to_list(val, cast_type):
+    """Parse a CLI string or existing list into a typed list.
+
+    Expects CLI format: 'val1/val2'
+    """
+
     if val is None:
         return []
     if isinstance(val, list):
@@ -505,6 +510,53 @@ def parse_arg_to_list(val, cast_type):
     if isinstance(val, str) and "/" in val:
         return [cast_type(v) for v in val.split("/")]
     return [cast_type(val)]
+
+
+def parse_arg_to_dict(val, cast_type=str):
+    """Parse a CLI string or existing dictionary into a typed dictionary.
+
+    Expects CLI format: 'key1=val1/key2=val2'
+    """
+
+    if val is None:
+        return {}
+
+    if isinstance(val, dict):
+        return {str(k).strip(): cast_type(v) for k, v in val.items()}
+
+    out_dict = {}
+    if isinstance(val, str):
+        val = val.strip()
+
+        # JSON
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                import json
+                parsed = json.loads(val)
+                return {str(k).strip(): cast_type(v) for k, v in parsed.items()}
+            except Exception:
+                pass
+
+        # String
+        pairs = val.split("/")
+        for pair in pairs:
+            if not pair.strip():
+                continue
+
+            if "=" in pair:
+                k, v = pair.split("=", 1)
+            # Fallback to ':' if users try that instead
+            elif ":" in pair:
+                k, v = pair.split(":", 1)
+            else:
+                k, v = pair, True
+
+            try:
+                out_dict[str(k).strip()] = cast_type(v)
+            except Exception:
+                out_dict[str(k).strip()] = v
+
+    return out_dict
 
 
 def parse_hook_string(hook_str, default_name=None):
