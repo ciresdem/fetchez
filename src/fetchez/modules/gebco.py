@@ -102,7 +102,7 @@ class GEBCO(GEBCO_Base):
         grid_url = f"{grid_base}?{query_string}"
         grid_fn = f"gebco_{self.year}_{self.layer}_{w}_{e}_{s}_{n}.tif"
 
-        self.add_entry_to_results(url=grid_url, dst_fn=grid_fn, data_type="netcdf")
+        self.add_entry_to_results(url=grid_url, dst_fn=grid_fn, data_type="rasterio")
 
         if self.include_tid:
             tid_base = self._get_gebco_url("tid", service="wcs")
@@ -112,7 +112,7 @@ class GEBCO(GEBCO_Base):
             tid_url = f"{tid_base}?{urllib.parse.urlencode(tid_query)}"
             tid_fn = f"gebco_{self.year}_tid_{w}_{e}_{s}_{n}.tif"
 
-            self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="rio")
+            self.add_entry_to_results(url=tid_url, dst_fn=tid_fn, data_type="rasterio")
 
 
 class GEBCO_NCSS(GEBCO_Base):
