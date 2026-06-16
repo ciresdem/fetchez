@@ -317,7 +317,12 @@ class MBDB(FetchModule):
     """
 
     def __init__(
-        self, where: str = "1=1", layer: int = 0, want_inf: bool = True, want_check: bool = True, **kwargs
+        self,
+        where: str = "1=1",
+        layer: int = 0,
+        want_inf: bool = True,
+        want_check: bool = True,
+        **kwargs,
     ):
         super().__init__(name="mbdb", **kwargs)
         self.where = where
