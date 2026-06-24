@@ -156,7 +156,12 @@ class Region:
         return Region(self.xmin, self.xmax, self.ymin, self.ymax, srs=self.srs)
 
     def buffer(
-        self, pct: float = 5, x_bv: float | None = None, y_bv: float | None = None
+        self,
+        pct: float = 5,
+        x_bv: float | None = None,
+        y_bv: float | None = None,
+        x_inc: float | None = None,
+        y_inc: float | None = None,
     ):
         """Buffer the region in place."""
 
@@ -175,6 +180,17 @@ class Region:
 
         x_bv = x_bv if x_bv else 0
         y_bv = y_bv if y_bv else 0
+
+        if x_inc is not None:
+            if y_inc is None:
+                y_inc = x_inc
+
+            tmp_x_bv = int(x_bv / x_inc) * float(x_inc)
+            tmp_y_bv = int(y_bv / y_inc) * float(y_inc)
+            if tmp_x_bv != 0:
+                x_bv = tmp_x_bv
+            if tmp_y_bv != 0:
+                y_bv = tmp_y_bv
 
         self.xmin -= x_bv
         self.xmax += x_bv

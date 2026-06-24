@@ -73,6 +73,10 @@ class FetchModule:
         else:
             self._outdir = os.path.join(self.outdir, self.name)
 
+        self.stream_kwargs = {
+            k: v for k, v in kwargs.items() if k not in ["datatype", "data_type"]
+        }
+
         self.min_year = utils.int_or(min_year)
         self.max_year = utils.int_or(max_year)
         self.weight = utils.float_or(weight, 1.0)
@@ -262,6 +266,10 @@ class FetchModule:
                 dst_fn = os.path.join(self._outdir, dst_fn)
 
         entry = {"url": url, "dst_fn": dst_fn, "data_type": data_type}
+
+        if hasattr(self, "stream_kwargs"):
+            entry.update(self.stream_kwargs)
+
         entry.update(kwargs)
         self.results.append(entry)
 

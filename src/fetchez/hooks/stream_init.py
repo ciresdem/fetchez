@@ -60,6 +60,22 @@ class DataStream(FetchHook):
             kwargs_copy["weight"] = getattr(mod, "weight", 1.0)
             kwargs_copy["uncertainty"] = getattr(mod, "uncertainty", 0.0)
 
+            reserved_keys = {
+                "url",
+                "dst_fn",
+                "data_type",
+                "status",
+                "stream",
+                "src_srs",
+                "stream_type",
+                "history",
+                "weight",
+                "uncertainty",
+            }
+            for k, v in entry.items():
+                if k not in reserved_keys:
+                    kwargs_copy[k] = v
+
             dtype = entry.get("data_type")
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
