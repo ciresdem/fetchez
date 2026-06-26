@@ -11,12 +11,21 @@ Base fetchez Reader class to create 'streams'
 :license: MIT, see LICENSE for more details.
 """
 
+from fetchez.spatial import Region
+
 
 class BaseReader:
     """The base class for fetchez data Readers"""
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, region=None, **kwargs):
         self.path = path
+        if region is not None and not isinstance(region, Region):
+            try:
+                self.region = Region.from_list(region)
+            except Exception:
+                self.region = region
+        else:
+            self.region = region
         self.kwargs = kwargs
 
     def yield_chunks(self):

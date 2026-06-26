@@ -550,7 +550,7 @@ class ReaderRegistry(PluginRegistry):
     user_folder = "streams/readers"
 
     @classmethod
-    def get_reader(cls, src, term: str, **kwargs):
+    def get_reader(cls, src, term: str, region=None, **kwargs):
         if term:
             profile = ProfileRegistry.get_yaml(term)
             if profile:
@@ -572,7 +572,7 @@ class ReaderRegistry(PluginRegistry):
         logger.debug(f"No reader dtype found, checking `{_ext}` in extensions")
         reader = cls.get_reader_for_ext(_ext)
         if reader:
-            return reader(src, **kwargs)
+            return reader(src, region=region, **kwargs)
 
         return None
 
