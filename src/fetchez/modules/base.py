@@ -59,8 +59,8 @@ class FetchModule:
     ):
         self.region = src_region
         if self.region is not None and self.region.valid_p():
-            if self.region.srs is None and region_srs is not None:
-                self.region.srs = region_srs
+            # if self.region.srs is None and region_srs is not None:
+            #     self.region.srs = region_srs
 
             if self.region.srs:
                 is_geographic = False
