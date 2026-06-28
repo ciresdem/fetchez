@@ -165,7 +165,11 @@ class PipelineExecutor(FetchezMainGroup):
     # epilog="\bhttps://fetchez.readthedocs.io/en/latest/index.html"
 )
 @click.option("-R", "--region", help="Bounding box (W/E/S/N)")
-@click.option("--region-srs", default="EPSG:4326", help="Set the SRS of the input -R bounding box (Defaults to EPSG:4326).")
+@click.option(
+    "--region-srs",
+    default="EPSG:4326",
+    help="Set the SRS of the input -R bounding box (Defaults to EPSG:4326).",
+)
 @click.option("--global-hook", multiple=True, help="Attach a global processing hook")
 @click.option("--schema", help="Apply a validation schema (e.g., 'crm')")
 @click.option(

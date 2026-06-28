@@ -24,6 +24,7 @@ from fetchez.core import Fetch
 
 try:
     import pyproj
+
     HAS_PYPROJ = True
 except ImportError:
     HAS_PYPROJ = False
@@ -74,16 +75,23 @@ class FetchModule:
 
                 if not HAS_PYPROJ or not is_geographic:
                     srs_upper = srs_str.upper()
-                    if any(x in srs_upper for x in ["4326", "4269", "+PROJ=LONGLAT", "GEOGCS"]):
+                    if any(
+                        x in srs_upper
+                        for x in ["4326", "4269", "+PROJ=LONGLAT", "GEOGCS"]
+                    ):
                         is_geographic = True
 
                 if not is_geographic:
-                    logger.info(f"Warping projected fetch region ({self.region.srs}) to EPSG:4326 for API queries...")
+                    logger.info(
+                        f"Warping projected fetch region ({self.region.srs}) to EPSG:4326 for API queries..."
+                    )
                     try:
                         self.original_region = self.region.copy()
                         self.region.warp("EPSG:4326")
                     except Exception as e:
-                        logger.warning(f"Failed to warp region to WGS84: {e}. APIs may fail.")
+                        logger.warning(
+                            f"Failed to warp region to WGS84: {e}. APIs may fail."
+                        )
 
         self.outdir = outdir
         self.params = params or {}
