@@ -22,6 +22,12 @@ from fetchez import spatial
 from fetchez import utils
 from fetchez.core import Fetch
 
+try:
+    import pyproj
+    HAS_PYPROJ = True
+except ImportError:
+    HAS_PYPROJ = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,6 +57,34 @@ class FetchModule:
         **kwargs,
     ):
         self.region = src_region
+        if self.region is not None and self.region.valid_p():
+            if self.region.srs is None and region_srs is not None:
+                self.region.srs = region_srs
+
+            if self.region.srs:
+                is_geographic = False
+                srs_str = str(self.region.srs).strip()
+
+                if HAS_PYPROJ:
+                    try:
+                        crs = pyproj.CRS.from_user_input(srs_str)
+                        is_geographic = crs.is_geographic
+                    except Exception as e:
+                        logger.debug(f"PyProj failed to parse CRS '{srs_str}': {e}")
+
+                if not HAS_PYPROJ or not is_geographic:
+                    srs_upper = srs_str.upper()
+                    if any(x in srs_upper for x in ["4326", "4269", "+PROJ=LONGLAT", "GEOGCS"]):
+                        is_geographic = True
+
+                if not is_geographic:
+                    logger.info(f"Warping projected fetch region ({self.region.srs}) to EPSG:4326 for API queries...")
+                    try:
+                        self.original_region = self.region.copy()
+                        self.region.warp("EPSG:4326")
+                    except Exception as e:
+                        logger.warning(f"Failed to warp region to WGS84: {e}. APIs may fail.")
+
         self.outdir = outdir
         self.params = params or {}
         self.status = 0
