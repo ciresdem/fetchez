@@ -214,14 +214,18 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
     ctx.ensure_object(dict)
     src_region = parse_region(region) if region else None
-    src_region.srs = region_srs
+    if src_region is not None and src_region.valip_p():
+        src_region.srs = region_srs
+
     ctx.obj["region"] = src_region
     ctx.obj["export"] = export
     # ctx.obj["global_hook"] = parsed_global_hooks
 
 
 @pipeline_group.result_callback()
-def process_pipeline(commands, region, export, global_hook, schema, threads):
+def process_pipeline(
+    commands, region, region_srs, export, global_hook, schema, threads
+):
     """Executes after all chained commands have returned their dictionaries."""
 
     HookRegistry.load_all()
