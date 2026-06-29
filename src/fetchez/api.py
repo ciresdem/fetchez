@@ -163,7 +163,7 @@ def get(
         raise ValueError(f"Unknown module: {module}")
 
     src_region = parse_region(region)[0] if region else None
-    if src_region is not None and src_region.valip_p():
+    if src_region is not None and src_region.valid_p():
         src_region.srs = region_srs
 
     active_hooks = []
