@@ -134,6 +134,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
 def get(
     module: str,
     region: Optional[List[float] | str] = None,
+    region_srs: Optional[str] = "EPSG:4326",
     outdir: Optional[str] = None,
     threads: int = 4,
     hooks: Optional[List[str]] = None,
@@ -144,6 +145,7 @@ def get(
     Args:
         module: Module name (e.g., 'nos_hydro', 'tnm').
         region: [W, E, S, N] or 'loc:Boulder'.
+        region_srs: The srs of the region (defalt: EPSG:4326).
         outdir: Where to save files (default: ./<module>).
         threads: Parallel download threads.
         hooks: List of hook strings (e.g. ['unzip', 'audit']).
@@ -161,6 +163,8 @@ def get(
         raise ValueError(f"Unknown module: {module}")
 
     src_region = parse_region(region)[0] if region else None
+    if src_region is not None and src_region.valid_p():
+        src_region.srs = region_srs
 
     active_hooks = []
     if hooks:
@@ -206,7 +210,11 @@ def get(
     return downloaded_files
 
 
-def run_recipe(target: str, region: Optional[str] = None) -> bool:
+def run_recipe(
+    target: str,
+    region: Optional[str] = None,
+    region_srs: Optional[str] = "EPSG:4326",
+) -> bool:
     """Execute a YAML recipe.
 
     'target' can be a local file path or the name of a registered recipe.
@@ -233,6 +241,9 @@ def run_recipe(target: str, region: Optional[str] = None) -> bool:
 
     if region:
         base_config["region"] = region
+
+    if region_srs:
+        base_config["region_srs"] = region_srs
 
     try:
         Recipe.from_file(base_config).run()

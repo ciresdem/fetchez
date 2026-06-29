@@ -165,6 +165,11 @@ class PipelineExecutor(FetchezMainGroup):
     # epilog="\bhttps://fetchez.readthedocs.io/en/latest/index.html"
 )
 @click.option("-R", "--region", help="Bounding box (W/E/S/N)")
+@click.option(
+    "--region-srs",
+    default="EPSG:4326",
+    help="Set the SRS of the input -R bounding box (Defaults to EPSG:4326).",
+)
 @click.option("--global-hook", multiple=True, help="Attach a global processing hook")
 @click.option("--schema", help="Apply a validation schema (e.g., 'crm')")
 @click.option(
@@ -175,7 +180,7 @@ class PipelineExecutor(FetchezMainGroup):
 )
 @click.pass_context
 # """Initializes the context before the chained subcommands run."""
-def pipeline_group(ctx, region, export, global_hook, schema, threads):
+def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads):
     """Fetch/download data and execute processing pipelines.
 
     \b
@@ -209,13 +214,18 @@ def pipeline_group(ctx, region, export, global_hook, schema, threads):
 
     ctx.ensure_object(dict)
     src_region = parse_region(region) if region else None
+    if src_region is not None and src_region.valip_p():
+        src_region.srs = region_srs
+
     ctx.obj["region"] = src_region
     ctx.obj["export"] = export
     # ctx.obj["global_hook"] = parsed_global_hooks
 
 
 @pipeline_group.result_callback()
-def process_pipeline(commands, region, export, global_hook, schema, threads):
+def process_pipeline(
+    commands, region, region_srs, export, global_hook, schema, threads
+):
     """Executes after all chained commands have returned their dictionaries."""
 
     HookRegistry.load_all()

@@ -690,7 +690,7 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
 
     target_crs = None
     regions = []
-    # 1. Single String
+    # Single String
     if isinstance(input_r, str):
         input_r, target_crs = _parse_crs(input_r)
         s_lower = input_r.lower()
@@ -711,7 +711,7 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
             if r:
                 regions.append(r)
 
-    # 2. List/Tuple (Coordinate list OR List of strings)
+    # List/Tuple (Coordinate list OR List of strings)
     elif isinstance(input_r, (list, tuple)):
         # Check if it is a single Coordinate List [w, e, s, n]
         if len(input_r) == 4 and all(isinstance(n, (int, float)) for n in input_r):

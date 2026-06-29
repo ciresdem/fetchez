@@ -223,6 +223,7 @@ class Recipe:
 
         global_hooks = self._init_hooks(self.config.get("global_hooks", []))
         global_region_def = self.config.get("region")
+        global_region_srs = self.config.get("region_srs", "EPSG:4326")
         global_regions = (
             parse_region(global_region_def) if global_region_def else [None]
         )
@@ -263,11 +264,13 @@ class Recipe:
         for mod_def in self.config.get("modules", []):
             if isinstance(mod_def, str):
                 mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
+                mod_region_srs = global_region_srs
             else:
                 mod_key = mod_def.get("module")
                 mod_args = mod_def.get("args", {})
                 mod_hooks = self._init_hooks(mod_def.get("hooks", []), mod=mod_key)
                 mod_region_def = mod_def.get("region")
+                mod_region_srs = mod_def.get("region_srs", global_region_srs)
 
             mod_regions = (
                 parse_region(mod_region_def) if mod_region_def else global_regions
@@ -284,6 +287,9 @@ class Recipe:
                 continue
 
             for region in mod_regions:
+                if region is not None and region.valid_p():
+                    region.srs = mod_region_srs
+
                 if "path" in mod_args:
                     mod_args["path"] = self._resolve_path(mod_args["path"])
 
@@ -319,15 +325,15 @@ class Recipe:
             "description", "No description provided."
         )
         region = self.config.get("region", "Global")
+        region_srs = self.config.get("region_srs", "EPSG:4326")
 
         receipt_filename = f"{name.lower().replace(' ', '_')}_receipt.md"
         receipt_path = os.path.join(self.base_dir, receipt_filename)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Handle the case where region is None (which we just enabled!)
         region_str = (
-            f"`{region}`"
+            f"`{region}` (Native CRS: {region_srs})"
             if region and str(region) != "None"
             else "`Global / Not Specified`"
         )
