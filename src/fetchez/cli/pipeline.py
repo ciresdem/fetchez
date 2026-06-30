@@ -214,7 +214,7 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
     ctx.ensure_object(dict)
     src_region = parse_region(region) if region else None
-    if src_region is not None and src_region.valip_p():
+    if src_region is not None and src_region.valid_p():
         src_region.srs = region_srs
 
     ctx.obj["region"] = src_region
