@@ -214,9 +214,6 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
     ctx.ensure_object(dict)
     src_region = parse_region(region) if region else None
-    if src_region is not None and src_region.valid_p():
-        src_region.srs = region_srs
-
     ctx.obj["region"] = src_region
     ctx.obj["export"] = export
     # ctx.obj["global_hook"] = parsed_global_hooks
@@ -252,6 +249,7 @@ def process_pipeline(
     config = {
         "project": {"name": "cli_pipeline"},
         "region": str(region) if region else None,
+        "region_srs": region_srs,
         "modules": modules,
         "global_hooks": parsed_global_hooks,
     }
