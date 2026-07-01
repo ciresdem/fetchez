@@ -444,6 +444,7 @@ class Recipe:
                 "hooks",
                 "args",
                 "region",
+                "region_srs",
                 "description",
                 "_comment",
             ]
