@@ -90,10 +90,11 @@ class DataStream(FetchHook):
             # reader = ReaderRegistry.get_reader_for_ext(src.split(".")[-1])(
             #     src, **kwargs_copy
             # )
-            logger.debug(f"Stream initiated with the '{reader.name}' reader")
             if not reader:
                 logger.warning(f"No reader could be determined for {dtype}: {entry}")
                 continue
+
+            logger.debug(f"Stream initiated with the '{reader.name}' reader")
 
             raw_stream = reader.yield_chunks()
             mod.region = Region.from_list(mod.region)
