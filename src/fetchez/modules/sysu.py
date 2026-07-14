@@ -9,6 +9,9 @@ SYSU_Topo: a 1-arc-minute global bathymetry from SWOT-derived gravity using the 
 
 https://www.nature.com/articles/s41597-026-06641-5
 https://zenodo.org/records/17958545
+
+:copyright: (c) 2010 - 2026 Regents of the University of Colorado
+:license: MIT, see LICENSE for more details.
 """
 
 import logging
