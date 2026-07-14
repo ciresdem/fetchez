@@ -117,7 +117,11 @@ class FABDEM(FetchModule):
 
                 if self._intersects(self.region, geom):
                     zip_name = props.get("zipfile_name")
-
+                    # The index has some zipfile_name's with S-# instead of S# as they are actually named
+                    zip_name = zip_name.replace("-S-", "-S")
+                    zip_name = zip_name.replace("-N-", "-N")
+                    # The index has zipfile_name's with `E180`, but all files at 180 have `W180`
+                    zip_name = zip_name.replace("E180", "W180")
                     if zip_name:
                         url = f"{FABDEM_DATA_URL}/{zip_name}"
 
