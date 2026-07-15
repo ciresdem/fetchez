@@ -172,6 +172,7 @@ class EarthData(FetchModule):
         w, e, s, n = self.region
         harmony_data = {
             "bbox": f"{w},{s},{e},{n}",
+            "forceAsync": True,
         }
 
         start_t = self._format_date(self.time_start)
