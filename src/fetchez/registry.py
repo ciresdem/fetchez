@@ -566,7 +566,7 @@ class ReaderRegistry(PluginRegistry):
                 reader = cls.get_reader_for_dtype(term)
                 if reader:
                     logger.debug(f"Found `{reader.name}` for data-type: `{term}`")
-                    return reader(src, **kwargs)
+                    return reader(src, region=region, **kwargs)
 
         _ext = src.split(".")[-1]
         logger.debug(f"No reader dtype found, checking `{_ext}` in extensions")
