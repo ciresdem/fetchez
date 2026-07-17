@@ -188,7 +188,16 @@ class EarthData(FetchModule):
         )
 
         if req and req.status_code in [200, 201, 202]:
-            return req.json()
+            try:
+                return req.json()
+            except requests.exceptions.JSONDecodeError:
+                logger.error(
+                    "Harmony API returned HTML instead of JSON. You likely need to log into "
+                    "https://urs.earthdata.nasa.gov and explicitly approve the 'Harmony' application "
+                    "in your profile, or your credentials dropped during a redirect."
+                )
+                logger.debug(f"Response snippet: {req.text[:500]}")
+                return None
 
         logger.error(
             f"Harmony request failed: {req.status_code if req else 'No Response'}"
