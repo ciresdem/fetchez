@@ -18,6 +18,7 @@ import os
 import time
 import datetime
 import logging
+import requests
 from tqdm import tqdm
 from typing import Dict, Optional
 
