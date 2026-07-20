@@ -450,7 +450,7 @@ class Fetch:
         self.auth = auth
         self.silent = logger.getEffectiveLevel() > logging.INFO
 
-        self.session = fetchezSession(rauth=self.auth, self.headers)
+        self.session = fetchezSession(rauth=self.auth, rheaders=self.headers)
 
     def fetch_req(
         self,
