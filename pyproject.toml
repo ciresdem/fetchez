@@ -109,6 +109,8 @@ exclude = [
 mypy_path = "src"
 packages = ["fetchez"]
 python_version = "3.12"
+exclude = ["^build/", "^dist/", "^\\.venv/"]
+# allow_untyped_globals = true
 # strict = true
 
 [[tool.mypy.overrides]]
@@ -119,7 +121,8 @@ module = [
     "botocore.*",
     "mercantile",
     "osgeo",
-    "pyogrio",
+    "pyogrio.*",
+    "pyogrio.raw",
     "pyproj",
     "sentinelsat",
     "shapefile",
@@ -129,9 +132,11 @@ module = [
     "pystac_client",
     "planetary_computer",
     "copernicusmarine",
+    "fsspec",
     "fsspec.*",
 ]
 ignore_missing_imports = true
+# disable_error_code = ["import-not-found"]
 
 [tool.ruff.lint]
 # select = ["ALL"]  # Goal :)
