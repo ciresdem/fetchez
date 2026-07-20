@@ -137,7 +137,7 @@ class EarthData(FetchModule):
             self.auth = EarthdataAuth(credentials)
         else:
             self.headers = {}
-            self.auth = None
+            # self.auth = None
             logger.warning(
                 "Could not retrieve EarthData credentials. Public data might fail."
             )

@@ -167,7 +167,7 @@ def get_raw_credentials(
 
     while not credentials_valid:
         if not username or not password:
-            logger.info(f"\n--- Authentication Required ---")
+            logger.info("\n--- Authentication Required ---")
             logger.info(f"Destination: {authenticator_url}")
             logger.info("Please enter your credentials. If you don't have an account,")
             logger.info(f"register at: {authenticator_url}\n")
@@ -413,6 +413,23 @@ class HttpFile(io.IOBase):
 # =============================================================================
 # Fetch
 # =============================================================================
+class fetchezSession(requests.Session):
+    def __init__(self, rauth=None, rheaders=None, **kwargs):
+        self.rauth = rauth
+        self.rheaders = rheaders or {}
+        super().__init__(**kwargs)
+
+    def rebuild_auth(self, prepared_request, response):
+        """Intercept the security sweep to preserve Earthdata credentials."""
+
+        super().rebuild_auth(prepared_request, response)
+
+        if self.rauth:
+            self.rauth(prepared_request)
+        elif "Authorization" in self.rheaders:
+            prepared_request.headers["Authorization"] = self.rheaders["Authorization"]
+
+
 class Fetch:
     """Fetch class to fetch ftp/http data files"""
 
@@ -423,7 +440,7 @@ class Fetch:
         headers: Dict = R_HEADERS,
         verify: bool = True,
         allow_redirects: bool = True,
-        auth=None,
+        auth: Optional[Any] = None,
     ):
         self.url = url
         self.callback = callback
@@ -433,20 +450,7 @@ class Fetch:
         self.auth = auth
         self.silent = logger.getEffectiveLevel() > logging.INFO
 
-        self.session = requests.Session()
-
-        self._orig_rebuild_auth = self.session.rebuild_auth
-        self.session.rebuild_auth = self._custom_rebuild_auth
-
-    def _custom_rebuild_auth(self, prepared_request, response):
-        """Intercept the security sweep to preserve Earthdata credentials."""
-
-        self._orig_rebuild_auth(prepared_request, response)
-
-        if self.auth:
-            self.auth(prepared_request)
-        elif "Authorization" in self.headers:
-            prepared_request.headers["Authorization"] = self.headers["Authorization"]
+        self.session = fetchezSession(rauth=self.auth, self.headers)
 
     def fetch_req(
         self,

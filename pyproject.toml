@@ -129,6 +129,7 @@ module = [
     "pystac_client",
     "planetary_computer",
     "copernicusmarine",
+    "fsspec.*",
 ]
 ignore_missing_imports = true
 
