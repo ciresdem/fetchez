@@ -631,7 +631,9 @@ def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Re
 
             if info.get("crs"):
                 if not HAS_PYPROJ:
-                    logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
+                    logger.error(
+                        "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
+                    )
                 else:
                     global_region.srs = info.get("crs")
                     global_region.warp()

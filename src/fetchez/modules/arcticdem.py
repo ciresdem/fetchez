@@ -148,7 +148,9 @@ class ArcticDEM(FetchModule):
                 col_names = [str(col).lower() for col in meta.get("fields", [])]
 
                 for i in range(len(geometry_wkb)):
-                    props_lower = {col.lower(): fields[n][i] for n, col in enumerate(col_names)}
+                    props_lower = {
+                        col.lower(): fields[n][i] for n, col in enumerate(col_names)
+                    }
                     tile_url = props_lower.get("url") or props_lower.get("fileurl")
 
                     if not tile_url:

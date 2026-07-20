@@ -29,6 +29,7 @@ except ImportError:
 
 try:
     from pyogrio.raw import read
+
     HAS_PYOGRIO = True
 except ImportError:
     HAS_PYOGRIO = False
@@ -146,9 +147,7 @@ class BlueTopo(FetchModule):
 
             try:
                 meta, fids, geometry_wkb, fields = read(
-                    self._bluetopo_index_fn,
-                    bbox=bbox,
-                    columns=["tile"]
+                    self._bluetopo_index_fn, bbox=bbox, columns=["tile"]
                 )
 
                 feature_count = len(geometry_wkb)
@@ -160,7 +159,6 @@ class BlueTopo(FetchModule):
                 logger.info(f"Found {feature_count} intersecting tiles.")
 
                 for tile_name in fields[0]:
-                    print(tile_name)
                     if not tile_name:
                         continue
 

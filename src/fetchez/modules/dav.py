@@ -253,7 +253,9 @@ class DAV(FetchModule):
 
                 # Iterate over the arrays to recreate the properties dictionary
                 for i in range(len(geometry_wkb)):
-                    props_lower = {col.lower(): fields[n][i] for n, col in enumerate(col_names)}
+                    props_lower = {
+                        col.lower(): fields[n][i] for n, col in enumerate(col_names)
+                    }
 
                     tile_name = (
                         props_lower.get("name")
@@ -280,9 +282,7 @@ class DAV(FetchModule):
                         elif not tile_url.lower().endswith(
                             os.path.basename(str(tile_name)).lower()
                         ):
-                            tile_url = (
-                                f"{tile_url.rstrip('/')}/{os.path.basename(str(tile_name))}"
-                            )
+                            tile_url = f"{tile_url.rstrip('/')}/{os.path.basename(str(tile_name))}"
 
                     self.add_entry_to_results(
                         url=tile_url,
