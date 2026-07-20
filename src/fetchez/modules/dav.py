@@ -8,8 +8,6 @@ fetchez.modules.dav
 Fetch NOAA Lidar, Raster, and Imagery data via the Digital Coast
 Data Access Viewer (DAV) API.
 
-(Lightweight version: Uses pyproj + pyshp instead of GDAL)
-
 :copyright: (c) 2010 - 2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
 """
@@ -27,20 +25,19 @@ try:
 except ImportError:
     HAS_PYPROJ = False
 
-try:
-    import fiona
-
-    HAS_FIONA = True
-except ImportError:
-    HAS_FIONA = False
-# Lightweight Geospatial Dependencies
 # try:
-#     import shapefile  # pip install pyshp
-#     from pyproj import CRS, Transformer
+#     import fiona
 
-#     HAS_LIGHT_GEO = True
+#     HAS_FIONA = True
 # except ImportError:
-#     HAS_LIGHT_GEO = False
+#     HAS_FIONA = False
+
+try:
+    from pyogrio.raw import read
+
+    HAS_PYOGRIO = True
+except ImportError:
+    HAS_PYOGRIO = False
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -217,8 +214,8 @@ class DAV(FetchModule):
             logger.error("Missing libraries. Run: `pip install pyproj`")
             return
 
-        if not HAS_FIONA:
-            logger.error("Missing libraries. Run: `pip install fiona`")
+        if not HAS_PYOGRIO:
+            logger.error("Missing libraries. Run: `pip install pyogrio`")
             return
 
         prj_path = shp_path.replace(".shp", ".prj")
@@ -247,14 +244,19 @@ class DAV(FetchModule):
         xs = [c[0] for c in corners]
         ys = [c[1] for c in corners]
         search_bbox = [min(xs), min(ys), max(xs), max(ys)]
-
         try:
-            with fiona.open(shp_path) as src:
-                bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
+            bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
+            meta, fids, geometry_wkb, fields = read(shp_path, bbox=bbox)
 
-                for feature in src.filter(bbox=bbox):
-                    props = feature.get("properties", {})
-                    props_lower = {k.lower(): v for k, v in props.items()}
+            if len(geometry_wkb) > 0:
+                col_names = [str(col).lower() for col in meta.get("fields", [])]
+
+                # Iterate over the arrays to recreate the properties dictionary
+                for i in range(len(geometry_wkb)):
+                    props_lower = {
+                        col.lower(): fields[n][i] for n, col in enumerate(col_names)
+                    }
+
                     tile_name = (
                         props_lower.get("name")
                         or props_lower.get("location")
@@ -266,6 +268,7 @@ class DAV(FetchModule):
                         or props_lower.get("path")
                         or props_lower.get("url_link")
                     )
+
                     if isinstance(tile_url, str):
                         tile_url = tile_url.rstrip()
 
@@ -273,15 +276,13 @@ class DAV(FetchModule):
                         continue
 
                     # Clean up URL (handle relative paths/missing filenames)
-                    if not tile_url.endswith(tile_name):
+                    if not tile_url.endswith(str(tile_name)):
                         if tile_url.endswith("/"):
-                            tile_url += tile_name
+                            tile_url += str(tile_name)
                         elif not tile_url.lower().endswith(
-                            os.path.basename(tile_name).lower()
+                            os.path.basename(str(tile_name)).lower()
                         ):
-                            tile_url = (
-                                f"{tile_url.rstrip('/')}/{os.path.basename(tile_name)}"
-                            )
+                            tile_url = f"{tile_url.rstrip('/')}/{os.path.basename(str(tile_name))}"
 
                     self.add_entry_to_results(
                         url=tile_url,
@@ -293,55 +294,8 @@ class DAV(FetchModule):
                         title=f"Dataset {dataset_id}",
                     )
 
-        except ImportError:
-            logger.error("Fiona is required. Run: pip install fiona")
-
-        # sf = shapefile.Reader(shp_path)
-
-        # fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
-
-        # def find_field(candidates):
-        #     for c in candidates:
-        #         for i, f in enumerate(fields):
-        #             if c.lower() == f.lower():
-        #                 return i
-        #     return -1
-
-        # name_idx = find_field(["Name", "location", "filename", "tilename", "TILE_NAME"])
-        # url_idx = find_field(["url", "path", "link", "HTTP_LINK", "URL_Link"])
-
-        # if name_idx == -1 or url_idx == -1:
-        #     logger.warning(
-        #         f"Could not find Name/URL fields in {os.path.basename(shp_path)}"
-        #     )
-        #     return
-
-        # for shapeRec in sf.iterShapeRecords():
-        #     if self._intersects(search_bbox, shapeRec.shape.bbox):
-        #         tile_name = str(shapeRec.record[name_idx]).strip()
-        #         tile_url = str(shapeRec.record[url_idx]).strip()
-
-        #         if not tile_url or not tile_name:
-        #             continue
-
-        #         # Clean up URL (handle relative paths/missing filenames)
-        #         if not tile_url.endswith(tile_name):
-        #             if tile_url.endswith("/"):
-        #                 tile_url += tile_name
-        #             elif not tile_url.lower().endswith(
-        #                 os.path.basename(tile_name).lower()
-        #             ):
-        #                 tile_url = (
-        #                     f"{tile_url.rstrip('/')}/{os.path.basename(tile_name)}"
-        #                 )
-
-        #         self.add_entry_to_results(
-        #             url=tile_url,
-        #             dst_fn=os.path.join(str(dataset_id), os.path.basename(tile_url)),
-        #             data_type=data_type,
-        #             agency="NOAA Digital Coast",
-        #             title=f"Dataset {dataset_id}",
-        #         )
+        except Exception as e:
+            logger.error(f"Pyogrio processing failed: {e}")
 
     def _extract_usgs_project(self, url):
         """Extract project from the bulk URL."""
@@ -356,12 +310,6 @@ class DAV(FetchModule):
 
         if self.region is None:
             return []
-
-        # if not HAS_LIGHT_GEO:
-        #     logger.error(
-        #         "This module requires pyproj and pyshp. Run: `pip install pyproj pyshp`"
-        #     )
-        #     return self
 
         logger.debug(f"Querying Digital Coast API for {self.datatype}...")
         data = self._get_features()
