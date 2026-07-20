@@ -326,7 +326,7 @@ class EarthData(FetchModule):
     def _run_harmony_subset(self):
         """Execute Harmony Subset Job."""
 
-        logger.info(f"Harmony ID: {self.subset_job_id}")
+        logger.debug(f"Harmony ID: {self.subset_job_id}")
         if not self.subset_job_id:
             status = self.harmony_make_request()
             if status and "jobID" in status:
