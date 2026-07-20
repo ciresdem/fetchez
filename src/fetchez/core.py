@@ -153,40 +153,65 @@ def get_userpass(authenticator_url: str) -> Tuple[Optional[str], Optional[str]]:
     return username, password
 
 
-def get_credentials(
-    url: str, authenticator_url: str = "https://urs.earthdata.nasa.gov"
-) -> Optional[str]:
-    """Get user credentials from .netrc or prompt for input.
-    Used for EarthData, etc.
+def get_raw_credentials(
+    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
+) -> Tuple[Optional[str], Optional[str]]:
+    """Get raw (username, password) from .netrc or interactive prompt.
+    Optionally validate against an HTTP `url`.
     """
 
-    credentials = None
+    credentials_valid = False
     errprefix = ""
 
     username, password = get_userpass(authenticator_url)
 
-    while not credentials:
-        if not username:
-            username = utils.get_username()
-            password = utils.get_password()
+    while not credentials_valid:
+        if not username or not password:
+            logger.info("\n--- Authentication Required ---")
+            logger.info(f"Destination: {authenticator_url}")
+            logger.info("Please enter your credentials. If you don't have an account,")
+            logger.info(f"register at: {authenticator_url}\n")
 
+            # Ensure you strip whitespace just in case!
+            username = utils.get_username().strip()
+            password = utils.get_password().strip()
+
+        if not url:
+            # If no validation URL is provided, trust the input and return immediately
+            return username, password
+
+        # Validate credentials against the provided test URL
         cred_str = f"{username}:{password}"
-        credentials = base64.b64encode(cred_str.encode("ascii")).decode("ascii")
+        encoded_creds = base64.b64encode(cred_str.encode("utf-8")).decode("utf-8")
 
-        if url:
-            try:
-                req = Request(url)
-                req.add_header("Authorization", f"Basic {credentials}")
-                opener = build_opener(HTTPCookieProcessor())
-                opener.open(req)
-            except HTTPError:
-                logger.error(f"{errprefix}Incorrect username or password")
-                errprefix = ""
-                credentials = None
-                username = None
-                password = None
+        try:
+            req = Request(url)
+            req.add_header("Authorization", f"Basic {encoded_creds}")
+            opener = build_opener(HTTPCookieProcessor())
+            opener.open(req)
+            credentials_valid = True
+        except HTTPError:
+            logger.error(f"{errprefix}Incorrect username or password")
+            errprefix = ""
+            # Wipe variables so the next loop forces a manual prompt
+            username = None
+            password = None
 
-    return credentials
+    return username, password
+
+
+def get_credentials(
+    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
+) -> Optional[str]:
+    """Wrapper for get_raw_credentials that returns a Base64 Basic Auth string."""
+
+    username, password = get_raw_credentials(url, authenticator_url)
+
+    if username and password:
+        cred_str = f"{username}:{password}"
+        return base64.b64encode(cred_str.encode("utf-8")).decode("utf-8")
+
+    return None
 
 
 # =============================================================================
@@ -388,6 +413,23 @@ class HttpFile(io.IOBase):
 # =============================================================================
 # Fetch
 # =============================================================================
+class fetchezSession(requests.Session):
+    def __init__(self, rauth=None, rheaders=None, **kwargs):
+        self.rauth = rauth
+        self.rheaders = rheaders or {}
+        super().__init__(**kwargs)
+
+    def rebuild_auth(self, prepared_request, response):
+        """Intercept the security sweep to preserve Earthdata credentials."""
+
+        super().rebuild_auth(prepared_request, response)
+
+        if self.rauth:
+            self.rauth(prepared_request)
+        elif "Authorization" in self.rheaders:
+            prepared_request.headers["Authorization"] = self.rheaders["Authorization"]
+
+
 class Fetch:
     """Fetch class to fetch ftp/http data files"""
 
@@ -398,13 +440,17 @@ class Fetch:
         headers: Dict = R_HEADERS,
         verify: bool = True,
         allow_redirects: bool = True,
+        auth: Optional[Any] = None,
     ):
         self.url = url
         self.callback = callback
         self.headers = headers
         self.verify = verify
         self.allow_redirects = allow_redirects
+        self.auth = auth
         self.silent = logger.getEffectiveLevel() > logging.INFO
+
+        self.session = fetchezSession(rauth=self.auth, rheaders=self.headers)
 
     def fetch_req(
         self,
@@ -431,14 +477,14 @@ class Fetch:
                     current_read_timeout if current_read_timeout else None,
                 )
 
-                req = requests.request(
+                req = self.session.request(
                     method=method,
                     url=self.url,
                     params=params,
                     data=data,
                     json=json,
                     headers=self.headers,
-                    # auth=self.auth,
+                    auth=self.auth,
                     timeout=tupled_timeout,
                     verify=self.verify,
                     allow_redirects=self.allow_redirects,
@@ -588,13 +634,14 @@ class Fetch:
                     mode = "ab"
 
             try:
-                with requests.request(
+                with self.session.request(
                     method=method,
                     url=self.url,
                     stream=True,
                     params=params,
                     # data=data,
                     # json=json,
+                    auth=self.auth,
                     headers=self.headers,
                     timeout=(timeout, read_timeout),
                     verify=self.verify,
@@ -634,31 +681,8 @@ class Fetch:
                         continue
 
                     elif req.status_code in [401, 403]:
-                        # Earthdata/CDSE hack from cudem.fetches.fetches: requests strips Authorization
-                        # headers on cross-domain redirects. If the URL changed and we got a 401/403,
-                        # explicitly re-request the new URL with headers.
-                        if self.url != req.url:
-                            logger.debug(
-                                f"Auth dropped during redirect. Re-requesting: {req.url}"
-                            )
-                            return Fetch(
-                                url=req.url,
-                                callback=self.callback,
-                                headers=self.headers,
-                                verify=self.verify,
-                                allow_redirects=self.allow_redirects,
-                            ).fetch_file(
-                                dst_fn=dst_fn,
-                                params=params,
-                                datatype=datatype,
-                                overwrite=overwrite,
-                                timeout=timeout,
-                                read_timeout=read_timeout,
-                                tries=tries,
-                                check_size=check_size,
-                                verbose=verbose,
-                            )
-                        raise UnboundLocalError("Authentication Failed")
+                        # Unauthorized / Forbidden
+                        raise UnboundLocalError("Authentication Failed / Forbidden")
 
                     elif req.status_code not in [200, 206]:
                         # Fatal error for this attempt

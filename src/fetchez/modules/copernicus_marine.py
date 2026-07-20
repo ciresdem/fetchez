@@ -16,7 +16,7 @@ import os
 import logging
 from fetchez.modules import FetchModule
 from fetchez import cli
-from fetchez.core import get_userpass
+from fetchez.core import get_raw_credentials
 
 try:
     import copernicusmarine
@@ -52,8 +52,9 @@ class CopernicusMarineSDB(FetchModule):
             dataset_id or "cmems_obs-sdb_glo_phy_comp_my_100m-l4-s2_static"
         )
 
-        self.username, self.password = get_userpass("https://data.marine.copernicus.eu")
-
+        self.username, self.password = get_raw_credentials(
+            "https://data.marine.copernicus.eu", "https://data.marine.copernicus.eu"
+        )
         if not self.username or not self.password:
             logger.warning("No credentials found in .netrc for CDSE.")
             return None
@@ -99,6 +100,6 @@ class CopernicusMarineSDB(FetchModule):
                 )
 
         except Exception as e:
-            logger.error(f"[{self.name}] Official toolkit failed: {e}")
+            logger.exception(f"[{self.name}] Official toolkit failed: {e}")
 
         return self

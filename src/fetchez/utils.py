@@ -204,14 +204,14 @@ def get_username():
     username = ""
     while not username:
         username = input("username: ")
-    return username
+    return username.strip()
 
 
 def get_password():
     password = ""
     while not password:
         password = getpass.getpass("password: ")
-    return password
+    return password.strip()
 
 
 def int_or(val, or_val=None):
