@@ -356,6 +356,7 @@ class EarthData(FetchModule):
                         state = status.get("status", "unknown")
 
                         if state == "successful":
+                            pbar.update(100 - pbar.n)
                             logger.debug("Harmony Job Successful. Processing links...")
                             for link in status.get("links", []):
                                 href = link.get("href", "")
