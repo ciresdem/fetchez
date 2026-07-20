@@ -19,6 +19,7 @@ import time
 import datetime
 import logging
 import requests
+from requests.auth import AuthBase
 from tqdm import tqdm
 from typing import Dict, Optional
 
@@ -38,6 +39,19 @@ logger = logging.getLogger(__name__)
 
 CMR_SEARCH_URL = "https://cmr.earthdata.nasa.gov/search/granules.json?"
 HARMONY_BASE_URL = "https://harmony.earthdata.nasa.gov"
+
+
+class EarthdataAuth(AuthBase):
+    """Custom Auth handler that mimics .netrc behavior across redirects."""
+
+    def __init__(self, b64_credentials):
+        self.b64_credentials = b64_credentials
+
+    def __call__(self, r):
+        # Only inject the Authorization header for NASA Earthdata domains
+        if "earthdata.nasa.gov" in r.url.lower():
+            r.headers["Authorization"] = f"Basic {self.b64_credentials}"
+        return r
 
 
 # =============================================================================
@@ -112,14 +126,16 @@ class EarthData(FetchModule):
         )
 
         # Authentication
-        credentials = core.get_credentials("https://urs.earthdata.nasa.gov")
+        credentials = core.get_credentials("https://urs.earthdata.nasa.gov", "https://urs.earthdata.nasa.gov")
         if credentials:
             self.headers = {
-                "Authorization": f"Basic {credentials}",
+                # "Authorization": f"Basic {credentials}",
                 "User-Agent": core.DEFAULT_USER_AGENT,
             }
+            self.auth = EarthdataAuth(credentials)
         else:
             self.headers = {}
+            self.auth = None
             logger.warning(
                 "Could not retrieve EarthData credentials. Public data might fail."
             )
@@ -159,7 +175,7 @@ class EarthData(FetchModule):
         else:
             status_url = base_url
 
-        req = core.Fetch(status_url, headers=self.headers).fetch_req(timeout=10)
+        req = core.Fetch(status_url, headers=self.headers, auth=self.auth).fetch_req(timeout=10)
         if req and req.status_code == 200:
             return req.json()
         return None
@@ -184,7 +200,7 @@ class EarthData(FetchModule):
 
         logger.debug(f"Submitting Harmony Request for {self.short_name}...")
 
-        req = core.Fetch(self._harmony_url, headers=self.headers).fetch_req(
+        req = core.Fetch(self._harmony_url, headers=self.headers, auth=self.auth).fetch_req(
             params=harmony_data, timeout=30
         )
 
@@ -195,7 +211,7 @@ class EarthData(FetchModule):
                 logger.error(
                     "Harmony API returned HTML instead of JSON. You likely need to log into "
                     "https://urs.earthdata.nasa.gov and explicitly approve the 'Harmony' application "
-                    "in your profile, or your credentials dropped during a redirect."
+                    "in your profile, or your authentication has been rejected."
                 )
                 logger.debug(f"Response snippet: {req.text[:500]}")
                 return None
@@ -306,7 +322,7 @@ class EarthData(FetchModule):
     def _run_harmony_subset(self):
         """Execute Harmony Subset Job."""
 
-        logger.info(f"id: {self.subset_job_id}")
+        logger.info(f"Harmony ID: {self.subset_job_id}")
         if not self.subset_job_id:
             status = self.harmony_make_request()
             if status and "jobID" in status:
@@ -386,7 +402,7 @@ class EarthData(FetchModule):
                             break
 
                     except Exception as e:
-                        logger.error(f"Harmony polling failed: {e}")
+                        logger.exception(f"Harmony polling failed: {e}")
                         time.sleep(15)
 
     def run(self):
