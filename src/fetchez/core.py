@@ -154,8 +154,7 @@ def get_userpass(authenticator_url: str) -> Tuple[Optional[str], Optional[str]]:
 
 
 def get_raw_credentials(
-    url: Optional[str] = None,
-    authenticator_url: str = "https://urs.earthdata.nasa.gov"
+    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
 ) -> Tuple[Optional[str], Optional[str]]:
     """Get raw (username, password) from .netrc or interactive prompt.
     Optionally validate against an HTTP `url`.
@@ -202,8 +201,7 @@ def get_raw_credentials(
 
 
 def get_credentials(
-    url: Optional[str] = None,
-    authenticator_url: str = "https://urs.earthdata.nasa.gov"
+    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
 ) -> Optional[str]:
     """Wrapper for get_raw_credentials that returns a Base64 Basic Auth string."""
 
@@ -450,7 +448,6 @@ class Fetch:
         elif "Authorization" in self.headers:
             prepared_request.headers["Authorization"] = self.headers["Authorization"]
 
-
     def fetch_req(
         self,
         method: str = "GET",
@@ -461,7 +458,6 @@ class Fetch:
         # timeout: Optional[Union[float, Tuple]] = None,
         timeout: Optional[float] = 30,
         read_timeout: Optional[float] = 120,
-
     ) -> Optional[requests.Response]:
         """Fetch src_url and return the requests object (iterative retry)."""
 

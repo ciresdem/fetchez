@@ -52,7 +52,9 @@ class CopernicusMarineSDB(FetchModule):
             dataset_id or "cmems_obs-sdb_glo_phy_comp_my_100m-l4-s2_static"
         )
 
-        self.username, self.password = get_raw_credentials("https://data.marine.copernicus.eu", "https://data.marine.copernicus.eu")
+        self.username, self.password = get_raw_credentials(
+            "https://data.marine.copernicus.eu", "https://data.marine.copernicus.eu"
+        )
         if not self.username or not self.password:
             logger.warning("No credentials found in .netrc for CDSE.")
             return None

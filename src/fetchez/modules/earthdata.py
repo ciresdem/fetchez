@@ -126,7 +126,9 @@ class EarthData(FetchModule):
         )
 
         # Authentication
-        credentials = core.get_credentials("https://urs.earthdata.nasa.gov", "https://urs.earthdata.nasa.gov")
+        credentials = core.get_credentials(
+            "https://urs.earthdata.nasa.gov", "https://urs.earthdata.nasa.gov"
+        )
         if credentials:
             self.headers = {
                 # "Authorization": f"Basic {credentials}",
@@ -175,7 +177,9 @@ class EarthData(FetchModule):
         else:
             status_url = base_url
 
-        req = core.Fetch(status_url, headers=self.headers, auth=self.auth).fetch_req(timeout=10)
+        req = core.Fetch(status_url, headers=self.headers, auth=self.auth).fetch_req(
+            timeout=10
+        )
         if req and req.status_code == 200:
             return req.json()
         return None
@@ -200,9 +204,9 @@ class EarthData(FetchModule):
 
         logger.debug(f"Submitting Harmony Request for {self.short_name}...")
 
-        req = core.Fetch(self._harmony_url, headers=self.headers, auth=self.auth).fetch_req(
-            params=harmony_data, timeout=30
-        )
+        req = core.Fetch(
+            self._harmony_url, headers=self.headers, auth=self.auth
+        ).fetch_req(params=harmony_data, timeout=30)
 
         if req and req.status_code in [200, 201, 202]:
             try:
