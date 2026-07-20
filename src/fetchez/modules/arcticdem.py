@@ -28,18 +28,11 @@ except ImportError:
     HAS_PYPROJ = False
 
 try:
-    import fiona
+    from pyogrio.raw import read
 
-    HAS_FIONA = True
+    HAS_PYOGRIO = True
 except ImportError:
-    HAS_FIONA = False
-# try:
-#     import shapefile  # pip install pyshp
-#     from pyproj import Transformer
-
-#     HAS_LIGHT_GEO = True
-# except ImportError:
-#     HAS_LIGHT_GEO = False
+    HAS_PYOGRIO = False
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +63,7 @@ class ArcticDEM(FetchModule):
     produce a high-resolution, high quality, digital surface model (DSM)
     of the Arctic.
 
-    This module uses 'pyproj' and 'fiona'.
+    This module uses 'pyproj' and 'pyogrio'.
     """
 
     def __init__(self, where: Optional[str] = None, **kwargs):
@@ -122,8 +115,8 @@ class ArcticDEM(FetchModule):
             logger.error("Missing libraries. Run: `pip install pyproj`")
             return self
 
-        if not HAS_FIONA:
-            logger.error("Missing libraries. Please run: pip install fiona")
+        if not HAS_PYOGRIO:
+            logger.error("Missing libraries. Please run: pip install pyogrio")
             return self
 
         idx_zip_name = os.path.basename(ARCTIC_DEM_INDEX_URL)
@@ -146,22 +139,24 @@ class ArcticDEM(FetchModule):
             search_bbox = self._get_projected_bbox()
             logger.info(f"Search Bounds (EPSG:3413): {search_bbox}")
 
+            bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
+
+            meta, fids, geometry_wkb, fields = read(v_shp, bbox=bbox)
             matches = 0
-            with fiona.open(v_shp) as src:
-                bbox = (search_bbox[0], search_bbox[1], search_bbox[2], search_bbox[3])
 
-                for feature in src.filter(bbox=bbox):
-                    props = feature.get("properties", {})
-                    props_lower = {k.lower(): v for k, v in props.items()}
+            if len(geometry_wkb) > 0:
+                col_names = [str(col).lower() for col in meta.get("fields", [])]
 
+                for i in range(len(geometry_wkb)):
+                    props_lower = {col.lower(): fields[n][i] for n, col in enumerate(col_names)}
                     tile_url = props_lower.get("url") or props_lower.get("fileurl")
 
                     if not tile_url:
                         continue
 
                     self.add_entry_to_results(
-                        url=tile_url,
-                        dst_fn=os.path.basename(tile_url),
+                        url=str(tile_url),
+                        dst_fn=os.path.basename(str(tile_url)),
                         data_type="arcticdem",
                         agency="PGC",
                         title="ArcticDEM Tile",
@@ -169,36 +164,6 @@ class ArcticDEM(FetchModule):
                     matches += 1
 
             logger.info(f"Found {matches} ArcticDEM tiles.")
-        except ImportError:
-            logger.error("Fiona is required. Run: pip install fiona")
-
-            # sf = shapefile.Reader(v_shp)
-
-            # fields = [x[0] for x in sf.fields][1:]  # Skip deletion flag
-            # try:
-            #     url_idx = fields.index("fileurl")
-            # except ValueError:
-            #     url_idx = next(
-            #         (i for i, f in enumerate(fields) if "url" in f.lower()), -1
-            #     )
-
-            # matches = 0
-
-            # for shapeRec in sf.iterShapeRecords():
-            #     if self._intersects(search_bbox, shapeRec.shape.bbox):
-            #         data_link = shapeRec.record[url_idx]
-
-            #         if data_link:
-            #             self.add_entry_to_results(
-            #                 url=data_link,
-            #                 dst_fn=os.path.basename(data_link),
-            #                 data_type="arcticdem",
-            #                 agency="PGC",
-            #                 title="ArcticDEM Tile",
-            #             )
-            #             matches += 1
-
-            # logger.info(f"Found {matches} ArcticDEM tiles.")
 
         except Exception as e:
             logger.error(f"Error processing index: {e}")

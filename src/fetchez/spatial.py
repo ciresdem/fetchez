@@ -21,6 +21,7 @@ from typing import Union, List, Tuple, Optional
 
 try:
     from shapely.geometry import shape, box
+    from shapely import from_wkb
 
     HAS_SHAPELY = True
 except ImportError:
@@ -32,6 +33,14 @@ try:
     HAS_PYPROJ = True
 except ImportError:
     HAS_PYPROJ = False
+
+try:
+    from pyogrio.raw import read
+    from pyogrio import read_info
+
+    HAS_PYOGRIO = True
+except ImportError:
+    HAS_PYOGRIO = False
 
 from fetchez.utils import str_or, _linspace
 
@@ -535,8 +544,11 @@ class Region:
 # =============================================================================
 # Helper / Parser Functions
 # =============================================================================
-def region_from_vector(fn: str) -> Optional[List[Region]]:
-    """Parse the bounding box of any OGR-supported vector file using Fiona."""
+def region_from_fiona(fn: str) -> Optional[List[Region]]:
+    """Parse the bounding box of any OGR-supported vector file using Fiona.
+
+    This function has been depreciated in favor of `region_from_vector`
+    """
 
     if not os.path.exists(fn):
         return None
@@ -587,6 +599,62 @@ def region_from_vector(fn: str) -> Optional[List[Region]]:
                             )
                         else:
                             original_region.srs = src.crs
+                            original_region.warp()
+
+                    regions.append(original_region)
+
+    except Exception as e:
+        logger.exception(f"Failed to parse vector bounds from {fn}: {e}")
+
+    return regions
+
+
+def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Region]]:
+    """Parse the bounding box of any OGR-supported vector file using pygorio."""
+
+    if not os.path.exists(fn):
+        return None
+
+    if not HAS_PYOGRIO:
+        logger.error(
+            f"pyogrio is required to parse '{os.path.basename(fn)}'. Run: pip install pyogrio"
+        )
+        return None
+
+    regions = []
+    try:
+        # --- Single Region for entire file ---
+        if single_region:
+            info = read_info(fn)
+            minx, miny, maxx, maxy = info["total_bounds"]
+            global_region = Region(minx, maxx, miny, maxy)
+
+            if info.get("crs"):
+                if not HAS_PYPROJ:
+                    logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
+                else:
+                    global_region.srs = info.get("crs")
+                    global_region.warp()
+
+            return [global_region]
+
+        meta, fids, geometry_wkb, fields = read(fn, columns=[])
+        # --- Region for each feature in vector: ---
+        if len(geometry_wkb) > 0:
+            # Convert WKB directly to shapely geometries
+            # We also filter out any None/Null geometries
+            for geom in from_wkb(geometry_wkb):
+                if geom:
+                    minx, miny, maxx, maxy = geom.bounds
+                    original_region = Region(minx, maxx, miny, maxy)
+
+                    if meta.get("crs"):  # and meta.get("crs").to_epsg() != 4326:
+                        if not HAS_PYPROJ:
+                            logger.error(
+                                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
+                            )
+                        else:
+                            original_region.srs = meta.get("crs")
                             original_region.warp()
 
                     regions.append(original_region)

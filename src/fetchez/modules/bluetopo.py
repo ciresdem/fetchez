@@ -28,11 +28,10 @@ except ImportError:
     HAS_BOTO = False
 
 try:
-    import fiona
-
-    HAS_FIONA = True
+    from pyogrio.raw import read
+    HAS_PYOGRIO = True
 except ImportError:
-    HAS_FIONA = False
+    HAS_PYOGRIO = False
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -62,7 +61,8 @@ class BlueTopo(FetchModule):
     """NOAA BlueTopo Bathymetry (AWS S3)",
 
     **Dependencies:**
-    - `fiona`: Required to parse the gpkg index (`pip install fiona`)
+    - `pyogrio`: Required to parse the gpkg index (`pip install pyogrio`)
+    - `boto3`: Required to access the amazon s3 bucket
     """
 
     def __init__(
@@ -105,9 +105,9 @@ class BlueTopo(FetchModule):
             logger.error('This module requires "boto3". Please install it to proceed.')
             return self
 
-        if not HAS_FIONA:
+        if not HAS_PYOGRIO:
             logger.error(
-                'This module requires "fiona" to parse the spatial index. Please install it via: pip install fiona'
+                'This module requires "pyogrio" to parse the spatial index. Please install it via: pip install pyogrio'
             )
             return self
 
@@ -139,16 +139,19 @@ class BlueTopo(FetchModule):
                 if status != 0:
                     raise IOError("Failed to download BlueTopo index.")
 
-            logger.info("Querying tile index with Fiona...")
+            logger.info("Querying tile index with pyogrio...")
 
             w, e, s, n = self.region
             bbox = (w, s, e, n)
 
-            feature_count = 0
+            try:
+                meta, fids, geometry_wkb, fields = read(
+                    self._bluetopo_index_fn,
+                    bbox=bbox,
+                    columns=["tile"]
+                )
 
-            with fiona.open(self._bluetopo_index_fn) as src:
-                intersecting_features = list(src.filter(bbox=bbox))
-                feature_count = len(intersecting_features)
+                feature_count = len(geometry_wkb)
 
                 if feature_count == 0:
                     logger.info("No BlueTopo tiles found in this region.")
@@ -156,8 +159,8 @@ class BlueTopo(FetchModule):
 
                 logger.info(f"Found {feature_count} intersecting tiles.")
 
-                for feature in intersecting_features:
-                    tile_name = feature["properties"].get("tile")
+                for tile_name in fields[0]:
+                    print(tile_name)
                     if not tile_name:
                         continue
 
@@ -183,6 +186,9 @@ class BlueTopo(FetchModule):
                         logger.warning(
                             f"Failed to resolve file for tile {tile_name}: {e}"
                         )
+
+            except Exception as e:
+                logger.error(f"Error reading BlueTopo index: {e}")
 
         except Exception as e:
             logger.error(f"BlueTopo Run Error: {e}")
