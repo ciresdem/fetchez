@@ -118,7 +118,6 @@ class UHSLC(FetchModule):
                     continue
 
                 if (w <= lon <= e) and (s <= lat <= n):
-
                     # UHSLC uses 3-digit padded strings for IDs
                     formatted_id = f"{int(uhslc_id):03}"
 
@@ -134,7 +133,9 @@ class UHSLC(FetchModule):
 
                     data_url = f"{UHSLC_DATA_BASE}{base}/{self.quality_dict[self.quality]}{res}{prefix}{formatted_id}{ext}"
 
-                    dst_name = f"uhslc_{formatted_id}_{self.quality}_{self.resolution}.csv"
+                    dst_name = (
+                        f"uhslc_{formatted_id}_{self.quality}_{self.resolution}.csv"
+                    )
 
                     self.add_entry_to_results(
                         url=data_url,
@@ -142,7 +143,7 @@ class UHSLC(FetchModule):
                         data_type="water_level",
                         agency="UHSLC",
                         title=f"Station {uhslc_id}: {station_name}, {country}",
-                        geom={"type": "Point", "coordinates": [lon, lat]}
+                        geom={"type": "Point", "coordinates": [lon, lat]},
                     )
                     found_count += 1
 
@@ -152,6 +153,8 @@ class UHSLC(FetchModule):
             if os.path.exists(local_meta):
                 os.remove(local_meta)
 
-        logger.info(f"Found {found_count} UHSLC stations in the requested bounding box.")
+        logger.info(
+            f"Found {found_count} UHSLC stations in the requested bounding box."
+        )
 
         return self
