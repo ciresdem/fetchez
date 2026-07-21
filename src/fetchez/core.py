@@ -42,7 +42,6 @@ except ImportError:
 
 from . import utils
 from . import __version__
-from .modules.base import FetchModule
 
 STOP_EVENT = threading.Event()
 
@@ -835,7 +834,7 @@ def _fetch_worker(module, entry, verbose=True):
         return -1
 
 
-def run_fetchez(modules: List[FetchModule], threads: int = 3, global_hooks=None):
+def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
     """Run Fetchez in parallel with hooks.
 
     - mod.hooks: Run ONLY on entries belonging to 'mod'.
