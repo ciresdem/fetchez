@@ -78,16 +78,16 @@ class CopernicusMarineSDB(FetchModule):
             # output_folder = os.path.join(self._outdir, self.name)
             # os.makedirs(output_folder, exist_ok=True)
 
-            out_fn = f"{self.dataset_id}_{self.region.xmin}_{self.region.ymin}_{self.region.xmax}_{self.region.ymax}.nc"
+            out_fn = f"{self.dataset_id}_{self.wgs_region.xmin}_{self.wgs_region.ymin}_{self.wgs_region.xmax}_{self.wgs_region.ymax}.nc"
             out_path = os.path.join(self._outdir, out_fn)
             copernicusmarine.subset(
                 dataset_id=self.dataset_id,
                 username=self.username,
                 password=self.password,
-                minimum_longitude=self.region.xmin,
-                maximum_longitude=self.region.xmax,
-                minimum_latitude=self.region.ymin,
-                maximum_latitude=self.region.ymax,
+                minimum_longitude=self.wgs_region.xmin,
+                maximum_longitude=self.wgs_region.xmax,
+                minimum_latitude=self.wgs_region.ymin,
+                maximum_latitude=self.wgs_region.ymax,
                 output_directory=self._outdir,
                 output_filename=out_fn,
                 # overwrite_output_data=True,

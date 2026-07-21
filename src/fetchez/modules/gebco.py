@@ -68,7 +68,7 @@ class GEBCO(GEBCO_Base):
             )
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [
+        if not getattr(self, "region", None) or self.wgs_region.to_list() == [
             -180,
             180,
             -90,
@@ -80,17 +80,17 @@ class GEBCO(GEBCO_Base):
             return
 
         w, e, s, n = (
-            self.region.xmin,
-            self.region.xmax,
-            self.region.ymin,
-            self.region.ymax,
+            self.wgs_region.xmin,
+            self.wgs_region.xmax,
+            self.wgs_region.ymin,
+            self.wgs_region.ymax,
         )
 
         base_query = {
             "request": "GetCoverage",
             "version": "1.0.0",
             "service": "WCS",
-            "bbox": self.region.format("bbox"),
+            "bbox": self.wgs_region.format("bbox"),
             "format": "geotiff_float",
         }
 
@@ -135,7 +135,7 @@ class GEBCO_NCSS(GEBCO_Base):
         self.year = str(year)
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [
+        if not getattr(self, "region", None) or self.wgs_region.to_list() == [
             -180,
             180,
             -90,
@@ -147,10 +147,10 @@ class GEBCO_NCSS(GEBCO_Base):
             return
 
         w, e, s, n = (
-            self.region.xmin,
-            self.region.xmax,
-            self.region.ymin,
-            self.region.ymax,
+            self.wgs_region.xmin,
+            self.wgs_region.xmax,
+            self.wgs_region.ymin,
+            self.wgs_region.ymax,
         )
 
         base_query = {
@@ -203,7 +203,7 @@ class GEBCO_OpenDAP(GEBCO_Base):
         self.year = str(year)
 
     def run(self):
-        if not getattr(self, "region", None) or self.region.to_list() == [
+        if not getattr(self, "region", None) or self.wgs_region.to_list() == [
             -180,
             180,
             -90,
@@ -215,10 +215,10 @@ class GEBCO_OpenDAP(GEBCO_Base):
             return
 
         w, e, s, n = (
-            self.region.xmin,
-            self.region.xmax,
-            self.region.ymin,
-            self.region.ymax,
+            self.wgs_region.xmin,
+            self.wgs_region.xmax,
+            self.wgs_region.ymin,
+            self.wgs_region.ymax,
         )
 
         x1 = max(0, int(math.floor((w + 180) * 240)))

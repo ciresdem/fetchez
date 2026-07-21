@@ -134,7 +134,7 @@ class FetchModule:
         # Default to the whole world if the region is invalid or missing.
         # Note: This will result in massive downloads for global datasets!
         if self.region is None or not spatial.region_valid_p(self.region):
-            self.region = (-180, 180, -90, 90)
+            self.region = spatial.Region(-180, 180, -90, 90)
             self.region.srs = "EPSG:4326"
             self.wgs_region = self.region.copy()
 

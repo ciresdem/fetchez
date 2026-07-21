@@ -143,10 +143,10 @@ class Multibeam(FetchModule):
     def run(self):
         """Run the multibeam fetches module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         params = {"geometry": f"{w},{s},{e},{n}"}
 
         logger.debug("Querying NCEI Multibeam database...")
@@ -379,11 +379,11 @@ class MBDB(FetchModule):
     def run(self):
         """Run the MBDB fetching module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # self.where = "MBIO_FORMAT_ID=71"
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         params = {
             "where": self.where,
             "outFields": "*",
@@ -475,11 +475,11 @@ class R2R(FetchModule):
     def run(self):
         """Run the R2R fetching module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # R2R expects WKT polygon
-        wkt = spatial.region_to_wkt(self.region)
+        wkt = spatial.region_to_wkt(self.wgs_region)
         params = {"spatial_bounds": wkt}
 
         logger.debug("Querying R2R API...")

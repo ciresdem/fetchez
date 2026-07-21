@@ -116,7 +116,7 @@ class Tiger(FetchModule):
     def run(self):
         """Run the TIGER fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         logger.info(f"Resolving Layer ID for '{self.layer_name}'...")
@@ -127,7 +127,7 @@ class Tiger(FetchModule):
 
         query_url = f"{TIGER_BASE_URL}/{self._layer_id}/query"
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         params = {
             "f": "geojson",

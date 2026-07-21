@@ -37,9 +37,13 @@ class CheckPoints3DEP(FetchModule):
         super().__init__(name='my_checkpoints', **kwargs)
 
     def run(self):
-        # Use self.region if spatial filtering is needed
+        # Use self.wgs_region if spatial filtering is needed (EPSG:4326)
+        if self.wgs_region:
+             print(f"Searching in geographic bounds: {self.wgs_region}"
+
+	    # Use self.region if you need to do local spatial math in the user's native CRS
         if self.region:
-             print(f"Searching in region: {self.region}"
+             print(f"Native project bounds: {self.region}")
 
     	# This is where you'd normally hit an API, or parse some
         # data, etc.

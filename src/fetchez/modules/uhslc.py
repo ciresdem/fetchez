@@ -73,7 +73,7 @@ class UHSLC(FetchModule):
     def run(self):
         """Execute the UHSLC fetch logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             logger.error("A region bounding box is required to fetch UHSLC stations.")
             return self
 
@@ -89,7 +89,7 @@ class UHSLC(FetchModule):
             logger.error("Failed to download the UHSLC metadata list.")
             return self
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         found_count = 0
 
         try:

@@ -69,10 +69,10 @@ class MGDS(FetchModule):
     def run(self):
         """Run the MGDS fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         search_params = {
             "north": n,

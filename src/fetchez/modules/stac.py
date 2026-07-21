@@ -89,7 +89,7 @@ class STACModule(FetchModule):
             )
             return
 
-        if not self.region:
+        if not self.wgs_region:
             logger.error("Region is required for STAC search.")
             return
 
@@ -97,10 +97,10 @@ class STACModule(FetchModule):
 
         try:
             client = pystac_client.Client.open(self.api_url)
-            w, e, s, n = self.region
+            w, e, s, n = self.wgs_region
             bbox = (w, s, e, n)
             search_params = {
-                "bbox": bbox,  # self.region,
+                "bbox": bbox,  # self.wgs_region,
                 "max_items": self.limit,
             }
 

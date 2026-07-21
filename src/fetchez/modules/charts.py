@@ -132,7 +132,7 @@ class NOAACharts(FetchModule):
     def run(self):
         """Run the Charts fetcher."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # Filter by chart type
@@ -141,7 +141,7 @@ class NOAACharts(FetchModule):
         where_clause.append("DataType = 'ENC'")
 
         # Query FRED
-        results = self.fred.search(region=self.region, where=where_clause)
+        results = self.fred.search(region=self.wgs_region, where=where_clause)
 
         if not results:
             logger.info("No charts found in this region.")

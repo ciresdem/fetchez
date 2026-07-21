@@ -54,10 +54,10 @@ class LidarBC(FetchModule):
         return None
 
     def run(self):
-        if not self.region:
+        if not self.wgs_region:
             return self
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         logger.info("Resolving live LidarBC FeatureServer URL from ArcGIS Portal...")
         featureserver_url = self._get_live_featureserver()

@@ -112,7 +112,7 @@ class BlueTopo(FetchModule):
             )
             return self
 
-        if self.region is None:
+        if self.wgs_region is None:
             return self
 
         s3 = self._get_s3_client()
@@ -142,7 +142,7 @@ class BlueTopo(FetchModule):
 
             logger.info("Querying tile index with pyogrio...")
 
-            w, e, s, n = self.region
+            w, e, s, n = self.wgs_region
             bbox = (w, s, e, n)
 
             try:

@@ -150,13 +150,13 @@ class OSM(FetchModule):
     def run(self):
         """Run the OSM fetch"""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         if self.chunk_size:
-            chunks = spatial.chunk_region(self.region, self.chunk_size)
+            chunks = spatial.chunk_region(self.wgs_region, self.chunk_size)
         else:
-            chunks = [self.region]
+            chunks = [self.wgs_region]
 
         for i, chunk in enumerate(chunks):
             ql = self._build_query(chunk)

@@ -79,7 +79,7 @@ class Bing(FetchModule):
     def run(self):
         """Run the Bing BFP fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         if not HAS_MERCANTILE:
@@ -88,7 +88,7 @@ class Bing(FetchModule):
             )
             return self
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         quad_keys = set()
 
         tiles = list(mercantile.tiles(w, s, e, n, zooms=self.zoom))

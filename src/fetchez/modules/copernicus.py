@@ -247,7 +247,7 @@ class CopernicusDEM(FetchModule):
 
         # Search FRED
         results = self.FRED.search(
-            region=self.region, where=search_where, layer="copernicus"
+            region=self.wgs_region, where=search_where, layer="copernicus"
         )
 
         if not results:

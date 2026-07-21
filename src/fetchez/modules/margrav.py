@@ -77,10 +77,10 @@ class MarGrav(FetchModule):
             return self
 
         # Regional CGI Query
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         data = {"north": n, "west": w, "south": s, "east": e, "mag": self.mag}
 

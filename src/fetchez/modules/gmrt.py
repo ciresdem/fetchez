@@ -112,8 +112,8 @@ class GMRT(FetchModule):
 
         # Buffer the input region and correct to wgs extremes
         # GMRT specific: 2.33% buffer, 0.0088 increment
-        if self.region is not None:
-            self.gmrt_region = spatial.buffer_region(self.region, p=2.33)
+        if self.wgs_region is not None:
+            self.gmrt_region = spatial.buffer_region(self.wgs_region, p=2.33)
             # todo: implement/port wgs_extremes (from cudem.regions)
             # self.gmrt_region._wgs_extremes(just_below=True)
         else:
@@ -124,7 +124,7 @@ class GMRT(FetchModule):
     def run(self):
         """Run the GMRT fetching module. Prefers pre-rendered tiles for stability."""
 
-        if self.region is None or self.gmrt_region is None:
+        if self.wgs_region is None or self.gmrt_region is None:
             return []
 
         w, e, s, n = self.gmrt_region

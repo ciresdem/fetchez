@@ -54,12 +54,12 @@ class WikiGeo(FetchModule):
         self.chunk_size = float(chunk_size)
 
     def run(self):
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # Wikipedia 'gsbbox' requires: top|left|bottom|right (North|West|South|East)
         # We chunk the region because Wiki API fails on large bboxes
-        chunks = spatial.chunk_region(self.region, self.chunk_size)
+        chunks = spatial.chunk_region(self.wgs_region, self.chunk_size)
 
         for i, chunk in enumerate(chunks):
             w, e, s, n = chunk

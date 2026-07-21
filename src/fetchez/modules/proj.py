@@ -77,13 +77,13 @@ class PROJ(FetchModule):
     def _intersects(self, grid_geom, grid_bbox=None):
         """Check intersection using Shapely (precise) or BBox (fast fallback)."""
 
-        if not self.region:
+        if not self.wgs_region:
             return True
 
         # Geometry Check (if Shapely is available)
         if HAS_SHAPELY and grid_geom:
             try:
-                user_poly = spatial.region_to_shapely(self.region)
+                user_poly = spatial.region_to_shapely(self.wgs_region)
                 grid_poly = shape(grid_geom)
 
                 return user_poly.intersects(grid_poly)
@@ -93,7 +93,7 @@ class PROJ(FetchModule):
         # BBox Fallback (Fast but rough)
         if grid_bbox:
             gw, gs, ge, gn = grid_bbox
-            rw, re, rs, rn = self.region
+            rw, re, rs, rn = self.wgs_region
             # Standard "Not Disjoint" check
             return not (rw > ge or re < gw or rs > gn or rn < gs)
 
@@ -103,10 +103,10 @@ class PROJ(FetchModule):
     #     """Check intersection: [w, s, e, n] vs region [w, e, s, n]"""
 
     #     #logger.info(f'grid bbox: {grid_bbox}')
-    #     #logger.info(f'self.region: {self.region}')
-    #     if not grid_bbox or not self.region: return True
+    #     #logger.info(f'self.wgs_region: {self.wgs_region}')
+    #     if not grid_bbox or not self.wgs_region: return True
     #     gw, gs, ge, gn = grid_bbox
-    #     rw, re, rs, rn = self.region
+    #     rw, re, rs, rn = self.wgs_region
     #     return not (rw > ge or re < gw or rs > gn or rn < gs)
 
     def run(self):

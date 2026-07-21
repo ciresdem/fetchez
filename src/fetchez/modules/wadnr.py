@@ -78,14 +78,14 @@ class WADNR(FetchModule):
     def _intersects_mercator(self, extent_3857):
         """Check intersection after converting extent to WGS84."""
 
-        if not extent_3857 or not self.region:
+        if not extent_3857 or not self.wgs_region:
             return False
 
         try:
             w_geo, s_geo = mercator_to_latlon(extent_3857["xmin"], extent_3857["ymin"])
             e_geo, n_geo = mercator_to_latlon(extent_3857["xmax"], extent_3857["ymax"])
 
-            r_w, r_e, r_s, r_n = self.region
+            r_w, r_e, r_s, r_n = self.wgs_region
 
             if (r_w > e_geo) or (r_e < w_geo) or (r_s > n_geo) or (r_n < s_geo):
                 return False
@@ -96,7 +96,7 @@ class WADNR(FetchModule):
     def run(self):
         """Run the WA DNR fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         logger.info("Querying WA DNR Layer Metadata...")
@@ -146,7 +146,7 @@ class WADNR(FetchModule):
             if valid_id is None:
                 continue
 
-            w, e, s, n = self.region
+            w, e, s, n = self.wgs_region
             geojson_poly = {
                 "type": "Polygon",
                 "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]],

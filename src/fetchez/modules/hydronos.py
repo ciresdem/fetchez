@@ -81,10 +81,10 @@ class HydroNOS(FetchModule):
     def run(self):
         """Run the hydronos fetches module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Prepare ArcGIS Query
         params = {

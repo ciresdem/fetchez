@@ -42,11 +42,11 @@ class DNC(FetchModule):
     def run(self):
         """Run the DNC WFS fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             logger.error("A spatial region is required to fetch WFS data.")
             return self
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         format_map = {
             "json": "application/json",
             "geojson": "application/json",

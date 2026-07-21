@@ -76,10 +76,10 @@ class NASADEM(FetchModule):
     def run(self):
         """Run the NASADEM fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # We need every 1x1 degree tile that touches the region.
         # Floor the mins, Ceil the maxes.

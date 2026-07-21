@@ -88,11 +88,11 @@ class CSB(FetchModule):
     def run(self):
         """Run the CSB fetches module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
-        aoi = spatial.region_to_wkt(self.region)
+        w, e, s, n = self.wgs_region
+        aoi = spatial.region_to_wkt(self.wgs_region)
 
         page_size = min(self.limit, 200)
 

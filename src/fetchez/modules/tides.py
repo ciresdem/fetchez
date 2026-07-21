@@ -111,10 +111,10 @@ class Tides(FetchModule):
     def _run_station_search(self):
         """Search for stations in the region."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         params = {
             "outFields": "*",
@@ -190,11 +190,11 @@ class Tides(FetchModule):
     def get_datums_in_region(self) -> Dict[str, dict]:
         """Directly returns a dictionary of station datums for the current region."""
 
-        if not self.region:
+        if not self.wgs_region:
             logger.error("A region bounding box is required to fetch datums.")
             return {}
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         logger.info("Fetching active NOAA stations for region...")
 
         params = {
@@ -258,7 +258,7 @@ class Tides(FetchModule):
             self.get_datums_in_region()
         elif self.station:
             self._run_data_fetch()
-        elif self.region:
+        elif self.wgs_region:
             self._run_station_search()
 
         return self

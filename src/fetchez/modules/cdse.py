@@ -79,7 +79,7 @@ class CDSE(FetchModule):
         self.product_type = product_type
         self.max_cloud_cover = utils.float_or(cloud_cover)
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         self.aoi = f"POLYGON(({w} {s}, {e} {s}, {e} {n}, {w} {n}, {w} {s}))"
 
         # Format Timestamps (Default to One year ago -> Today)
