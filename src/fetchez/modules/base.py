@@ -58,6 +58,7 @@ class FetchModule:
         **kwargs,
     ):
         self.region = src_region.copy() if src_region else None
+        self.original_region = self.region.copy() if self.region else None
         if self.region is not None and self.region.valid_p():
             # if self.region.srs is None and region_srs is not None:
             #     self.region.srs = region_srs
@@ -86,7 +87,6 @@ class FetchModule:
                         f"Warping projected fetch region ({self.region.srs}) to EPSG:4326 for API queries..."
                     )
                     try:
-                        self.original_region = self.region.copy()
                         self.region.warp(dst_srs="EPSG:4326")
                     except Exception as e:
                         logger.warning(
