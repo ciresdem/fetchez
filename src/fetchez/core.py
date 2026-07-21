@@ -834,6 +834,7 @@ def _fetch_worker(module, entry, verbose=True):
         return -1
 
 
+# List[FetchModule]
 def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
     """Run Fetchez in parallel with hooks.
 
