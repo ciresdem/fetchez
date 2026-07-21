@@ -57,7 +57,7 @@ class FetchModule:
         use_cache=True,
         **kwargs,
     ):
-        self.region = src_region
+        self.region = src_region.copy() if src_region else None
         if self.region is not None and self.region.valid_p():
             # if self.region.srs is None and region_srs is not None:
             #     self.region.srs = region_srs
@@ -87,7 +87,7 @@ class FetchModule:
                     )
                     try:
                         self.original_region = self.region.copy()
-                        self.region.warp("EPSG:4326")
+                        self.region.warp(dst_srs="EPSG:4326")
                     except Exception as e:
                         logger.warning(
                             f"Failed to warp region to WGS84: {e}. APIs may fail."
