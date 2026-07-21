@@ -58,10 +58,11 @@ class FetchModule:
         **kwargs,
     ):
         self.region = src_region.copy() if src_region else None
-        self.original_region = self.region.copy() if self.region else None
+        self.wgs_region = None
+
         if self.region is not None and self.region.valid_p():
-            # if self.region.srs is None and region_srs is not None:
-            #     self.region.srs = region_srs
+            # Generate the WGS region for fetching
+            self.wgs_region = self.region.copy()
 
             if self.region.srs:
                 is_geographic = False
@@ -87,7 +88,7 @@ class FetchModule:
                         f"Warping projected fetch region ({self.region.srs}) to EPSG:4326 for API queries..."
                     )
                     try:
-                        self.region.warp(dst_srs="EPSG:4326")
+                        self.wgs_region.warp(dst_srs="EPSG:4326")
                     except Exception as e:
                         logger.warning(
                             f"Failed to warp region to WGS84: {e}. APIs may fail."
@@ -134,6 +135,8 @@ class FetchModule:
         # Note: This will result in massive downloads for global datasets!
         if self.region is None or not spatial.region_valid_p(self.region):
             self.region = (-180, 180, -90, 90)
+            self.region.srs = "EPSG:4326"
+            self.wgs_region = self.region.copy()
 
         self.silent = logger.getEffectiveLevel() > logging.INFO
 
