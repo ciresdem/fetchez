@@ -162,9 +162,25 @@ def get(
     if not ModCls:
         raise ValueError(f"Unknown module: {module}")
 
-    src_region = parse_region(region)[0] if region else None
-    if src_region is not None and src_region.valid_p():
-        src_region.srs = region_srs
+    src_region = None
+    if region:
+        # If region is a string, append the CRS for the parser
+        if isinstance(region, str):
+            if "@" not in region and "," not in region:
+                region = f"{region}@{region_srs}"
+            parsed_regions = parse_region(region)
+        else:
+            parsed_regions = parse_region(region)
+
+        if parsed_regions:
+            src_region = parsed_regions[0]
+            src_region.srs = region_srs
+
+    logger.debug(f"source region srs is {region_srs}")
+    logger.debug(f"source region is {src_region}")
+    # src_region = parse_region(region)[0] if region else None
+    # if src_region is not None and src_region.valid_p():
+    #     src_region.srs = region_srs
 
     active_hooks = []
     if hooks:

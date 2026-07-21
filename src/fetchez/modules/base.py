@@ -102,9 +102,24 @@ class FetchModule:
 
         # Store the parameters used to invoke this module for hashing
         self._init_kwargs = kwargs.copy()
+
+        region_cache = None
+        if src_region:
+            if type(src_region).__name__ == "Region":
+                region_cache = {
+                    "__type__": "Region",
+                    "w": src_region.w,
+                    "e": src_region.e,
+                    "s": src_region.s,
+                    "n": src_region.n,
+                    "srs": src_region.srs
+                }
+            else:
+                region_cache = list(src_region)
+
         self._init_kwargs.update(
             {
-                "region": list(src_region) if src_region else None,
+                "region": region_cache,
                 "min_year": min_year,
                 "max_year": max_year,
                 "params": self.params,
@@ -200,7 +215,17 @@ class FetchModule:
 
             # Handle the region tuple safely
             if key == "region" and val is not None:
-                cache_dict[key] = list(val)
+                # cache_dict[key] = list(val)
+                if type(val).__name__ == "Region":
+                    cache_dict[key] = {
+                        "__type__": "Region",
+                        "w": val.w,
+                        "e": val.e,
+                        "s": val.s,
+                        "n": val.n,
+                        "srs": val.srs
+                    }
+
                 continue
 
             clean_val = _sanitize(val)
@@ -212,18 +237,12 @@ class FetchModule:
                     continue
                 cache_dict[key] = clean_val
 
-        # logger.debug(f"\n--- {self.name} CACHE STATE ---")
-        # import pprint
-        # pprint.pprint(cache_dict)
+        logger.debug(f"\n--- {self.name} CACHE STATE ---")
+        logger.debug(cache_dict)
+        logger.debug(f"\n--- {self.name} CACHE STATE ---")
 
         state_str = json.dumps(cache_dict, sort_keys=True)
         return hashlib.sha256(state_str.encode("utf-8")).hexdigest()
-
-    # def _generate_cache_key(self):
-    #     """Generates a SHA-256 hash based on the module's parameters."""
-    #
-    #     state_str = json.dumps(self._init_kwargs, sort_keys=True, default=str)
-    #     return hashlib.sha256(state_str.encode('utf-8')).hexdigest()
 
     def _cached_run(self):
         """Intercepts run() to check the cache before querying remote APIs."""
@@ -237,11 +256,18 @@ class FetchModule:
 
         cache_key = self._generate_cache_key()
         cache_file = os.path.join(cache_dir, f"{self.name}_{cache_key}.json")
-
         if os.path.exists(cache_file):
             try:
+                logger.debug(f"[{self.name}] Using Fetchez cache_file: {cache_file}")
+                # Custom decoder to rebuild the Region object with its SRS
+                def _json_object_hook(d):
+                    if d.get("__type__") == "Region":
+                        from fetchez.spatial import Region
+                        return Region(d["w"], d["e"], d["s"], d["n"], srs=d.get("srs"))
+                    return d
+
                 with open(cache_file, "r") as f:
-                    self.results = json.load(f)
+                    self.results = json.load(f, object_hook=_json_object_hook)
                 logger.debug(
                     f"[{self.name}] Loaded {len(self.results)} results from cache."
                 )
@@ -249,12 +275,23 @@ class FetchModule:
             except Exception as e:
                 logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
 
+        # Cache file didn't exist, so we create a new one here.
         logger.debug(f"[{self.name}] Querying remote API...")
         self._original_run()
 
-        # if self.results:
         def _json_fallback(obj):
             """Safely serialize custom objects like Region."""
+
+            # Explicitly capture Region objects to preserve their SRS
+            if type(obj).__name__ == "Region":
+                return {
+                    "__type__": "Region",
+                    "w": obj.w,
+                    "e": obj.e,
+                    "s": obj.s,
+                    "n": obj.n,
+                    "srs": obj.srs
+                }
 
             if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
                 return list(obj)
@@ -272,6 +309,53 @@ class FetchModule:
                     os.remove(cache_file)
                 except Exception:
                     pass
+    # def _cached_run(self):
+    #     """Intercepts run() to check the cache before querying remote APIs."""
+
+    #     if not self.use_cache:
+    #         return self._original_run()
+
+    #     cache_dir = os.path.join(self._outdir, ".fetchez_cache")
+    #     if not os.path.exists(cache_dir):
+    #         os.makedirs(cache_dir)
+
+    #     cache_key = self._generate_cache_key()
+    #     cache_file = os.path.join(cache_dir, f"{self.name}_{cache_key}.json")
+
+    #     if os.path.exists(cache_file):
+    #         try:
+    #             with open(cache_file, "r") as f:
+    #                 self.results = json.load(f)
+    #             logger.debug(
+    #                 f"[{self.name}] Loaded {len(self.results)} results from cache."
+    #             )
+    #             return
+    #         except Exception as e:
+    #             logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
+
+    #     logger.debug(f"[{self.name}] Querying remote API...")
+    #     self._original_run()
+
+    #     # if self.results:
+    #     def _json_fallback(obj):
+    #         """Safely serialize custom objects like Region."""
+
+    #         if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
+    #             return list(obj)
+
+    #         return str(obj)
+
+    #     try:
+    #         with open(cache_file, "w") as f:
+    #             json.dump(self.results, f, indent=2, default=_json_fallback)
+    #         logger.debug(f"[{self.name}] Saved API results to cache.")
+    #     except Exception as e:
+    #         logger.warning(f"[{self.name}] Failed to save cache: {e}")
+    #         if os.path.exists(cache_file):
+    #             try:
+    #                 os.remove(cache_file)
+    #             except Exception:
+    #                 pass
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
         """Standardized method for fetching a single result entry."""

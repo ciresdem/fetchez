@@ -14,8 +14,8 @@ authors:
   - family-names: Fisher
     given-names: Matt
 
-    website: https://ciresdem.github.io/fetchez/
+    website: https://fetchez.readthedocs.io/
 title: "Fetchez"
-version: 0.6.13
-date-released: 2026-07-20
-url: "https://github.com/ciresdem/fetchez"
+version: 0.6.14
+date-released: 2026-07-21
+url: "https://github.com/continuous-dems/fetchez"

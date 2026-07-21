@@ -96,8 +96,14 @@ class DataStream(FetchHook):
 
             logger.debug(f"Stream initiated with the '{reader.name}' reader")
 
+            # raw_stream = reader.yield_chunks()
+            # mod.region = Region.from_list(mod.region)
             raw_stream = reader.yield_chunks()
-            mod.region = Region.from_list(mod.region)
+
+            # Ensure it's a Region object, but don't overwrite if it already is
+            # so we don't accidentally strip the SRS!
+            if type(mod.region).__name__ != "Region":
+                mod.region = Region.from_list(mod.region)
 
             if raw_stream:
                 existing_srs = entry.get("src_srs")
