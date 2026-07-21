@@ -41,8 +41,8 @@ except ImportError:
     HAS_SHAPELY = False
 
 from . import utils
-from . import spatial
 from . import __version__
+from .modules.base import FetchModule
 
 STOP_EVENT = threading.Event()
 
@@ -835,7 +835,7 @@ def _fetch_worker(module, entry, verbose=True):
         return -1
 
 
-def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=None):
+def run_fetchez(modules: List[FetchModule], threads: int = 3, global_hooks=None):
     """Run Fetchez in parallel with hooks.
 
     - mod.hooks: Run ONLY on entries belonging to 'mod'.
@@ -969,7 +969,9 @@ def run_fetchez(modules: List["FetchModule"], threads: int = 3, global_hooks=Non
                     active_stream_hooks = utils.merge_hooks(ls_hooks, gs_hooks)
 
                     # make sure 'stream-init' is the first stream hook to be run!
-                    active_stream_hooks.sort(key=lambda hook: 0 if hook.name == "stream-init" else 1)
+                    active_stream_hooks.sort(
+                        key=lambda hook: 0 if hook.name == "stream-init" else 1
+                    )
 
                     active_hooks_full.append(active_stream_hooks)
                     if active_stream_hooks:

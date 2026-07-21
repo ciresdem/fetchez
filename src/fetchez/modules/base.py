@@ -112,7 +112,7 @@ class FetchModule:
                     "e": src_region.e,
                     "s": src_region.s,
                     "n": src_region.n,
-                    "srs": src_region.srs
+                    "srs": src_region.srs,
                 }
             else:
                 region_cache = list(src_region)
@@ -222,7 +222,7 @@ class FetchModule:
                         "e": val.e,
                         "s": val.s,
                         "n": val.n,
-                        "srs": val.srs
+                        "srs": val.srs,
                     }
 
                 continue
@@ -258,10 +258,12 @@ class FetchModule:
         if os.path.exists(cache_file):
             try:
                 logger.debug(f"[{self.name}] Using Fetchez cache_file: {cache_file}")
+
                 # Custom decoder to rebuild the Region object with its SRS
                 def _json_object_hook(d):
                     if d.get("__type__") == "Region":
                         from fetchez.spatial import Region
+
                         return Region(d["w"], d["e"], d["s"], d["n"], srs=d.get("srs"))
                     return d
 
@@ -289,7 +291,7 @@ class FetchModule:
                     "e": obj.e,
                     "s": obj.s,
                     "n": obj.n,
-                    "srs": obj.srs
+                    "srs": obj.srs,
                 }
 
             if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):

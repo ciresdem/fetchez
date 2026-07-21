@@ -4,6 +4,7 @@ import pytest
 from fetchez.spatial import parse_region
 from fetchez.spatial import Region, HAS_PYPROJ
 
+
 def test_parse_region_with_epsg():
     """Test parse_region with a region@epsg-code"""
 
