@@ -21,7 +21,16 @@ from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 from .schemas import schemas_group
 
-RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run", "schemas", "translate"]
+RECIPE_COMMANDS = [
+    "copy",
+    "dump",
+    "info",
+    "list",
+    "validate",
+    "run",
+    "schemas",
+    "translate",
+]
 
 
 def _load_yaml(target):
@@ -219,7 +228,9 @@ def run_recipe(name):
 
 @recipes_group.command("translate", cls=FetchezMainCommand)
 @click.argument("name")
-@click.option("--json", "as_json", is_flag=True, help="Convert the YAML recipe directly to JSON.")
+@click.option(
+    "--json", "as_json", is_flag=True, help="Convert the YAML recipe directly to JSON."
+)
 def translate_recipe(name, as_json):
     """Translate a YAML recipe into a fetchez CLI command string or JSON."""
     base_config = _load_yaml(name)
