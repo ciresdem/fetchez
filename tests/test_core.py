@@ -2,7 +2,7 @@
 
 import pytest
 from fetchez.modules import FetchModule
-from fetchez.spatial import Region
+from fetchez.spatial import Region, HAS_PYPROJ
 
 
 def test_fetchmodule_default_region():
