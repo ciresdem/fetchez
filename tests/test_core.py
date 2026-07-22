@@ -34,6 +34,7 @@ def test_fetchmodule_add_results():
     assert mod.results[0]["data_type"] == "raster"
 
 
+@pytest.mark.skipif(not HAS_PYPROJ, reason="Requires pyproj for warping")
 def test_fetchmodule_projected_dual_region():
     """Ensure a projected region generates a distinct WGS84 region for API calls."""
 
