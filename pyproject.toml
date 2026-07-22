@@ -150,7 +150,11 @@ extend-select = [  # Extend the default ruleset:
 "src/fetchez/hooks/stream_dump.py" = ["T203"] # allow pprint here
 
 [tool.pytest.ini_options]
+markers = [
+    "health: marks tests that require live network access to external APIs (run with '-m health')"
+]
 filterwarnings = [
-    # Ignore the Pydantic V2 deprecation warnings triggered by third-party STAC libraries
-    "ignore::pydantic.warnings.PydanticDeprecatedSince20"
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+    "ignore:.*Support for class-based `config` is deprecated.*",
+    "ignore::DeprecationWarning:planetary_computer.*"
 ]
