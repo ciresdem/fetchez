@@ -1,5 +1,6 @@
 # test_core.py
 
+import pytest
 from fetchez.modules import FetchModule
 from fetchez.spatial import Region
 
