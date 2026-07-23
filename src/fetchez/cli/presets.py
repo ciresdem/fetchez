@@ -77,19 +77,15 @@ def info_preset(name):
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    modules = meta.get("modules", [])
-    if modules:
-        click.echo(f"\n  Data Sources ({len(modules)}):")
-        for mod in modules:
-            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-            click.echo(f"    - {click.style(mod_name, fg='green')}")
+    hooks = meta.get("hooks", [])
+    if hooks:
+        click.echo(f"\n  Hooks ({len(hooks)}):")
+        for hook in hooks:
+            hook_name = hook.get("name")
+            click.echo(f"    - {click.style(hook_name, fg='green')}")
+            for arg in hook.get("args", []):
+                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}")
 
-    global_hooks = meta.get("global_hooks", [])
-    if global_hooks:
-        click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
-        for hook in global_hooks:
-            hook_name = hook.get("name") or hook.get("preset") or "Unknown"
-            click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("=" * 60 + "\n")
 
 

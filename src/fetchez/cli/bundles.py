@@ -89,12 +89,6 @@ def info_bundles(name):
              for arg in mod.get("args"):
                  click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}")
 
-    global_hooks = meta.get("global_hooks", [])
-    if global_hooks:
-        click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
-        for hook in global_hooks:
-            hook_name = hook.get("name") or hook.get("preset") or "Unknown"
-            click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("=" * 60 + "\n")
 
 
