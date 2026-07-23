@@ -23,6 +23,7 @@ from .registry import (
     SchemaRegistry,
     PresetRegistry,
     BundleRegistry,
+    RecipeRegistry,
 )
 from .utils import TqdmLoggingHandler
 from . import __version__ as fetchez_version
@@ -294,6 +295,8 @@ class Recipe:
     def _expand_modules(self, raw_modules, parent_weight=1.0):
         """Recursively flattens bundles and deduplicates/merges modules."""
 
+        RecipeRegistry.load_all()
+
         # Using a dict to preserve order while handling deduplication
         expanded_dict = {}
 
@@ -322,7 +325,9 @@ class Recipe:
                     try:
                         bundle_def = self.from_file(self._resolve_path(target)).config
                     except Exception:
-                        logger.error(f"Bundle/Recipe '{target}' not found locally or in registry.")
+                        logger.error(
+                            f"Bundle/Recipe '{target}' not found locally or in registry."
+                        )
                         continue
 
                 child_modules = bundle_def.get("modules", [])
@@ -360,7 +365,7 @@ class Recipe:
                     expanded_dict[sig] = {
                         "module": mod_dict["module"],
                         "args": merged_args,
-                        "hooks": merged_hooks
+                        "hooks": merged_hooks,
                     }
                     logger.debug(f"Merged/Overridden module via deduplication: {sig}")
                 else:
@@ -426,7 +431,7 @@ class Recipe:
         #     else:
         #         expanded_modules.append(mod_dict)
 
-        #self.config["modules"] = expanded_modules
+        # self.config["modules"] = expanded_modules
 
         self.config["modules"] = self._expand_modules(self.config.get("modules", []))
 
@@ -434,7 +439,6 @@ class Recipe:
         for mod_def in self.config.get("modules", []):
             if isinstance(mod_def, str):
                 mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
-
 
                 # modules_to_run = []
                 # for mod_def in self.config.get("modules", []):
