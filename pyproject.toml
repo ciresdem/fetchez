@@ -31,20 +31,22 @@ dependencies = [
     "tqdm",
     "pyyaml",
     "click",
+    "pyproj",
+    "shapely",
+    "pyogrio",
 ]
 
 keywords = ["Geospatial"]
 
 [project.optional-dependencies]
 aws = ["boto3"]
-vector = ["pyproj", "shapely", "pyogrio"]
 bing = ["mercantile"]
 earthdata = ["earthaccess>=0.9.0"]
 stac = ["pystac", "pystac_client", "planetary_computer"]
 marine = ["copernicusmarine"]
 # jupyter = ["jupyterlab", "ipyleaflet", "ipywidgets"]
 
-full = ["fetchez[aws,bing,vector,earthdata,stac]"]
+full = ["fetchez[aws,bing,earthdata,stac]"]
 
 [dependency-groups]
 dev = [
