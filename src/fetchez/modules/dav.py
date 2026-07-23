@@ -18,43 +18,20 @@ from urllib.parse import urljoin
 from typing import List, Dict, Optional, Any
 import requests
 
-try:
-    from pyproj import CRS, Transformer
-
-    HAS_PYPROJ = True
-except ImportError:
-    HAS_PYPROJ = False
-
-# try:
-#     import fiona
-
-#     HAS_FIONA = True
-# except ImportError:
-#     HAS_FIONA = False
-
-try:
-    from pyogrio.raw import read
-
-    HAS_PYOGRIO = True
-except ImportError:
-    HAS_PYOGRIO = False
+from pyproj import CRS, Transformer
+from pyogrio.raw import read
 
 from fetchez import core
 from fetchez.modules import FetchModule
 from fetchez import utils
 from fetchez import cli
 
+from fetchez.modules.tnm import TheNationalMap
+
 logger = logging.getLogger(__name__)
 
 DAV_API_URL = "https://coast.noaa.gov/dataviewer/api/v1/search/missions"
 DAV_HEADERS = {"Content-Type": "application/json"}
-
-try:
-    from fetchez.modules.tnm import TheNationalMap
-
-    HAS_TNM = True
-except ImportError:
-    HAS_TNM = False
 
 
 # =============================================================================
@@ -210,14 +187,6 @@ class DAV(FetchModule):
     def _process_index_shapefile(self, shp_path: str, dataset_id: str, data_type: str):
         """Parse the downloaded index shapefile using PyShp + PyProj."""
 
-        if not HAS_PYPROJ:
-            logger.error("Missing libraries. Run: `pip install pyproj`")
-            return
-
-        if not HAS_PYOGRIO:
-            logger.error("Missing libraries. Run: `pip install pyogrio`")
-            return
-
         prj_path = shp_path.replace(".shp", ".prj")
         target_crs = None
 
@@ -369,7 +338,7 @@ class DAV(FetchModule):
             if not bulk_url:
                 continue
 
-            if is_usgs and HAS_TNM:
+            if is_usgs:
                 project_name = self._extract_usgs_project(bulk_url)
 
                 if project_name:

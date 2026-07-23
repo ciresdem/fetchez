@@ -33,12 +33,7 @@ import requests
 import lxml.etree
 import lxml.html as lh
 
-try:
-    from shapely.geometry import Polygon, mapping
-
-    HAS_SHAPELY = True
-except ImportError:
-    HAS_SHAPELY = False
+from shapely.geometry import Polygon, mapping
 
 from . import utils
 from . import __version__
@@ -336,10 +331,10 @@ class iso_xml:
 
             out_poly = [[lon, lat] for lat, lon in out_poly]
             if geom:
-                if HAS_SHAPELY:
+                try:
                     poly = Polygon(out_poly)
                     geojson_dict = mapping(poly)
-                else:
+                except Exception:
                     geojson_dict = {"type": "Polygon", "coordinates": [out_poly]}
 
                 return geojson_dict

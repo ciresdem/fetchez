@@ -27,12 +27,7 @@ try:
 except ImportError:
     HAS_BOTO = False
 
-try:
-    from pyogrio.raw import read
-
-    HAS_PYOGRIO = True
-except ImportError:
-    HAS_PYOGRIO = False
+from pyogrio.raw import read
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -104,12 +99,6 @@ class BlueTopo(FetchModule):
 
         if not HAS_BOTO:
             logger.error('This module requires "boto3". Please install it to proceed.')
-            return self
-
-        if not HAS_PYOGRIO:
-            logger.error(
-                'This module requires "pyogrio" to parse the spatial index. Please install it via: pip install pyogrio'
-            )
             return self
 
         if self.wgs_region is None:

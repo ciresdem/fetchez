@@ -1,8 +1,7 @@
 # test_core.py
 
-import pytest
 from fetchez.modules import FetchModule
-from fetchez.spatial import Region, HAS_PYPROJ
+from fetchez.spatial import Region
 
 
 def test_fetchmodule_default_region():
@@ -35,7 +34,6 @@ def test_fetchmodule_add_results():
     assert mod.results[0]["data_type"] == "raster"
 
 
-@pytest.mark.skipif(not HAS_PYPROJ, reason="Requires pyproj for warping")
 def test_fetchmodule_projected_dual_region():
     """Ensure a projected region generates a distinct WGS84 region for API calls."""
 
