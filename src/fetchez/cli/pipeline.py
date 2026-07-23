@@ -199,8 +199,6 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
     \b
     * Run `fetchez modules list` to see a full list of supported modules and extensions..
-
-    \b
     * Run `fetchez hooks list` to see a  full list of supported hooks and extensions.
     """
 
