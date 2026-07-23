@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0 - 2026-07-22]
+### ADDED
+- refactor for better srs support
+- recipes translate command to output recipe as json
+- new modules, including UHSLC, etc.
+- vector region support
+
+### CHANGED
+- dropped fiona for pyogrio
+
+### BUGFIX
+- fix to authentication in fetchez.core, now uses custom sessions
+- enforce stream-init as first stream hook to run
+
 ## [0.6.4 - 2026-05-12]
 ### ADDED
 - `stream` hook stage in core

@@ -78,7 +78,7 @@ class LocalFS(FetchModule):
                 file_region = self._read_inf(inf_path)
 
             if file_region:
-                if regions_intersect_p(self.region, file_region):
+                if regions_intersect_p(self.wgs_region, file_region):
                     self.add_entry_to_results(
                         url=f"file://{filepath}",
                         dst_fn=filepath,
@@ -96,5 +96,5 @@ class LocalFS(FetchModule):
                 )
                 matched_files += 1
 
-        logger.debug(f"LocalFS matched {matched_files} files in {self.region}")
+        logger.debug(f"LocalFS matched {matched_files} files in {self.wgs_region}")
         return self

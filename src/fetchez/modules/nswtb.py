@@ -66,10 +66,10 @@ class NSWTB(FetchModule):
     def run(self):
         """Run the NSW_TB fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # For DEMs, we might need an 'export' operation.
         params = {

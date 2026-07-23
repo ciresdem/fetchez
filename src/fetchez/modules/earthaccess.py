@@ -99,8 +99,8 @@ class EarthAccess(FetchModule):
             logger.warning(f"EarthAccess Login Warning: {exception}")
 
         bbox = None
-        if self.region:
-            w, e, s, n = self.region
+        if self.wgs_region:
+            w, e, s, n = self.wgs_region
             bbox = (w, s, e, n)
 
         temporal = None

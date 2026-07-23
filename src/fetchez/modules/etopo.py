@@ -216,11 +216,11 @@ class ETOPO(FetchModule):
             return self
 
         # --- Tiled Files (15s) with Smart Fallback ---
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         results = self.fred.search(
-            region=self.region,
+            region=self.wgs_region,
             where=[
                 f"DataType = '{self.datatype}'",
                 f"DataFormat = '{self.file_format}'",
@@ -235,7 +235,7 @@ class ETOPO(FetchModule):
             )
 
             results = self.fred.search(
-                region=self.region,
+                region=self.wgs_region,
                 where=[
                     f"DataType = '{fallback_type}'",
                     f"DataFormat = '{self.file_format}'",

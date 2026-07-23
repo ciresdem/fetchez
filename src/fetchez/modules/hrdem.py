@@ -83,10 +83,10 @@ class HRDEM(FetchModule):
     def _run_mosaic(self):
         """Query the CanElevation STAC API."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         collection_id = f"hrdem-mosaic-{self.resolution}"
 
@@ -167,7 +167,7 @@ class HRDEM(FetchModule):
 
             layer = ds.GetLayer()
 
-            w, e, s, n = self.region
+            w, e, s, n = self.wgs_region
             ring = ogr.Geometry(ogr.wkbLinearRing)
             ring.AddPoint(w, s)
             ring.AddPoint(e, s)

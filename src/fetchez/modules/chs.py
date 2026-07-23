@@ -64,10 +64,10 @@ class CHS(FetchModule):
     def run(self):
         """Run the CHS fetching module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Construct WCS 2.0 GetCoverage Parameters
         # Note: CHS GeoServer uses 'Lat' and 'Long' axis labels for subsetting.

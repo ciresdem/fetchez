@@ -77,10 +77,10 @@ class EMODNet(FetchModule):
     def run(self):
         """Run the EMODnet fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         layer_map = {
             "mean": ("emodnet:mean", "elevation"),

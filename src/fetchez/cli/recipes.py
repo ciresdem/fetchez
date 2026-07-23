@@ -14,13 +14,23 @@ Discoverability and documentation for fetchez recipes.
 import os
 import sys
 import yaml
+import json
 import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 from .schemas import schemas_group
 
-RECIPE_COMMANDS = ["copy", "dump", "info", "list", "validate", "run", "schemas"]
+RECIPE_COMMANDS = [
+    "copy",
+    "dump",
+    "info",
+    "list",
+    "validate",
+    "run",
+    "schemas",
+    "translate",
+]
 
 
 def _load_yaml(target):
@@ -214,6 +224,83 @@ def run_recipe(name):
 
     Recipe.from_dict(meta).run()
     click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
+
+
+@recipes_group.command("translate", cls=FetchezMainCommand)
+@click.argument("name")
+@click.option(
+    "--json", "as_json", is_flag=True, help="Convert the YAML recipe directly to JSON."
+)
+def translate_recipe(name, as_json):
+    """Translate a YAML recipe into a fetchez CLI command string or JSON."""
+    base_config = _load_yaml(name)
+    if not base_config:
+        click.secho(
+            f"Error: Recipe '{name}' not found locally or in the registry.", fg="red"
+        )
+        sys.exit(1)
+
+    if as_json:
+        click.secho("\n--- JSON Recipe ---\n", fg="cyan", bold=True)
+        click.echo(json.dumps(base_config, indent=2))
+        click.echo("\n")
+        return
+
+    cmd_parts = ["fetchez run"]
+
+    # Base Pipeline Arguments
+    if "region" in base_config:
+        cmd_parts.append(f"-R {base_config['region']}")
+    if "region_srs" in base_config:
+        cmd_parts.append(f"--region-srs {base_config['region_srs']}")
+    if "execution" in base_config and "threads" in base_config["execution"]:
+        cmd_parts.append(f"--threads {base_config['execution']['threads']}")
+
+    # Global Hooks
+    for hook in base_config.get("global_hooks", []):
+        hook_name = hook.get("name")
+        args = hook.get("args", {})
+        if args:
+            # Join lists with '/' (for weights, matches, etc.) or just use the string value
+            arg_str = ",".join(
+                f"{k}={'/'.join(map(str, v)) if isinstance(v, list) else v}"
+                for k, v in args.items()
+            )
+            cmd_parts.append(f"--global-hook {hook_name}:{arg_str}")
+        else:
+            cmd_parts.append(f"--global-hook {hook_name}")
+
+    # Modules and their specific hooks
+    for mod in base_config.get("modules", []):
+        mod_name = mod.get("module")
+        mod_args = mod.get("args", {})
+
+        # Start the module line
+        mod_cmd = [mod_name]
+
+        # Append Module Arguments (e.g., --weight 3.0)
+        for k, v in mod_args.items():
+            mod_cmd.append(f"--{k.replace('_', '-')} {v}")
+
+        cmd_parts.append(" ".join(mod_cmd))
+
+        # Append specific Module Hooks
+        for hook in mod.get("hooks", []):
+            hook_name = hook.get("name")
+            args = hook.get("args", {})
+            if args:
+                arg_str = ",".join(
+                    f"{k}={'/'.join(map(str, v)) if isinstance(v, list) else v}"
+                    for k, v in args.items()
+                )
+                cmd_parts.append(f"  --hook {hook_name}:{arg_str}")
+            else:
+                cmd_parts.append(f"  --hook {hook_name}")
+
+    # Print out the fully formatted command
+    click.secho("\n--- Translated CLI Command ---\n", fg="cyan", bold=True)
+    click.echo(" \\\n  ".join(cmd_parts))
+    click.echo("\n")
 
 
 recipes_group.add_command(schemas_group, name="schemas")

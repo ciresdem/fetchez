@@ -61,7 +61,7 @@ class PSMSL(FetchModule):
     def run(self):
         """Execute the PSMSL fetch logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             logger.error("A region bounding box is required to fetch PSMSL stations.")
             return self
 
@@ -77,7 +77,7 @@ class PSMSL(FetchModule):
             logger.error("Failed to download the PSMSL station list.")
             return self
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         found_count = 0
 
         try:

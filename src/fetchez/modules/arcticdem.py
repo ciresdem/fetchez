@@ -75,7 +75,7 @@ class ArcticDEM(FetchModule):
         and return the min/max bounds [xmin, ymin, xmax, ymax].
         """
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Initialize Transformer: WGS84 (4326) -> Arctic Polar Stereo (3413)
         transformer = Transformer.from_crs("EPSG:4326", "EPSG:3413", always_xy=True)
@@ -108,7 +108,7 @@ class ArcticDEM(FetchModule):
     def run(self):
         """Run the ArcticDEM fetches module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return self
 
         if not HAS_PYPROJ:

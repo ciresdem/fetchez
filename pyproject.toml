@@ -148,3 +148,13 @@ extend-select = [  # Extend the default ruleset:
 # Allow print() statements in CLI module where they are expected
 "src/fetchez/_cli.py" = ["T201"]
 "src/fetchez/hooks/stream_dump.py" = ["T203"] # allow pprint here
+
+[tool.pytest.ini_options]
+markers = [
+    "health: marks tests that require live network access to external APIs (run with '-m health')"
+]
+filterwarnings = [
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+    "ignore:.*Support for class-based `config` is deprecated.*",
+    "ignore::DeprecationWarning:planetary_computer.*"
+]

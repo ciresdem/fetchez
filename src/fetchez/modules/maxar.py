@@ -103,9 +103,9 @@ class MaxarOpenData(STACModule):
     def _intersects(self, item_bbox):
         """Simple BBOX intersection test."""
 
-        if not self.region:
+        if not self.wgs_region:
             return True
-        r = self.region  # w, e, s, n
+        r = self.wgs_region  # w, e, s, n
 
         if item_bbox[2] < r[0] or item_bbox[0] > r[1]:
             return False

@@ -107,10 +107,10 @@ class DAV(FetchModule):
     def _region_to_ewkt(self):
         """Convert the current region to NAD83 (SRID 4269) EWKT Polygon string."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return None
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Construct WKT Polygon (Counter-Clockwise)
         # DAV API expects SRID=4269 (NAD83)
@@ -120,7 +120,7 @@ class DAV(FetchModule):
     def _get_features(self) -> List[Dict[Any, Any]]:
         """Query the DAV API for missions in the region."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         dt_map = {
@@ -232,7 +232,7 @@ class DAV(FetchModule):
             logger.warning(f"Could not parse PRJ, assuming WGS84: {exception}")
             target_crs = CRS.from_epsg(4326)
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         transformer = Transformer.from_crs("EPSG:4326", target_crs, always_xy=True)
 
         corners = [
@@ -308,7 +308,7 @@ class DAV(FetchModule):
     def run(self):
         """Run the DAV fetching module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         logger.debug(f"Querying Digital Coast API for {self.datatype}...")
@@ -388,7 +388,7 @@ class DAV(FetchModule):
                         target_datasets = "8/2"
 
                     tnm_mod = TheNationalMap(
-                        src_region=self.region,
+                        src_region=self.wgs_region,
                         # outdir=tnm_outdir,
                         datasets=target_datasets,
                         q=project_name,

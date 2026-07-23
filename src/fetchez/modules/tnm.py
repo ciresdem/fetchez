@@ -120,12 +120,12 @@ class TheNationalMap(FetchModule):
     def run(self):
         """Run the TNM fetching module."""
 
-        if self.region is None or not spatial.region_valid_p(self.region):
+        if self.wgs_region is None or not spatial.region_valid_p(self.wgs_region):
             return []
 
         # Convert region tuple to string for API: "xmin,ymin,xmax,ymax"
         # Note: TNM uses comma-separated bbox
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         bbox_str = f"{w},{s},{e},{n}"
 
         offset = 0

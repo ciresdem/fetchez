@@ -59,10 +59,10 @@ class CUSP(FetchModule):
     def run(self):
         """Generate 5x5 degree tile URLs based on the region."""
 
-        if not self.region:
+        if not self.wgs_region:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Snap coordinates to the 5-degree grid (Floor to nearest 5)
         # lat_min = int(math.floor(s / 5.0) * 5)

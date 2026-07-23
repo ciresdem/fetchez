@@ -68,10 +68,10 @@ class USIEI(FetchModule):
     def run(self):
         """Run the USIEI fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         params = {
             "where": self.where,

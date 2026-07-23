@@ -131,11 +131,11 @@ class WSF(FetchModule):
     def run(self):
         """Run the WSF fetching module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # Query FRED
-        results = self.fred.search(region=self.region)
+        results = self.fred.search(region=self.wgs_region)
 
         if not results:
             logger.info("No WSF tiles found in this region.")

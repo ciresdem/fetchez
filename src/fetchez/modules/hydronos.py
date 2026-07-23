@@ -81,10 +81,10 @@ class HydroNOS(FetchModule):
     def run(self):
         """Run the hydronos fetches module."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         # Prepare ArcGIS Query
         params = {
@@ -195,18 +195,57 @@ class HydroNOS(FetchModule):
                 geodas_links = xyz_page.xpath('//a[contains(@href, "GEODAS")]/@href')
 
                 if geodas_links:
-                    # Construct standard filename: {SURVEY}.xyz.gz
-                    # This is faster than scraping the subdirectory if naming is consistent
+                    # Construct standard filenames
                     xyz_filename = f"{survey_id}.xyz.gz"
                     xyz_link = f"{data_link}GEODAS/{xyz_filename}"
 
-                    # Verify it exists (HEAD request)
+                    # Default to meters
+                    dt = "nos-xyz"
+                    # survey_year = int(year) if year else 2000
+
+                    # Can't really tell what units hydronos data is in,
+                    # especially pre-1970
+                    # # Only check for the htm file on older surveys
+                    # if survey_year < 1970:
+                    #     htm_link = f"{data_link}GEODAS/{survey_id}_h93.htm"
+                    #     htm_page = core.Fetch(htm_link).fetch_html()
+
+                    #     if htm_page is not None:
+                    #         page_text = htm_page.text_content().upper()
+                    #         if "FEET" in page_text:
+                    #             dt = "nos-feet-xyz"
+                    #         elif "FATHOMS" in page_text:
+                    #             dt = "nos-fathoms-xyz"
+                    #     else:
+                    #         if survey_year < 1960:
+                    #             dt = "nos-feet-xyz"
+
+                    # Verify the data file exists (HEAD request)
                     if core.Fetch(xyz_link).fetch_req(timeout=5) is not None:
                         self.add_entry_to_results(
                             url=xyz_link,
                             dst_fn=xyz_filename,
-                            data_type="xyz",
+                            data_type=dt,
                             agency="NOAA NOS",
                             date=str(year),
                             license="Public Domain",
                         )
+                # if geodas_links:
+                #     # Construct standard filename: {SURVEY}.xyz.gz
+                #     # This is faster than scraping the subdirectory if naming is consistent
+                #     xyz_filename = f"{survey_id}.xyz.gz"
+                #     xyz_link = f"{data_link}GEODAS/{xyz_filename}"
+
+                #     survey_year = int(year) if year else 2000
+                #     dt = "nos-feet-xyz" if survey_year < 1960 else "nos-xyz"
+
+                #     # Verify it exists (HEAD request)
+                #     if core.Fetch(xyz_link).fetch_req(timeout=5) is not None:
+                #         self.add_entry_to_results(
+                #             url=xyz_link,
+                #             dst_fn=xyz_filename,
+                #             data_type=dt,
+                #             agency="NOAA NOS",
+                #             date=str(year),
+                #             license="Public Domain",
+                #         )

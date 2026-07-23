@@ -33,7 +33,11 @@ The most common contribution is adding support for a new data source. Because Fe
             # Initialize your specific headers or API endpoints here
 
         def run(self):
-            # 1. Construct the download URL based on self.region
+            # 1. Construct the download URL based on self.wgs_region
+			# Note: APIs expect geographic coordinates! Use self.wgs_region
+            # for web queries, and defer native self.region spatial logic to hooks.
+			if self.wgs_region:
+                api_bbox = f"{self.wgs_region.xmin},{self.wgs_region.ymin},{self.wgs_region.xmax},{self.wgs_region.ymax}"
             # 2. Use core.Fetch(url).fetch_req(...) to query the API for download urls
             # 3. Add successful download urls to the results with `self.add_entry_to_results'
             pass

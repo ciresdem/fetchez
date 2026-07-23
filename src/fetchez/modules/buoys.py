@@ -81,11 +81,11 @@ class Buoys(FetchModule):
     def _get_stations_from_region(self) -> Set[str]:
         """Perform radial search to find stations in the region."""
 
-        if not self.region:
+        if not self.wgs_region:
             return set()
 
         # Calculate center
-        center_lon, center_lat = spatial.region_center(self.region)
+        center_lon, center_lat = spatial.region_center(self.wgs_region)
 
         # NDBC Params
         # uom=E (English/Nautical Miles), uom=M (Metric/km)
@@ -134,7 +134,7 @@ class Buoys(FetchModule):
             # User provided explicit IDs
             for s in self.station_id.split(","):
                 target_stations.add(s.strip().upper())
-        elif self.region:
+        elif self.wgs_region:
             # Search by Region
             target_stations = self._get_stations_from_region()
         else:

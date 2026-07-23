@@ -187,10 +187,10 @@ class EarthData(FetchModule):
     def harmony_make_request(self) -> Optional[Dict]:
         """Initiate a Harmony Subset Request."""
 
-        if not self.region:
+        if not self.wgs_region:
             return None
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         harmony_data = {
             "bbox": f"{w},{s},{e},{n}",
             "forceAsync": True,
@@ -230,7 +230,7 @@ class EarthData(FetchModule):
     def earthdata_set_config(self) -> Dict:
         """Configure CMR Search Parameters."""
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         data = {
             "provider": self.provider,
@@ -277,7 +277,7 @@ class EarthData(FetchModule):
         # Prepare Shapely Polygon for precise filtering
         search_geom = None
         if HAS_SHAPELY:
-            search_geom = spatial.region_to_shapely(self.region)
+            search_geom = spatial.region_to_shapely(self.wgs_region)
 
         for entry in entries:
             # Spatial Filtering (Refine BBox search)
@@ -422,7 +422,7 @@ class EarthData(FetchModule):
                     logger.debug(f"Ping Status: {status.get('status')}")
             return []
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         if not self.subset:

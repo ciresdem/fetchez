@@ -87,7 +87,7 @@ class FABDEM(FetchModule):
     def run(self):
         """Run the FABDEM fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         idx_filename = os.path.basename(FABDEM_FOOTPRINTS_URL)
@@ -115,7 +115,7 @@ class FABDEM(FetchModule):
                 props = feature.get("properties", {})
                 geom = feature.get("geometry", {})
 
-                if self._intersects(self.region, geom):
+                if self._intersects(self.wgs_region, geom):
                     zip_name = props.get("zipfile_name")
                     # The index has some zipfile_name's with S-# instead of S# as they are actually named
                     zip_name = zip_name.replace("-S-", "-S")

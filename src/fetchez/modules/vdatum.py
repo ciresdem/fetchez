@@ -238,7 +238,7 @@ class VDatum(FetchModule):
             logger.error("VDatum index is empty. Scrape failed.")
             return self
 
-        results = self.fred.search(region=self.region)
+        results = self.fred.search(region=self.wgs_region)
 
         for r in results:
             if self.datatype and self.datatype not in r.get("DataType", ""):

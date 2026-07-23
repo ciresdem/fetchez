@@ -55,7 +55,7 @@ class Local(FetchModule):
         idx = fred.FRED(self.index_name, local=is_path)
 
         # fred.search handles the spatial logic
-        results = idx.search(region=self.region)
+        results = idx.search(region=self.wgs_region)
 
         for item in results:
             url = item.get("DataLink")

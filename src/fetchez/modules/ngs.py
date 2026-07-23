@@ -55,10 +55,10 @@ class NGS(FetchModule):
     def run(self):
         """Run the NGS fetching logic."""
 
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
 
         params = {"minlon": w, "maxlon": e, "minlat": s, "maxlat": n}
 

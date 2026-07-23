@@ -61,11 +61,11 @@ class SunMoon(FetchModule):
         self.timezone = timezone
 
     def run(self):
-        if self.region is None:
+        if self.wgs_region is None:
             return []
 
         # Calculate Centroid of the Region
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         center_lon = (w + e) / 2
         center_lat = (s + n) / 2
 

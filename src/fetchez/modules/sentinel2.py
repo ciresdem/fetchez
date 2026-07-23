@@ -68,7 +68,7 @@ class Sentinel2(FetchModule):
         self.cloud_cover = int(cloud_cover)
 
     def run(self):
-        if self.region is None:
+        if self.wgs_region is None:
             logger.error("A region is required for Sentinel-2.")
             return self
 
@@ -98,7 +98,7 @@ class Sentinel2(FetchModule):
         else:
             self.end_date = self.end_date.replace("-", "")
 
-        w, e, s, n = self.region
+        w, e, s, n = self.wgs_region
         footprint = f"POLYGON(({w} {s}, {e} {s}, {e} {n}, {w} {n}, {w} {s}))"
 
         products = None

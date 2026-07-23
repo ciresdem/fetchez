@@ -73,7 +73,7 @@ class WaterServices(FetchModule):
         """Run the WaterServices fetch module."""
 
         # We need either a Region OR a list of Sites
-        if self.region is None and self.sites is None:
+        if self.wgs_region is None and self.sites is None:
             return []
 
         params = {"format": "json", "siteStatus": "active"}
@@ -90,7 +90,7 @@ class WaterServices(FetchModule):
             region_tag = "site_list"
         else:
             # USGS requires bbox: "west,south,east,north" to 6 decimal places
-            w, e, s, n = self.region
+            w, e, s, n = self.wgs_region
             params["bBox"] = f"{w:.6f},{s:.6f},{e:.6f},{n:.6f}"
             region_tag = f"{w:.4f}_{s:.4f}"
 
