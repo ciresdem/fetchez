@@ -201,7 +201,7 @@ class HydroNOS(FetchModule):
 
                     # Default to meters
                     dt = "nos-xyz"
-                    survey_year = int(year) if year else 2000
+                    # survey_year = int(year) if year else 2000
 
                     # Can't really tell what units hydronos data is in,
                     # especially pre-1970
