@@ -20,19 +20,8 @@ from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import utils
 
-try:
-    from pyproj import Transformer
-
-    HAS_PYPROJ = True
-except ImportError:
-    HAS_PYPROJ = False
-
-try:
-    from pyogrio.raw import read
-
-    HAS_PYOGRIO = True
-except ImportError:
-    HAS_PYOGRIO = False
+from pyproj import Transformer
+from pyogrio.raw import read
 
 logger = logging.getLogger(__name__)
 
@@ -109,14 +98,6 @@ class ArcticDEM(FetchModule):
         """Run the ArcticDEM fetches module."""
 
         if self.wgs_region is None:
-            return self
-
-        if not HAS_PYPROJ:
-            logger.error("Missing libraries. Run: `pip install pyproj`")
-            return self
-
-        if not HAS_PYOGRIO:
-            logger.error("Missing libraries. Please run: pip install pyogrio")
             return self
 
         idx_zip_name = os.path.basename(ARCTIC_DEM_INDEX_URL)

@@ -23,13 +23,8 @@ from . import utils
 from . import config
 from . import spatial
 
-try:
-    from shapely.geometry import shape
-    # from shapely.strtree import STRtree
-
-    HAS_SHAPELY = True
-except ImportError:
-    HAS_SHAPELY = False
+from shapely.geometry import shape
+# from shapely.strtree import STRtree
 
 logger = logging.getLogger(__name__)
 
@@ -168,10 +163,7 @@ class FRED:
 
         search_geom = None
         if region is not None and spatial.region_valid_p(region):
-            if HAS_SHAPELY:
-                search_geom = spatial.region_to_shapely(region)
-            else:
-                search_geom = None  # TODO: update to manually make one from region!
+            search_geom = spatial.region_to_shapely(region)
 
         if region:
             r_str = ",".join(f"{x:.2f}" for x in region)
@@ -198,16 +190,12 @@ class FRED:
                 continue
 
             if search_geom and geom:
-                if HAS_SHAPELY:
-                    try:
-                        feat_shape = shape(geom)
-                        if not search_geom.intersects(feat_shape):
-                            continue
-                    except Exception:
+                try:
+                    feat_shape = shape(geom)
+                    if not search_geom.intersects(feat_shape):
                         continue
-                else:
-                    # TODO: Basic bounding box check (if Shapely missing)
-                    pass
+                except Exception:
+                    continue
 
             results.append(props)
 

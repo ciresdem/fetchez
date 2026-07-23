@@ -18,16 +18,11 @@ import json
 import hashlib
 from typing import List, Dict, Any
 
+import pyproj
+
 from fetchez import spatial
 from fetchez import utils
 from fetchez.core import Fetch
-
-try:
-    import pyproj
-
-    HAS_PYPROJ = True
-except ImportError:
-    HAS_PYPROJ = False
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +63,13 @@ class FetchModule:
                 is_geographic = False
                 srs_str = str(self.region.srs).strip()
 
-                if HAS_PYPROJ:
-                    try:
-                        crs = pyproj.CRS.from_user_input(srs_str)
-                        is_geographic = crs.is_geographic
-                    except Exception as e:
-                        logger.debug(f"PyProj failed to parse CRS '{srs_str}': {e}")
+                try:
+                    crs = pyproj.CRS.from_user_input(srs_str)
+                    is_geographic = crs.is_geographic
+                except Exception as e:
+                    logger.debug(f"PyProj failed to parse CRS '{srs_str}': {e}")
 
-                if not HAS_PYPROJ or not is_geographic:
+                if not is_geographic:
                     srs_upper = srs_str.upper()
                     if any(
                         x in srs_upper

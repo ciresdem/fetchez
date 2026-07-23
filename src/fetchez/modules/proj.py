@@ -20,12 +20,7 @@ from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez import spatial
 
-try:
-    from shapely.geometry import shape
-
-    HAS_SHAPELY = True
-except ImportError:
-    HAS_SHAPELY = False
+from shapely.geometry import shape
 
 logger = logging.getLogger(__name__)
 
@@ -81,14 +76,13 @@ class PROJ(FetchModule):
             return True
 
         # Geometry Check (if Shapely is available)
-        if HAS_SHAPELY and grid_geom:
-            try:
-                user_poly = spatial.region_to_shapely(self.wgs_region)
-                grid_poly = shape(grid_geom)
+        try:
+            user_poly = spatial.region_to_shapely(self.wgs_region)
+            grid_poly = shape(grid_geom)
 
-                return user_poly.intersects(grid_poly)
-            except Exception as e:
-                logger.debug(f"Shapely intersection failed: {e}, falling back to bbox.")
+            return user_poly.intersects(grid_poly)
+        except Exception as e:
+            logger.debug(f"Shapely intersection failed: {e}, falling back to bbox.")
 
         # BBox Fallback (Fast but rough)
         if grid_bbox:

@@ -71,13 +71,11 @@ def test_optional_dependencies_are_protected():
 
     OPTIONAL_IMPORTS = {
         "boto3",
-        "pyproj",
-        "shapely",
         "mercantile",
         "earthaccess",
         "pystac",
         "pystac_client",
-        "fiona",
+        "planetary_computer",
         "copernicusmarine",
     }
 

@@ -28,12 +28,7 @@ from fetchez.modules import FetchModule
 from fetchez import spatial
 from fetchez import cli
 
-try:
-    from shapely.geometry import Polygon
-
-    HAS_SHAPELY = True
-except ImportError:
-    HAS_SHAPELY = False
+from shapely.geometry import Polygon
 
 logger = logging.getLogger(__name__)
 
@@ -276,30 +271,28 @@ class EarthData(FetchModule):
 
         # Prepare Shapely Polygon for precise filtering
         search_geom = None
-        if HAS_SHAPELY:
-            search_geom = spatial.region_to_shapely(self.wgs_region)
+        search_geom = spatial.region_to_shapely(self.wgs_region)
 
         for entry in entries:
             # Spatial Filtering (Refine BBox search)
             geom_valid = True
 
             # Check Polygon Intersection if Shapely available
-            if HAS_SHAPELY and search_geom and "polygons" in entry:
-                try:
-                    # CMR Polygons are list of lists: [['lat1 lon1 lat2 lon2 ...']]
-                    poly_str = entry["polygons"][0][0]
-                    coords = [float(x) for x in poly_str.split()]
+            try:
+                # CMR Polygons are list of lists: [['lat1 lon1 lat2 lon2 ...']]
+                poly_str = entry["polygons"][0][0]
+                coords = [float(x) for x in poly_str.split()]
 
-                    lats = coords[::2]
-                    lons = coords[1::2]
-                    points = list(zip(lons, lats))
+                lats = coords[::2]
+                lons = coords[1::2]
+                points = list(zip(lons, lats))
 
-                    granule_poly = Polygon(points)
+                granule_poly = Polygon(points)
 
-                    if not search_geom.intersects(granule_poly):
-                        geom_valid = False
-                except Exception:
-                    pass
+                if not search_geom.intersects(granule_poly):
+                    geom_valid = False
+            except Exception:
+                pass
 
             if geom_valid:
                 for link in entry.get("links", []):

@@ -19,28 +19,11 @@ import logging
 import warnings
 from typing import Union, List, Tuple, Optional
 
-try:
-    from shapely.geometry import shape, box
-    from shapely import from_wkb
-
-    HAS_SHAPELY = True
-except ImportError:
-    HAS_SHAPELY = False
-
-try:
-    from pyproj import Transformer
-
-    HAS_PYPROJ = True
-except ImportError:
-    HAS_PYPROJ = False
-
-try:
-    from pyogrio.raw import read
-    from pyogrio import read_info
-
-    HAS_PYOGRIO = True
-except ImportError:
-    HAS_PYOGRIO = False
+from shapely.geometry import shape, box
+from shapely import from_wkb
+from pyproj import Transformer
+from pyogrio.raw import read
+from pyogrio import read_info
 
 from fetchez.utils import str_or, _linspace
 
@@ -335,14 +318,12 @@ class Region:
         return str(self)
 
     def to_shapely(self):
-        if not HAS_SHAPELY:
-            return None
         return box(self.xmin, self.ymin, self.xmax, self.ymax)
 
     def to_wkt(self):
-        if HAS_SHAPELY:
+        try:
             return self.to_shapely().wkt
-        else:
+        except Exception:
             # Simple fallback WKT
             return (
                 f"POLYGON (({self.xmin} {self.ymin}, {self.xmin} {self.ymax}, "
@@ -517,12 +498,6 @@ class Region:
             if self.srs.upper() == dst_srs.upper():
                 return self
 
-        if not HAS_PYPROJ:
-            logger.error(
-                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
-            )
-            return self
-
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # always_xy=True ensures we don't get tripped up by strict EPSG axis orders
@@ -544,81 +519,10 @@ class Region:
 # =============================================================================
 # Helper / Parser Functions
 # =============================================================================
-# def region_from_fiona(fn: str) -> Optional[List[Region]]:
-#     """Parse the bounding box of any OGR-supported vector file using Fiona.
-
-#     This function has been depreciated in favor of `region_from_vector`
-#     """
-
-#     if not os.path.exists(fn):
-#         return None
-
-#     try:
-#         import fiona
-#     except ImportError:
-#         logger.error(
-#             f"Fiona is required to parse '{os.path.basename(fn)}'. Run: pip install fiona"
-#         )
-#         return None
-
-#     regions = []
-#     try:
-#         with fiona.open(fn, "r") as src:
-#             # --- Single region of whole vector: ---
-#             # minx, miny, maxx, maxy = src.bounds
-#             # return [Region(minx, maxx, miny, maxy)]
-#             # if src.crs and src.crs.to_epsg() != 4326:
-#             #     if not HAS_PYPROJ:
-#             #         logger.error("The 'pyproj' library is required to warp regions. Run: pip install pyproj")
-#             #     else:
-#             #         original_region = Region
-
-#             #         transformer = Transformer.from_crs(src.crs, "EPSG:4326", always_xy=True)
-#             #         # Transform the corners
-#             #         xs, ys = zip(*[
-#             #             transformer.transform(minx, miny),
-#             #             transformer.transform(minx, maxy),
-#             #             transformer.transform(maxx, maxy),
-#             #             transformer.transform(maxx, miny)
-#             #         ])
-#             #         minx, maxx = min(xs), max(xs)
-#             #         miny, maxy = min(ys), max(ys)
-
-#             # --- Region for each feature in vector: ---
-#             for feature in src:
-#                 geom = shape(feature.get("geometry"))
-#                 if geom:
-#                     minx, miny, maxx, maxy = geom.bounds
-#                     # regions.append(Region(minx, maxx, miny, maxy))
-#                     original_region = Region(minx, maxx, miny, maxy)
-
-#                     if src.crs and src.crs.to_epsg() != 4326:
-#                         if not HAS_PYPROJ:
-#                             logger.error(
-#                                 "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
-#                             )
-#                         else:
-#                             original_region.srs = src.crs
-#                             original_region.warp()
-
-#                     regions.append(original_region)
-
-#     except Exception as e:
-#         logger.exception(f"Failed to parse vector bounds from {fn}: {e}")
-
-#     return regions
-
-
 def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Region]]:
     """Parse the bounding box of any OGR-supported vector file using pygorio."""
 
     if not os.path.exists(fn):
-        return None
-
-    if not HAS_PYOGRIO:
-        logger.error(
-            f"pyogrio is required to parse '{os.path.basename(fn)}'. Run: pip install pyogrio"
-        )
         return None
 
     regions = []
@@ -630,13 +534,8 @@ def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Re
             global_region = Region(minx, maxx, miny, maxy)
 
             if info.get("crs"):
-                if not HAS_PYPROJ:
-                    logger.error(
-                        "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
-                    )
-                else:
-                    global_region.srs = info.get("crs")
-                    global_region.warp()
+                global_region.srs = info.get("crs")
+                global_region.warp()
 
             return [global_region]
 
@@ -644,20 +543,14 @@ def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Re
         # --- Region for each feature in vector: ---
         if len(geometry_wkb) > 0:
             # Convert WKB directly to shapely geometries
-            # We also filter out any None/Null geometries
             for geom in from_wkb(geometry_wkb):
                 if geom:
                     minx, miny, maxx, maxy = geom.bounds
                     original_region = Region(minx, maxx, miny, maxy)
 
                     if meta.get("crs"):  # and meta.get("crs").to_epsg() != 4326:
-                        if not HAS_PYPROJ:
-                            logger.error(
-                                "The 'pyproj' library is required to warp regions. Run: pip install pyproj"
-                            )
-                        else:
-                            original_region.srs = meta.get("crs")
-                            original_region.warp()
+                        original_region.srs = meta.get("crs")
+                        original_region.warp()
 
                     regions.append(original_region)
 
@@ -688,14 +581,13 @@ def region_from_geojson(fn: str) -> Optional[List[Region]]:
             if not geom:
                 continue
 
-            if HAS_SHAPELY:
-                b = shape(geom).bounds  # (minx, miny, maxx, maxy)
-                # min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
-                # max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
-                min_x, min_y, max_x, max_y = b
-                valid = True
+            b = shape(geom).bounds  # (minx, miny, maxx, maxy)
+            # min_x, min_y = min(min_x, b[0]), min(min_y, b[1])
+            # max_x, max_y = max(max_x, b[2]), max(max_y, b[3])
+            min_x, min_y, max_x, max_y = b
+            valid = True
 
-            elif "coordinates" in geom:
+            if not valid and "coordinates" in geom:
                 xs, ys = [], []
                 for x, y in _extract_coords(geom["coordinates"]):
                     xs.append(x)
@@ -746,7 +638,6 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
 
     def _parse_crs(r_string: str) -> tuple[str, str | None]:
         # Parse the crs; either appended with `@` or `,`
-
         r_string = r_string
         target_crs = None
         if "@" in r_string:
@@ -760,6 +651,7 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
 
     target_crs = None
     regions = []
+
     # Single String
     if isinstance(input_r, str):
         input_r, target_crs = _parse_crs(input_r)
@@ -800,10 +692,6 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
         if input_r is not None:
             logger.warning(f"Failed to parse region {input_r}")
 
-    # else:
-    #     for r in regions:
-    #         r.srs = target_crs
-
     return regions
 
 
@@ -834,6 +722,7 @@ def region_valid_p(region, check_xy=True):
 
     if isinstance(region, Region):
         return region.valid_p(check_xy)
+
     # Handle tuples via temporary Region object
     return Region.from_list(region).valid_p(check_xy) if region else False
 
@@ -855,7 +744,7 @@ def region_to_shapely(region: Tuple[float, float, float, float]):
     shapely regions are not: (minx, miny, maxx, maxy)
     """
 
-    if not region or not HAS_SHAPELY:
+    if not region:
         return None
 
     west, east, south, north = region
@@ -865,13 +754,12 @@ def region_to_shapely(region: Tuple[float, float, float, float]):
 def region_to_wkt(region: Tuple[float, float, float, float]):
     """Convert a fetchez region (xmin, xmax, ymin, ymax) to WKT (via shapely)"""
 
-    if HAS_SHAPELY:
-        polygon = region_to_shapely(region)
-        if polygon:
-            return polygon.wkt
-
-    w, e, s, n = region
-    return f"POLYGON (({w} {s}, {w} {n}, {e} {n}, {e} {s}, {w} {s}))"
+    polygon = region_to_shapely(region)
+    if polygon:
+        return polygon.wkt
+    else:
+        w, e, s, n = region
+        return f"POLYGON (({w} {s}, {w} {n}, {e} {n}, {e} {s}, {w} {s}))"
 
 
 def _extract_coords(coords):
@@ -896,13 +784,6 @@ def region_to_bbox(region: Tuple[float, float, float, float]):
 
 def region_to_geojson_geom(region: Tuple[float, float, float, float]):
     w, e, s, n = region
-    # geom = {
-    #     "type": "Polygon",
-    #     "coordinates": [[
-    #         [w, s], [e, s], [e, n], [w, n], [w, s]
-    #     ]]
-    # }
-
     return {
         "type": "Polygon",
         "coordinates": [[[w, s], [w, n], [e, n], [e, s], [w, s]]],

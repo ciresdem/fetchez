@@ -1,8 +1,7 @@
 # test_spatial.py
 
-import pytest
 from fetchez.spatial import parse_region
-from fetchez.spatial import Region, HAS_PYPROJ
+from fetchez.spatial import Region
 
 
 def test_parse_region_with_epsg():
@@ -13,7 +12,6 @@ def test_parse_region_with_epsg():
     assert regions[0].srs == "epsg:4326"
 
 
-@pytest.mark.skipif(not HAS_PYPROJ, reason="Requires pyproj for warping")
 def test_region_warp_utm_to_wgs84():
     """Test that a projected region correctly transforms to WGS84 (EPSG:4326)."""
 
