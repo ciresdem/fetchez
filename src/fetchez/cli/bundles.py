@@ -66,6 +66,8 @@ def list_bundles():
 def info_bundles(name):
     """Print a clean, readable summary of a bundle's contents."""
 
+    from fetchez.recipe import Recipe
+
     BundleRegistry.load_all()
     meta = BundleRegistry.get_yaml(name)
 
@@ -78,12 +80,14 @@ def info_bundles(name):
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    modules = meta.get("modules", [])
+    modules = Recipe({})._expand_modules(meta.get("modules", []))
     if modules:
         click.echo(f"\n  Data Sources ({len(modules)}):")
         for mod in modules:
-            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-            click.echo(f"    - {click.style(mod_name, fg='green')}")
+             mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
+             click.echo(f"    + {click.style(mod_name, fg='green')}")
+             for arg in mod.get("args"):
+                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}")
 
     global_hooks = meta.get("global_hooks", [])
     if global_hooks:
