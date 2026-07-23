@@ -23,6 +23,7 @@ from .registry import (
     SchemaRegistry,
     PresetRegistry,
     BundleRegistry,
+    RecipeRegistry,
 )
 from .utils import TqdmLoggingHandler
 from . import __version__ as fetchez_version
@@ -267,6 +268,114 @@ class Recipe:
 
         return active_hooks
 
+    def _get_module_signature(self, mod_dict):
+        """Creates a unique signature for a module to handle deduplication.
+        Ensures that 'tnm' (dataset 1) does not collide with 'tnm' (dataset 3).
+        """
+
+        if isinstance(mod_dict, str):
+            return mod_dict
+
+        m_name = mod_dict.get("module")
+        if not m_name:
+            return str(mod_dict)
+
+        args = mod_dict.get("args", {})
+
+        # Identifiers that make a dataset truly unique within a module
+        ids = []
+        for key in ["datatype", "datasets", "formats", "layer", "product"]:
+            if key in args:
+                ids.append(f"{key}={args[key]}")
+
+        if ids:
+            return f"{m_name}::" + "::".join(sorted(ids))
+        return m_name
+
+    def _expand_modules(self, raw_modules, parent_weight=1.0):
+        """Recursively flattens bundles and deduplicates/merges modules."""
+
+        RecipeRegistry.load_all()
+
+        # Using a dict to preserve order while handling deduplication
+        expanded_dict = {}
+
+        for mod_dict in raw_modules:
+            if isinstance(mod_dict, str):
+                expanded_dict[mod_dict] = mod_dict
+                continue
+
+            # Check if this item is a bundle or a nested recipe
+            target = mod_dict.get("bundle") or mod_dict.get("recipe")
+
+            if target:
+                user_args = mod_dict.get("args", {})
+                user_hooks = mod_dict.get("hooks", [])
+
+                # Stack the weights recursively
+                current_weight = float(user_args.get("weight", 1.0)) * parent_weight
+
+                bundle_def = BundleRegistry.get_yaml(target)
+                if not bundle_def:
+                    recipe_meta = RecipeRegistry.get_yaml(target)
+                    if recipe_meta:
+                        bundle_def = recipe_meta.get("config", {})
+
+                if not bundle_def:
+                    try:
+                        bundle_def = self.from_file(self._resolve_path(target)).config
+                    except Exception:
+                        logger.error(
+                            f"Bundle/Recipe '{target}' not found locally or in registry."
+                        )
+                        continue
+
+                child_modules = bundle_def.get("modules", [])
+
+                # Recursively expand the children first
+                child_expanded = self._expand_modules(child_modules, current_weight)
+
+                # Process the returned children and inject them into our current pipeline
+                for child_mod in child_expanded:
+                    if isinstance(child_mod, dict):
+                        # Inherit user hooks from the parent bundle call if any
+                        if user_hooks:
+                            child_mod.setdefault("hooks", []).extend(user_hooks)
+
+                    sig = self._get_module_signature(child_mod)
+
+                    # If a bundle defines a module, add it or let it override an earlier one
+                    expanded_dict[sig] = child_mod
+
+            elif "module" in mod_dict:
+                sig = self._get_module_signature(mod_dict)
+
+                # --- DEDUPLICATION & MERGE LOGIC ---
+                if sig in expanded_dict and isinstance(expanded_dict[sig], dict):
+                    existing = expanded_dict[sig]
+
+                    # Merge args: The newer declaration (Parent) overwrites the existing (Bundle)
+                    merged_args = existing.get("args", {}).copy()
+                    merged_args.update(mod_dict.get("args", {}))
+
+                    # Hooks: If the override explicitly defines hooks, replace them.
+                    # Otherwise, keep the original hooks from the bundle.
+                    merged_hooks = mod_dict.get("hooks", existing.get("hooks", []))
+
+                    expanded_dict[sig] = {
+                        "module": mod_dict["module"],
+                        "args": merged_args,
+                        "hooks": merged_hooks,
+                    }
+                    logger.debug(f"Merged/Overridden module via deduplication: {sig}")
+                else:
+                    expanded_dict[sig] = mod_dict
+            else:
+                logger.error(f"Invalid module definition: {mod_dict}")
+
+        # Return as a flat list for the core engine
+        return list(expanded_dict.values())
+
     def run(self):
         """Execute the recipe!"""
 
@@ -292,43 +401,50 @@ class Recipe:
             parse_region(global_region_def) if global_region_def else [None]
         )
 
-        expanded_modules = []
+        # expanded_modules = []
 
-        for mod_dict in self.config.get("modules", []):
-            if "bundle" in mod_dict:
-                bundle_name = mod_dict["bundle"]
-                user_args = mod_dict.get("args", {})
-                user_hooks = mod_dict.get("hooks", [])
+        # for mod_dict in self.config.get("modules", []):
+        #     if "bundle" in mod_dict:
+        #         bundle_name = mod_dict["bundle"]
+        #         user_args = mod_dict.get("args", {})
+        #         user_hooks = mod_dict.get("hooks", [])
 
-                # Fetch the curated package from the registry
-                bundle_def = BundleRegistry.get_yaml(bundle_name)
+        #         # Fetch the curated package from the registry
+        #         bundle_def = BundleRegistry.get_yaml(bundle_name)
 
-                if not bundle_def:
-                    logger.error(f"Bundle '{bundle_name}' not found!")
-                    continue
+        #         if not bundle_def:
+        #             logger.error(f"Bundle '{bundle_name}' not found!")
+        #             continue
 
-                weight_multiplier = float(user_args.get("weight", 1.0))
+        #         weight_multiplier = float(user_args.get("weight", 1.0))
 
-                # Inject the bundle's modules into the main recipe
-                for pkg_mod in bundle_def.get("modules", []):
-                    if "weight" in pkg_mod.setdefault("args", {}):
-                        original_weight = float(pkg_mod["args"]["weight"])
-                        pkg_mod["args"]["weight"] = original_weight * weight_multiplier
+        #         # Inject the bundle's modules into the main recipe
+        #         for pkg_mod in bundle_def.get("modules", []):
+        #             if "weight" in pkg_mod.setdefault("args", {}):
+        #                 original_weight = float(pkg_mod["args"]["weight"])
+        #                 pkg_mod["args"]["weight"] = original_weight * weight_multiplier
 
-                    if user_hooks:
-                        pkg_mod.setdefault("hooks", []).extend(user_hooks)
+        #             if user_hooks:
+        #                 pkg_mod.setdefault("hooks", []).extend(user_hooks)
 
-                    expanded_modules.append(pkg_mod)
-            else:
-                expanded_modules.append(mod_dict)
+        #             expanded_modules.append(pkg_mod)
+        #     else:
+        #         expanded_modules.append(mod_dict)
 
-        self.config["modules"] = expanded_modules
+        # self.config["modules"] = expanded_modules
+
+        self.config["modules"] = self._expand_modules(self.config.get("modules", []))
 
         modules_to_run = []
         for mod_def in self.config.get("modules", []):
             if isinstance(mod_def, str):
                 mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
-                mod_region_srs = global_region_srs
+
+                # modules_to_run = []
+                # for mod_def in self.config.get("modules", []):
+                #     if isinstance(mod_def, str):
+                #         mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
+                #         mod_region_srs = global_region_srs
             else:
                 mod_key = mod_def.get("module")
                 mod_args = mod_def.get("args", {})
