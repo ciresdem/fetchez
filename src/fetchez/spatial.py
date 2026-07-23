@@ -775,9 +775,11 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
         elif s_lower.startswith(("loc:", "place:")):
             r = region_from_place(input_r)
             if r:
+                r.srs = "EPSG:4326"
                 regions.append(r)
         else:
             r = Region.from_string(input_r)
+            r.srs = target_crs
             if r:
                 regions.append(r)
 
@@ -790,15 +792,17 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
             # Recursive parse for list of identifiers
             for item in input_r:
                 regions.extend(parse_region(item))
+    elif isinstance(input_r, Region):
+        regions.append(input_r.copy())
 
     if not regions:
         # Don't warn on None input, only on failed parse of actual input
         if input_r is not None:
             logger.warning(f"Failed to parse region {input_r}")
 
-    else:
-        for r in regions:
-            r.srs = target_crs
+    # else:
+    #     for r in regions:
+    #         r.srs = target_crs
 
     return regions
 
