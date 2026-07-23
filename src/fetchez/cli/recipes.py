@@ -92,6 +92,8 @@ def list_recipes():
 def info_recipe(name):
     """Print a clean, readable summary of a recipe's contents."""
 
+    from fetchez.recipe import Recipe
+
     RecipeRegistry.load_all()
     meta = RecipeRegistry.get_yaml(name)
 
@@ -104,19 +106,25 @@ def info_recipe(name):
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('desc', 'N/A').strip()}")
 
-    modules = meta.get("modules", [])
+    config = meta.get("config", {})
+    modules = Recipe({})._expand_modules(config.get("modules", []))
     if modules:
         click.echo(f"\n  Data Sources ({len(modules)}):")
         for mod in modules:
-            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-            click.echo(f"    - {click.style(mod_name, fg='green')}")
+             mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
+             click.echo(f"    + {click.style(mod_name, fg='green')}")
+             for arg in mod.get("args"):
+                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}")
 
-    global_hooks = meta.get("global_hooks", [])
+    global_hooks = config.get("global_hooks", [])
     if global_hooks:
         click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
         for hook in global_hooks:
             hook_name = hook.get("name") or hook.get("preset") or "Unknown"
             click.echo(f"    - {click.style(hook_name, fg='yellow')}")
+            for arg in hook.get("args", []):
+                click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}")
+
     click.echo("=" * 60 + "\n")
 
 
