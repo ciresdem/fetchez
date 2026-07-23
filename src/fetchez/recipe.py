@@ -106,6 +106,69 @@ class Recipe:
 
     from_dict = from_file
 
+    def to_json(self, indent=2) -> str:
+        """Serialize the recipe configuration to a JSON string."""
+
+        return json.dumps(self.config, indent=indent)
+
+    def to_cli(self, executable="fetchez run") -> str:
+        """Translate the recipe configuration into a runnable CLI command string."""
+        cmd_parts = [executable]
+
+        # Base Pipeline Arguments
+        if "region" in self.config:
+            cmd_parts.append(f"-R {self.config['region']}")
+        if "region_srs" in self.config:
+            cmd_parts.append(f"--region-srs {self.config['region_srs']}")
+        if "execution" in self.config and "threads" in self.config["execution"]:
+            cmd_parts.append(f"--threads {self.config['execution']['threads']}")
+
+        # Global Hooks
+        for hook in self.config.get("global_hooks", []):
+            hook_name = hook.get("name") or hook.get("preset")
+            args = hook.get("args", {})
+            if args:
+                arg_str = ",".join(
+                    f"{k}={'/'.join(map(str, v)) if isinstance(v, list) else v}"
+                    for k, v in args.items()
+                )
+                cmd_parts.append(f"--global-hook {hook_name}:{arg_str}")
+            else:
+                cmd_parts.append(f"--global-hook {hook_name}")
+
+        # Modules & Bundles
+        for mod in self.config.get("modules", []):
+            if isinstance(mod, str):
+                cmd_parts.append(mod)
+                continue
+
+            mod_name = mod.get("module") or mod.get("bundle") or mod.get("recipe")
+            mod_args = mod.get("args", {})
+
+            # Start the module segment
+            mod_cmd = [mod_name]
+
+            # Append Module Arguments (e.g., --weight 3.0)
+            for k, v in mod_args.items():
+                mod_cmd.append(f"--{k.replace('_', '-')} {v}")
+
+            cmd_parts.append(" ".join(mod_cmd))
+
+            # Append specific Module Hooks
+            for hook in mod.get("hooks", []):
+                hook_name = hook.get("name") or hook.get("preset")
+                args = hook.get("args", {})
+                if args:
+                    arg_str = ",".join(
+                        f"{k}={'/'.join(map(str, v)) if isinstance(v, list) else v}"
+                        for k, v in args.items()
+                    )
+                    cmd_parts.append(f"  --hook {hook_name}:{arg_str}")
+                else:
+                    cmd_parts.append(f"  --hook {hook_name}")
+
+        return " \\\n  ".join(cmd_parts)
+
     def _check_integrity(self):
         """Ensures the fetchez version meets the recipe's minimum requirements."""
 
