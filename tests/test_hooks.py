@@ -2,7 +2,7 @@ from fetchez.hooks.base import FetchHook
 
 
 def test_fetchhook_stream_helpers():
-    """Test that the base hook correctly identifies stream types using the new helpers."""
+    """Test that the base hook correctly identifies stream types using the helpers."""
 
     hook = FetchHook()
 

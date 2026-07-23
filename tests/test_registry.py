@@ -145,11 +145,10 @@ def test_hook_registry_integrity():
     hooks = HookRegistry.get_registry()
     assert len(hooks) > 0
 
-    # The standard metadata fields every hook MUST provide
+    # The standard metadata fields every hook must provide
     required_attrs = ["name", "meta_stage", "meta_category", "meta_desc"]
 
     for name, meta in hooks.items():
-        # Get the actual class object, not the string name!
         hook_cls = HookRegistry.get_class(name)
 
         assert hook_cls is not None, (
