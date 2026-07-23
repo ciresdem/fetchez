@@ -21,7 +21,7 @@ from fetchez.registry import (
     HookRegistry,
     SchemaRegistry,
 )
-from fetchez.spatial import parse_region
+from fetchez.spatial import parse_region, region_help_msg
 from fetchez.utils import (
     parse_hook_string,
     colorize,
@@ -164,14 +164,17 @@ class PipelineExecutor(FetchezMainGroup):
     chain=True,
     # epilog="\bhttps://fetchez.readthedocs.io/en/latest/index.html"
 )
-@click.option("-R", "--region", help="Bounding box (W/E/S/N)")
+@click.option("-R", "--region", help=f"""\b
+Bounding box (W/E/S/N)
+{region_help_msg()}
+""")
 @click.option(
     "--region-srs",
     default="EPSG:4326",
-    help="Set the SRS of the input -R bounding box (Defaults to EPSG:4326).",
+    help="Set the SRS of the input bounding box (default: EPSG:4326).",
 )
-@click.option("--global-hook", multiple=True, help="Attach a global processing hook")
-@click.option("--schema", help="Apply a validation schema (e.g., 'crm')")
+@click.option("--global-hook", multiple=True, help="Attach a global processing hook.")
+@click.option("--schema", help="Apply a validation schema (e.g., 'crm').")
 @click.option(
     "--threads", default=1, help="Number of parallel download threads (default: 1)."
 )

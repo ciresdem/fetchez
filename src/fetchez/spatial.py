@@ -31,10 +31,11 @@ logger = logging.getLogger(__name__)
 
 
 def region_help_msg():
-    return """Region Formats:
+    return """\b
+Region Formats:
   xmin/xmax/ymin/ymax      : Bounding box
-  loc:City,State           : Geocode place name
-  file.geojson             : Bounding box of vector file
+  loc:"City,State"         : Geocode place name
+  file.geojson             : Bounding box(es) of vector file
     """
 
 
