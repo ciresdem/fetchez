@@ -21,26 +21,6 @@ Originally developed as the core fetching engine for the [CUDEM](https://github.
 
 ---
 
-## ❓ Why Fetchez?
-
-Geospatial data engineering is traditionally fragmented. You often need one script to query an API, another tool to download the files, a GIS application to clip the data, and complex shell scripts to tie it all together.
-
-**Fetchez unifies the entire pipeline.**
-
-* **Unified Interface**: Access [50+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
-
-* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
-
-* **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
-
-* **Pipeline Hooks**: Transparently stream, filter, and process data (via globato and transformez) as it is being downloaded.
-
-* **Execution Lifecycle:** Fetchez formally separates data engineering into distinct phases (`manifest` -> `file` -> `stream` -> `collection`). This guarantees that file operations, in-memory stream processing, and final collection operations always happen in the correct order.
-
-* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks, etc.
-
----
-
 ## 📦 Installation
 
 ```bash
@@ -86,17 +66,19 @@ While Fetchez handles the data retrieval and point-streaming, its sister project
 ## 📚 Documentation
 Would you like to know more? Check out our [Official Documentation](https://fetchez.readthedocs.io) to learn about:
 
-* **Modules & Bundles:** Discover and learn about data fetchers.
+* **Modules & Bundles:** Discover and learn about the over [80+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) availabel.
 
-* **The Python API:** Build custom fetchers into your apps.
+* **The Python API:** Build custom fetch modules and run full processing pipelines in your apps.
 
-* **Recipes & YAML:** Run custom workflows from a simple YAML configuration.
+* **Recipes & YAML:** Build and run custom workflows from a simple YAML or JSON configuration.
 
-* **Hooks & Presets:** Automate unzipping, filtering, and processing.
+* **Hooks & Presets:** Automate unzipping, filtering, and processing fetch modules.
 
 * **Domain Schemas:** Enforce rigorous geospatial standards automatically.
 
-* **Custom Plugins:** Write your own data fetchers, processing hooks and extensions.
+* **Custom Plugins:** Write your own data fetch modules, processing hooks, extensions and recipes.
+
+* **Execution Lifecycle:** Learn about the distinct phases (`manifest` -> `file` -> `stream` -> `collection`) of fetchez module hook processing.
 
 ---
 
