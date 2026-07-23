@@ -1,9 +1,9 @@
 # test_recipe.py
 
-import pytest
 import json
 from unittest.mock import patch
 from fetchez.recipe import Recipe
+
 
 def test_recipe_initialization():
     """Ensure a Recipe initializes correctly from a raw dictionary."""
@@ -52,7 +52,7 @@ def test_expand_modules_recursive_and_deduplucate(mock_get_bundle):
     # The parent pipeline: Import the bundle, then override 'ehydro' weight
     raw_modules = [
         {"bundle": "mock_base_bundle"},
-        {"module": "ehydro", "args": {"weight": 5.0}}
+        {"module": "ehydro", "args": {"weight": 5.0}},
     ]
 
     expanded = recipe._expand_modules(raw_modules)
@@ -73,13 +73,15 @@ def test_to_cli_translation():
         "region": "-120.0/-119.0/33.0/34.0",
         "region_srs": "EPSG:4326",
         "execution": {"threads": 4},
-        "global_hooks": [
-            {"name": "audit", "args": {"file": "log.json"}}
-        ],
+        "global_hooks": [{"name": "audit", "args": {"file": "log.json"}}],
         "modules": [
             {"module": "copernicus", "args": {"datatype": 3}},
-            {"bundle": "crm_standard", "args": {"weight": 2.0}, "hooks": [{"name": "pipe"}]}
-        ]
+            {
+                "bundle": "crm_standard",
+                "args": {"weight": 2.0},
+                "hooks": [{"name": "pipe"}],
+            },
+        ],
     }
     recipe = Recipe(config)
     cli_str = recipe.to_cli()
