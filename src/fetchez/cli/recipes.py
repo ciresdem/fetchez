@@ -14,7 +14,6 @@ Discoverability and documentation for fetchez recipes.
 import os
 import sys
 import yaml
-import json
 import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
@@ -251,5 +250,6 @@ def translate_recipe(name, as_json):
         click.secho("\n--- Translated CLI Command ---\n", fg="cyan", bold=True)
         click.echo(recipe_obj.to_cli())
         click.echo("\n")
+
 
 recipes_group.add_command(schemas_group, name="schemas")

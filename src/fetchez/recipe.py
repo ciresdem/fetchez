@@ -113,6 +113,7 @@ class Recipe:
 
     def to_cli(self, executable="fetchez run") -> str:
         """Translate the recipe configuration into a runnable CLI command string."""
+
         cmd_parts = [executable]
 
         # Base Pipeline Arguments
