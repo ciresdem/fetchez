@@ -78,24 +78,6 @@ def list_profiles(search):
 
     _print_grouped_profiles(grouped_profiles)
 
-    # ProfileRegistry.load_all()
-    # registry = ProfileRegistry.get_registry()
-
-    # click.secho("\n📜 Available Stream-Reader Profiles:", fg="cyan", bold=True)
-    # click.echo("=" * 60)
-    # for name, meta in sorted(registry.items()):
-    #     # Quick summary for the list view
-    #     # project = meta.get("project", {})
-    #     desc = (
-    #         meta.get("description", "No description provided.").strip().split("\n")[0]
-    #     )
-    #     reader = meta.get("reader").get("name")
-
-    #     click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
-    #     click.secho(f"[ {reader} ]", fg="yellow", nl=False)
-    #     click.echo(f" - {desc}")
-    # click.echo("\nRun 'fetchez profiles info <name>' for details.\n")
-
 
 @profiles_group.command("info", cls=FetchezMainCommand)
 @click.argument("name")
@@ -109,25 +91,20 @@ def info_profiles(name):
         click.secho(f"Error: Profile '{name}' not found.", fg="red")
         sys.exit(1)
 
-    # project = meta.get("project", {})
+    click.echo(meta)
     click.secho(f"\n📜 PROFILE SUMMARY: {name}", fg="cyan", bold=True)
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    reader = meta.get("reader").get("name")
+    reader = meta.get("reader")# .get("name")
 
     if reader:
         click.secho("\n  Supported Reader:", fg="yellow", bold=True)
-        click.echo(f"    - {click.style(reader, fg='green')}")
+        click.echo(f"    - {click.style(reader.get("name"), fg='green')}")
+        for arg in reader.get("args", []):
+            click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {reader.get('args').get(arg)}")
 
-    # global_hooks = meta.get("global_hooks", [])
-    # if global_hooks:
-    #     click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
-    #     for hook in global_hooks:
-    #         hook_name = hook.get("name") or hook.get("preset") or "Unknown"
-    #         click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("\n" + "=" * 60 + "\n")
-    # click.echo("\n" + "-" * 40 + "\n")
 
 
 @profiles_group.command("dump", cls=FetchezMainCommand)
