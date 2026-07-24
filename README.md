@@ -28,10 +28,10 @@ pip install fetchez
 ```
 
 **Optional Extensions:**
-To enable advanced vector boundary support (Shapefiles/GeoPackages for regions), install with the vector extras:
+To enable module specific library dependencies, install with the desired extras:
 
 ```bash
-pip install fetchez[vector]
+pip install fetchez[full]
 ```
 
 ## 🐄 Quickstart
