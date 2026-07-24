@@ -1,6 +1,6 @@
 # 📦 Installation
 
-## From Conda (Recommended)
+## From Conda-Forge (Recommended)
 
 * Fetchez is available on `conda-forge`:
 
@@ -36,17 +36,14 @@ pip install -e .
 
 Fetchez is designed to be lightweight. The core installation only includes what is strictly necessary to run the engine.
 
-However, some data modules require extra libraries to function (e.g., `boto3` for AWS data, `pyshp` for Shapefiles). You can install these "Extras" automatically using pip:
+However, some data modules require extra libraries to function (e.g., `boto3` for AWS data, `copernicus_marine` for Copernicus SDB data). You can install these "Extras" automatically using pip:
 
 ```bash
 # Install support for AWS-based modules (BlueTopo, etc.)
 pip install "fetchez[aws]"
 
-# Install support for Vector processing (Shapefiles, etc.)
-pip install "fetchez[vector]"
-
 # Install ALL optional dependencies
 pip install "fetchez[full]"
 ```
 
-If you try to run a module without its required dependency, `fetchez` will exit with a helpful error message telling you exactly which extra group to install.
+If you try to run a module without its required dependency, `fetchez` will exit with a helpful error message telling you exactly which extra group or pip package to install.

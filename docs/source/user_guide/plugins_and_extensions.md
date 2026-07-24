@@ -8,14 +8,14 @@ There are two ways to extend `fetchez`: **Local Plugins** (for quick, personal s
 
 Local plugins are standalone Python scripts that you drop into your local `fetchez` configuration folders. `fetchez` automatically scans these folders at runtime and registers any valid classes it finds.
 
-### Data Modules (`~/.fetchez/plugins/`)
+### Data Modules (`~/.fetchez/modules/`)
 Data Modules tell `fetchez` how to talk to a specific API or data source.
 
-To build one, create a Python script containing a class that inherits from `fetchez.core.FetchModule`.
+To build one, create a Python script containing a class that inherits from `fetchez.modules.FetchModule`.
 
 **Example:**
 
-Create `~/.fetchez/plugins/my_server.py`:
+Create `~/.fetchez/modules/my_server.py`:
 ```python
 from fetchez.modules import FetchModule
 
@@ -34,10 +34,12 @@ class MyCustomServer(FetchModule):
         })
 ```
 
-You can now run this instantly from the CLI: `fetchez my_server`
+You can now run this instantly from the CLI: `fetchez run my_server`
 
-### Processing Hooks (~/.fetchez/hooks/)
+### Processing Hooks (`~/.fetchez/hooks/`)
 Hooks intercept data before, during, or after the fetch process.
+
+A hook should have a run method that accepts and retuns the data `entries`, possibly doing something to/with those entries along the way.
 
 To build one, create a class that inherits from `fetchez.hooks.FetchHook`.
 
@@ -77,4 +79,4 @@ class ZulipNotifier(FetchHook):
         return entries
 ```
 
-You can now use this in your presets, recipes and cli switches: `fetchez copernicus --hook zulip_notify`
+You can now use this in your presets, recipes and cli commands: `fetchez run copernicus --hook zulip_notify`

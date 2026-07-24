@@ -10,6 +10,10 @@ Modules come with their own arguments to set different data types, modify output
 
 ## Module Bundles
 
+Bundles are YAML configuration files that define a group of Modules and their arguments and hooks.
+You can make your own, or use a pre-configured Bundle from fetchez or it's extensions.
+
+### Example
 
 **Define your bundle**
 
@@ -61,9 +65,9 @@ project:
 ```
 
 ### Extending Bunldes (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool and want to bundle your own modules, you can register your own bundles either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.BundleRegistry`
+Fetchez is generic. If you are building a custom tool and want to bundle your own modules, you can register your own bundles either in your project or in the `.fetchez` configuration directory and they will be discoverable with the `fetchez.registry.BundleRegistry`
 
-In your project, make a directory called 'bundles'; add any YAML module bundles to that directory and register them with `fetchez` in your `pyproject.toml`:
+To create an extension where your bundles can be installed and used by `fetchez`, make a directory called 'bundles' in your project; add any YAML module bundles to that directory and register them with `fetchez` in your `pyproject.toml`:
 
 ```toml
 [project.entry-points."fetchez.bundles"]
