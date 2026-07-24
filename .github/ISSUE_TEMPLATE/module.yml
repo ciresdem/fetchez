@@ -1,15 +1,15 @@
 name: "🐄 module"
 description: >
-  A module report can be a request for a new data source module or an issue or an issue or behavior that's unexpected or differs from specific module documentation.
+  A module request is a request for a new data source module
 
 labels:
-  - "module"
+  - "module request"
 
 body:
   - type: "textarea"
     attributes:
       label: "Module Request or Issue"
-      description: "The name of the module in question, or a suggested name for a new Module.
-      Any information you have on the module or the desired remote API in question."
+      description: "Please include any information you have on the desired remote API and any context on the desired data sources.
+      Feel free to suggest the desired name the requested module should have in the Registry."
     validations:
       required: true
