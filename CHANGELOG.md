@@ -9,17 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0 - 2026-07-22]
 ### ADDED
-- refactor for better srs support
-- recipes translate command to output recipe as json
-- new modules, including UHSLC, etc.
-- vector region support
+- Refactor for better srs support
+- Recipes translate command to output recipe as json
+- New modules, including UHSLC, etc.
+- Vector region support
+- Recusrive bundle support
+- Recipe 'translate' to dump a valid cli from a yaml
+- Ensure `stream-init` gets set as the first hook in the `stream` stage.
 
 ### CHANGED
-- dropped fiona for pyogrio
+- Modules must now use self.wgs_region to ensure valid wgs api requests, while self.region stays in original srs.
+- Dropped fiona for pyogrio.
+- Promoted pyogrio, shapely and pyproj to standard dependencies.
+- Refresh readthedocs documentation.
+- Refresh CLI documentation and help messages.
 
 ### BUGFIX
 - fix to authentication in fetchez.core, now uses custom sessions
 - enforce stream-init as first stream hook to run
+- removed duplicate FetchModule from fetchez.core
 
 ## [0.6.4 - 2026-05-12]
 ### ADDED
