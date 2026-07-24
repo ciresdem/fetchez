@@ -33,6 +33,10 @@ def modules_group():
     Modules are the starting point of any Fetchez pipeline. They are responsible
     for discovering and downloading data from remote agencies (like NOAA, USGS,
     Copernicus) or loading it from your local file system.
+
+    \b
+    This command group lets you explore and run the available Data 'Modules' and
+    'Bundles' that give access to geospatial data around the world.
     """
 
     pass

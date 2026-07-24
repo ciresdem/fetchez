@@ -25,14 +25,15 @@ def readers_group():
     """Discover, search, and learn about stream format readers.
 
     \b
-    Readers are the underlying Python classes (like 'rasterio-reader' or
-    'netcdf_reader') that open downloaded files and convert them into standard
+    Readers are the underlying Python classes (like 'rasterio-point-reader' or
+    'csvreader') that open downloaded files and convert them into standard
     streams or chunks for processing.
 
     \b
     Usage:
       You rarely call Readers directly. They are automatically triggered by the
-      `stream-init` hook based on the file extension or the data's 'Profile'.
+      `stream-init` hook based on the file extension or the data's 'Profile',
+      defined by the modules' entry['data_type'].
 
     \b
       Format reader streams can be initiated with the `stream-init` hook which

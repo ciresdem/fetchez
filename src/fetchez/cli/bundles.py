@@ -35,6 +35,7 @@ def bundles_group():
     \b
     Usage:
       Bundles act exactly like Modules. You can pass them directly to `fetchez run`.
+      As such, Bundles can reference other Bundles as well as Modules.
     """
 
     pass
@@ -66,6 +67,8 @@ def list_bundles():
 def info_bundles(name):
     """Print a clean, readable summary of a bundle's contents."""
 
+    from fetchez.recipe import Recipe
+
     BundleRegistry.load_all()
     meta = BundleRegistry.get_yaml(name)
 
@@ -78,19 +81,17 @@ def info_bundles(name):
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    modules = meta.get("modules", [])
+    modules = Recipe({})._expand_modules(meta.get("modules", []))
     if modules:
         click.echo(f"\n  Data Sources ({len(modules)}):")
         for mod in modules:
             mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-            click.echo(f"    - {click.style(mod_name, fg='green')}")
+            click.echo(f"    + {click.style(mod_name, fg='green')}")
+            for arg in mod.get("args"):
+                click.echo(
+                    f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}"
+                )
 
-    global_hooks = meta.get("global_hooks", [])
-    if global_hooks:
-        click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
-        for hook in global_hooks:
-            hook_name = hook.get("name") or hook.get("preset") or "Unknown"
-            click.echo(f"    - {click.style(hook_name, fg='yellow')}")
     click.echo("=" * 60 + "\n")
 
 

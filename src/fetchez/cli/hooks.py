@@ -37,12 +37,15 @@ def hooks_group():
     \b
     How to use Hooks:
       1. In YAML Recipes: Defined under `hooks` (per-module) or `global_hooks`.
-      2. In CLI Commands: Appended directly to data sources using the --hook switch or globally with --globl-hook.
+      2. In CLI Commands: Appended directly to data sources using the --hook switch
+         or globally with --globl-hook.
 
     \b
-    * Hooks take a fetchez entry dictionary as input and they return a fetchez dictionary as output.
-    * Along the way, they may manipulate that entry dictionary in different ways, such as by modifying entry
-      values, creating artifacts, adding data streams, adding metadata, etc.
+    * Hooks take a fetchez entry dictionary as input and they return a fetchez dictionary
+      as output.
+    * Along the way, they may manipulate that entry dictionary in different ways, such as
+      by modifying entry values, creating artifacts, adding data streams, adding metadata,
+      etc.
     * Use `fetchez hooks info <hook-name>` to get more information about what a hook does.
 
     \b
@@ -50,15 +53,12 @@ def hooks_group():
       1. Manifest    : Runs on the initial file manifest before any fetching begins.
       2. File        : Runs of a fetched or local file.
       3. Stream      : Runs on an in-memory data stream of the fetched file.
-      4. Collection  : Runs on the final collection of data that has been through the previous stages.
+      4. Collection  : Runs on the final collection of data that has been through the
+                       previous stages.
 
     \b
-    CLI String Syntax (Source + Hooks):
-      <source> --arg val --hook <hook_name>:arg=val,arg2=val
-
-    \b
-    CLI Examples:
-      fetchez pipeline --global-hook audit file --path my_data.laz --hook exec:cmd=laszip
+    This command group lets you explore the available Data 'Hooks' and the multi-hook
+    'Presets' that can be injected into Fetchez pipelines..
     """
 
     pass

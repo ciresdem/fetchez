@@ -102,7 +102,7 @@ def cli(verbose, quiet):
       1. Modules  : Data Sources (see `fetchez modules`)
       2. Hooks    : Processing Steps (see `fetchez hooks`)
       3. Streams  : Data Streaming (see `fetchez streams`)
-      4. Recipes  : YAML files that define complex pipelines (see `fetchez recipes`)
+      4. Recipes  : YAML pipeline definitions (see `fetchez recipes`)
     """
     # \b
     # Examples:
