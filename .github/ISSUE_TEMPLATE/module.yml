@@ -1,6 +1,7 @@
-name: "🐄 module"
+name: "🐄 Module Request"
 description: >
-  A module request is a request for a new data source module
+  Help us make fetchez more encompassing, increasing the value for the community of users!
+  A module request is a request for a new data source module or an improvement on an existing one.
 
 labels:
   - "module request"
