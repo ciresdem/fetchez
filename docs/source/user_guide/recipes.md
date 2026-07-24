@@ -8,7 +8,7 @@ By treating your data pipelines as *Infrastructure as Code*, you ensure your dat
 Recipes are written in standard YAML. To execute a recipe and start fetching data, simply pass the YAML file to the `fetchez` CLI:
 
 ```bash
-fetchez --recipe recipes/my_archive_project.yaml
+fetchez recipes run recipes/my_archive_project.yaml
 ```
 
 Alternatively, you can load and launch recipes directly within a Python driver script using the `fetchez.recipe` API:
@@ -43,6 +43,7 @@ execution:
   threads: 4 # Number of parallel download streams
 
 region: [-80.5, -80.0, 25.5, 26.0] # The bounding box: [West, East, South, North]
+region_srs: EPSG:4326 # The srs of the bounding box
 ```
 
 ### 2. **Modules** (The Data Sources)
@@ -88,17 +89,16 @@ global_hooks:
 ## Understanding Hooks and the Lifecycle
 Hooks are the specialized tools that intercept and process your data. It is critical to understand when they run. `fetchez` processes hooks in three distinct stages:
 
-### PRE/MANIFEST Stage: Runs before downloads begin.
+* **PRE/MANIFEST Stage:** Runs before downloads begin.
+  *Use case:* Filtering the list of URLs based on regex, limiting the maximum number of files to download, or authenticating tokens.
 
-*Use case:* Filtering the list of URLs based on regex, limiting the maximum number of files to download, or authenticating tokens.
+* **FILE Stage:** Runs during the download loop on each individual file.
+  *Use case:* Unzipping archives immediately as they arrive, verifying checksums, or piping the file path to standard output.
 
-### FILE Stage: Runs during the download loop on each individual file.
+* **STREAM Stage:** Runs after the FILE Stage having invoked the `stream-init` hook.
 
-*Use case:* Unzipping archives immediately as they arrive, verifying checksums, or piping the file path to standard output.
-
-### POST/COLLECTION Stage: Runs after all files have been downloaded and processed.
-
-*Use case:* Generating a JSON audit log, zipping the final output directory into a clean tarball, or sending a Slack notification that the job is done.
+* **POST/COLLECTION Stage:** Runs after all files have been downloaded and processed.
+  *Use case:* Generating a JSON audit log, zipping the final output directory into a clean tarball, or sending a Slack notification that the job is done.
 
 ### Global vs. Module Hooks
 

@@ -1,4 +1,4 @@
-Schema Registry
+Schemas
 ===============
 
 ```{eval-rst}

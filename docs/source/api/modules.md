@@ -1,4 +1,4 @@
-Modules Base
+Base Module
 ============
 
 ```{eval-rst}

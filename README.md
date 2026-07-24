@@ -28,10 +28,10 @@ pip install fetchez
 ```
 
 **Optional Extensions:**
-To enable advanced vector boundary support (Shapefiles/GeoPackages for regions), install with the vector extras:
+To enable module specific library dependencies, install with the desired extras:
 
 ```bash
-pip install fetchez[vector]
+pip install fetchez[full]
 ```
 
 ## 🐄 Quickstart
@@ -79,6 +79,18 @@ Would you like to know more? Check out our [Official Documentation](https://fetc
 * **Custom Plugins:** Write your own data fetch modules, processing hooks, extensions and recipes.
 
 * **Execution Lifecycle:** Learn about the distinct phases (`manifest` -> `file` -> `stream` -> `collection`) of fetchez module hook processing.
+
+---
+
+## 🛠️ Used By
+
+This project is used by the following open-source projects:
+
+* **[globato](https://github.com/continuous-dems/globato)** - A full Fetchez extension, adding DEM optimized hooks, modules, streams and more.
+* **[ivert](https://github.com/continuous-dems/ivert)** - Used to fetch IceSat2 Data.
+* **[transformez](https://github.com/continuous-dems/transformez)** - Used to fetch vertical transformation data.
+
+*Are you using this project? Open a Pull Request to add your project to the list!*
 
 ---
 
