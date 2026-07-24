@@ -130,13 +130,14 @@ def la_vache():
     screen_width, _ = shutil.get_terminal_size()
 
     for _ in range(loops):
-        for spaces in range(screen_width-1):
+        for spaces in range(screen_width - 1):
             click.echo(f"\r{' ' * spaces}🐄", nl=False)
             time.sleep(0.025)
 
-        for spaces in range(screen_width-1, -1, -1):
+        for spaces in range(screen_width - 1, -1, -1):
             click.echo(f"\r{' ' * spaces}🐄", nl=False)
             time.sleep(0.025)
+
 
 cli.add_command(la_vache, name="lavache")
 cli.add_command(pipeline_group, name="run")
