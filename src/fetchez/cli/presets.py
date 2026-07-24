@@ -37,7 +37,7 @@ def presets_group():
       Presets act exactly like Hooks. You can pass them to `--hook`, `--global-hook`,
       or list them in your Recipe's hook list.
     """
-
+    # As such, Presets can reference other Presets as well as Hooks.
     pass
 
 

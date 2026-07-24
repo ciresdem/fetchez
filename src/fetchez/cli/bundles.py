@@ -35,6 +35,7 @@ def bundles_group():
     \b
     Usage:
       Bundles act exactly like Modules. You can pass them directly to `fetchez run`.
+      As such, Bundles can reference other Bundles as well as Modules.
     """
 
     pass

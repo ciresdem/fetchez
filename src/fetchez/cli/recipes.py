@@ -58,11 +58,15 @@ def recipes_group():
     \b
     Recipes are YAML files that define an entire ETL pipeline from start to finish.
     They contain the project metadata, the requested Data Modules, and the
-    Processing Hooks used to filter and stack the data.
+    Processing Hooks used to filter and process the data.
 
     \b
     Recipes make your data pipelines 100% reproducible. You can version-control
     them, share them with colleagues, or run them in batch mode over multiple regions.
+
+    \b
+    This command group lets you explore and run the available 'Recipes' that hold the
+    instructions and the 'Schemas' that can modify them.
     """
 
     pass
