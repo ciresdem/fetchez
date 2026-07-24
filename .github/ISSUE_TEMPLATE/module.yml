@@ -13,4 +13,3 @@ body:
       Any information you have on the module or the desired remote API in question."
     validations:
       required: true
-
