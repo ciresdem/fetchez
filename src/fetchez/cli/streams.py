@@ -13,7 +13,6 @@ Discoverability and documentation for processing readers.
 
 import click
 
-# from fetchez.api import list_readers
 from fetchez.utils import FetchezMainGroup
 from .readers import readers_group
 from .profiles import profiles_group
@@ -27,9 +26,8 @@ def streams_group():
 
     \b
     When Fetchez downloads a file (like a GeoTIFF or NetCDF), it can use Streams
-    to read the data piece-by-piece in memory. This prevents massive datasets from
-    crashing your computer's RAM and gives control over how to process different
-    datasets.
+    to read the data piece-by-piece in memory. This allows for  control over how
+    to process different datasets.
 
     \b
     This command group lets you explore the internal 'Readers' that parse the
