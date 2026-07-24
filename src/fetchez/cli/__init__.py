@@ -75,12 +75,9 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
         "Discovery and Management": [
             "modules",
             "hooks",
-            # "schemas",
             "recipes",
-            # "presets",
-            # "bundles",
-            # "readers",
             "streams",
+            # "lavache",
         ],
     },
     # epilog="https://fetchez.readthedocs.io/en/latest/index.html"
@@ -122,6 +119,27 @@ def cli(verbose, quiet):
     setup_logging(quiet=quiet, verbose=verbose)
 
 
+# @click.command("la_vache", hidden=True)
+# def la_vache():
+#     """Fetchez La Vache."""
+
+#     import time
+#     import shutil
+
+#     loops = 1
+#     screen_width, _ = shutil.get_terminal_size()
+
+#     for _ in range(loops):
+#         for spaces in range(screen_width - 1):
+#             click.echo(f"\r{' ' * spaces}🐄", nl=False)
+#             time.sleep(0.025)
+
+#         for spaces in range(screen_width - 1, -1, -1):
+#             click.echo(f"\r{' ' * spaces"}🐄, nl=False)
+#             time.sleep(0.025)
+
+
+# cli.add_command(la_vache, name="lavache")
 cli.add_command(pipeline_group, name="run")
 cli.add_command(modules_group, name="modules")
 cli.add_command(hooks_group, name="hooks")
