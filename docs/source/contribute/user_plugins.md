@@ -1,14 +1,14 @@
 # 🐄 Developing User Plugins
 
-One of the most powerful features of `fetchez` is its plugin architecture. You can write your own modules to fetch data from custom sources and use them immediately with the full power of the `fetchez` CLI (smart regions, threading, retries, etc.).
+One of the most powerful features of `fetchez` is its plugin architecture. You can write your own modules or module bundles to fetch data from custom sources and use them immediately with the full power of the `fetchez` CLI (smart regions, threading, retries, etc.).
 
 ## How it Works
-1.  `fetchez` scans `~/.fetchez/plugins/` at runtime.
-2.  It loads any `.py` file it finds.
-3.  It registers any class that inherits from `fetchez.modules.FetchModule`.
+1.  `fetchez` scans `~/.fetchez/modules/` and `~/.fetchez/modules/bundles` at runtime.
+2.  It loads any `.py` file it finds in `modules` and any `.yaml` files it finds in `bundles`.
+3.  It registers any class that inherits from `fetchez.modules.FetchModule` or any validly formatted module bundle with module definitions.
 
 ## Example Plugin
-Create a file named `~/.fetchez/plugins/usgs_checkpoints.py`:
+Create a file named `~/.fetchez/modules/usgs_checkpoints.py`:
 
 ```python
 from fetchez import core, cli
@@ -55,17 +55,23 @@ class CheckPoints3DEP(FetchModule):
         )
 ```
 
-### Testing Your Plugin
+### Testing Your Module
 Once you save the file, simply run:
 
 ```bash
 
-# Check if it loaded
-fetchez --search my_checkpoints
+# Rebuild the module registry
+fetchez modules update-cache
 
-# or see all plugins
-fetchez --search plugin
+# Check if it loaded
+fetchez modules search my_checkpoints
 
 # Run it
-fetchez my_checkpoints
+fetchez run my_checkpoints
 ```
+
+
+# 🔗 Sharing a Module or Bundle
+Did you build a Module or Bundle that would be useful for the wider community? We'd love to incorporate it!
+
+Submit a Pull Request adding your file to `fetchez/modules/` or `fetchez/modules/bundles`.

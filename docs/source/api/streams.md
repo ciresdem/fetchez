@@ -1,4 +1,4 @@
-Formats
+Streams
 ========
 
 ```{eval-rst}

@@ -10,3 +10,6 @@ Great documentation is just as important as code! We want Fetchez to be accessib
 * **Improve Module Docs:** Many modules could use better descriptions or more usage examples in their help text.
     * Update the `help_text` in the module's `@cli.cli_opts` decorator.
     * Update the class docstring with specific details about the dataset (resolution, vertical datum, etc.).
+* **Improve Hook Docs:** Many hooks could use better documentation, examples and usage descriptions in their help text and docstring.
+    * Update the `meta_*` tags in the hooks class definition.
+	* Update the class docstring with specific details or usage examples to help people understand what they do and how to use them.

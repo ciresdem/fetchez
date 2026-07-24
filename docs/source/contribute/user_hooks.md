@@ -40,16 +40,11 @@ class AuditLog(FetchHook):
 
 ```bash
 # Check if it loaded
-fetchez --list-hooks
+fetchez hooks list
 
 # Run it
-fetchez srtm_plus --hook audit
+fetchez run srtm_plus --hook audit
 ```
-
-# 🔗 Sharing a Plugin or Hook
-Did you build a plugin that would be useful for the wider community? We'd love to incorporate it!
-
-Submit a Pull Request adding your file to fetchez/modules/ or fetchez/hooks.
 
 ## Developing & Sharing Presets
 Presets (Macros) are the easiest way to share complex data engineering workflows without writing Python code. They allow you to bundle multiple processing steps into a single, shareable YAML snippet.
@@ -91,13 +86,18 @@ Now, `--inf-only` will show up when you run `fetchez multibeam --help`, but it w
 ### Best Practices for Sharing
 If you have developed a robust workflow (e.g., "Standard Archival Prep" or "Cloud Optimized GeoTIFF Conversion"), you can share it easily!
 
-**Share the YAML:** You can post your .yaml file in a GitHub Issue, a Gist, or on our Zulip chat. Users just drop it into their ~/.fetchez/presets/ folder.
+**Share the YAML:** You can post your .yaml file in a GitHub Issue or on our Zulip chat. Users can just drop it into their ~/.fetchez/hooks/presets/ folder.
 
 **Bundle in a Python Package:** If you are building a Python package that extends `fetchez` (like `globato`), you can distribute presets automatically! Just place your YAML files in a package directory and register them in your pyproject.toml:
 
 ```toml
-[project.entry-points."fetchez.presets"]
-my_custom_presets = "my_package.presets"
+[project.entry-points."fetchez.hooks.presets"]
+my_custom_presets = "my_package.hooks.presets"
 ```
 
-**Contribute to Core:** If a preset is universally useful, you can propose adding it directly to the `fetchez/presets/` core directory via a Pull Request.
+**Contribute to Core:** If a preset is universally useful, you can propose adding it directly to the `fetchez/hooks/presets/` core directory via a Pull Request.
+
+# 🔗 Sharing a Hook or Preset
+Did you build a Hook or Preset that would be useful for the wider community? We'd love to incorporate it!
+
+Submit a Pull Request adding your file to `fetchez/hooks/` or `fetchez/hooks/presets`.
