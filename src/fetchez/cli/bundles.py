@@ -85,10 +85,12 @@ def info_bundles(name):
     if modules:
         click.echo(f"\n  Data Sources ({len(modules)}):")
         for mod in modules:
-             mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-             click.echo(f"    + {click.style(mod_name, fg='green')}")
-             for arg in mod.get("args"):
-                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}")
+            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
+            click.echo(f"    + {click.style(mod_name, fg='green')}")
+            for arg in mod.get("args"):
+                click.echo(
+                    f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}"
+                )
 
     click.echo("=" * 60 + "\n")
 

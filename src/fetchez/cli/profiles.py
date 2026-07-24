@@ -96,13 +96,15 @@ def info_profiles(name):
     click.echo("=" * 60)
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
-    reader = meta.get("reader")# .get("name")
+    reader = meta.get("reader")  # .get("name")
 
     if reader:
         click.secho("\n  Supported Reader:", fg="yellow", bold=True)
-        click.echo(f"    - {click.style(reader.get("name"), fg='green')}")
+        click.echo(f"    - {click.style(reader.get('name'), fg='green')}")
         for arg in reader.get("args", []):
-            click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {reader.get('args').get(arg)}")
+            click.echo(
+                f"     ⤷ {click.style(arg, fg='cyan')}: {reader.get('args').get(arg)}"
+            )
 
     click.echo("\n" + "=" * 60 + "\n")
 

@@ -84,7 +84,9 @@ def info_preset(name):
             hook_name = hook.get("name")
             click.echo(f"    - {click.style(hook_name, fg='green')}")
             for arg in hook.get("args", []):
-                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}")
+                click.echo(
+                    f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}"
+                )
 
     click.echo("=" * 60 + "\n")
 

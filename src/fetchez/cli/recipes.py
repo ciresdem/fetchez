@@ -115,10 +115,12 @@ def info_recipe(name):
     if modules:
         click.echo(f"\n  Data Sources ({len(modules)}):")
         for mod in modules:
-             mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
-             click.echo(f"    + {click.style(mod_name, fg='green')}")
-             for arg in mod.get("args"):
-                 click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}")
+            mod_name = mod.get("module") or mod.get("bundle") or "Unknown"
+            click.echo(f"    + {click.style(mod_name, fg='green')}")
+            for arg in mod.get("args"):
+                click.echo(
+                    f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}"
+                )
 
     global_hooks = config.get("global_hooks", [])
     if global_hooks:
@@ -127,7 +129,9 @@ def info_recipe(name):
             hook_name = hook.get("name") or hook.get("preset") or "Unknown"
             click.echo(f"    - {click.style(hook_name, fg='yellow')}")
             for arg in hook.get("args", []):
-                click.echo(f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}")
+                click.echo(
+                    f"     ⤷ {click.style(arg, fg='cyan')}: {hook.get('args').get(arg)}"
+                )
 
     click.echo("=" * 60 + "\n")
 

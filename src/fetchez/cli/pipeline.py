@@ -164,10 +164,14 @@ class PipelineExecutor(FetchezMainGroup):
     chain=True,
     # epilog="\bhttps://fetchez.readthedocs.io/en/latest/index.html"
 )
-@click.option("-R", "--region", help=f"""\b
+@click.option(
+    "-R",
+    "--region",
+    help=f"""\b
 Bounding box (W/E/S/N)
 {region_help_msg()}
-""")
+""",
+)
 @click.option(
     "--region-srs",
     default="EPSG:4326",
