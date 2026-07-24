@@ -1,0 +1,15 @@
+name: "🐄 module"
+description: >
+  A module request is a request for a new data source module
+
+labels:
+  - "module request"
+
+body:
+  - type: "textarea"
+    attributes:
+      label: "Module Request or Issue"
+      description: "Please include any information you have on the desired remote API and any context on the desired data sources.
+      Feel free to suggest the desired name the requested module should have in the Registry."
+    validations:
+      required: true

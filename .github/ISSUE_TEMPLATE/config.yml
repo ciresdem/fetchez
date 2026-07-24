@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: 🌟 Community chat
-    url: https://github.com/earthaccess-dev/earthaccess/discussions/categories/q-a
+    url: https://cudem.zulipchat.com/
     about: |
       Our real-time chat space, powered by Zulip, is the best place to get
       started if you're not sure -- ask questions, report a problem, suggest a
