@@ -124,7 +124,6 @@ def la_vache():
     """Fetchez La Vache."""
 
     import time
-    import os
     import shutil
 
     loops = 1
