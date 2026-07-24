@@ -82,6 +82,18 @@ Would you like to know more? Check out our [Official Documentation](https://fetc
 
 ---
 
+## 🛠️ Used By
+
+This project is trusted and used by the following open-source projects:
+
+* **[globato](https://github.com/continuous-dems/globato)** - A full fetchez extension, adding DEM optimized hooks, modules, streams and more.
+* **[ivert](https://github.com/continuous-dems/ivert)** - Used to fetch IceSat2 Data.
+* **[transformez](https://github.com/continuous-dems/transformez)** - Used to fetch vertical transformation data.
+
+*Are you using this project? Open a Pull Request to add your project to the list!*
+
+---
+
 ## ⚖ License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/continuous-dems/fetchez/blob/main/LICENSE) file for details.
