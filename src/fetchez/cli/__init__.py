@@ -44,6 +44,8 @@ def cli_opts(help_text: Optional[str] = None, **arg_help):
 
 
 def setup_logging(name="fetchez", quiet=False, verbose=False):
+    """Setup logging for the fetchez based clis"""
+
     if quiet:
         log_level = logging.WARNING
     elif verbose:
@@ -77,7 +79,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
             "hooks",
             "recipes",
             "streams",
-            # "lavache",
+            "lavache",
         ],
     },
     # epilog="https://fetchez.readthedocs.io/en/latest/index.html"
@@ -90,16 +92,17 @@ def cli(verbose, quiet):
 
     \b
     Fetchez is a streaming ETL pipeline for geospatial data.
-    It allows you to download data from remote modules (like NOAA or Copernicus),
+    It allows you to download geospatial data from local or remote sources,
     pipe that data through processing hooks (like clipping or reprojecting),
     and save the results to disk. All in a single command or a YAML recipe.
 
     \b
     Core Concepts:
-      1. Modules  : Data Sources (see `fetchez modules`)
-      2. Hooks    : Processing Steps (see `fetchez hooks`)
-      3. Streams  : Data Streaming (see `fetchez streams`)
-      4. Recipes  : YAML pipeline definitions (see `fetchez recipes`)
+      1. Modules   : Data Sources (see `fetchez modules`)
+      2. Hooks     : Processing Steps (see `fetchez hooks`)
+      3. Streams   : Data Streaming (see `fetchez streams`)
+      4. Recipes   : YAML pipeline definitions (see `fetchez recipes`)
+      5. Pipelines : Run full data processing pipelines (see `fetchez run`)
     """
     # \b
     # Examples:
@@ -119,27 +122,28 @@ def cli(verbose, quiet):
     setup_logging(quiet=quiet, verbose=verbose)
 
 
-# @click.command("la_vache", hidden=True)
-# def la_vache():
-#     """Fetchez La Vache."""
+@click.command("la_vache", hidden=True)
+def la_vache():
+    """Fetchez La Vache."""
 
-#     import time
-#     import shutil
+    click.echo("🐄")
+    # import time
+    # import shutil
 
-#     loops = 1
-#     screen_width, _ = shutil.get_terminal_size()
+    # loops = 1
+    # screen_width, _ = shutil.get_terminal_size()
 
-#     for _ in range(loops):
-#         for spaces in range(screen_width - 1):
-#             click.echo(f"\r{' ' * spaces}🐄", nl=False)
-#             time.sleep(0.025)
+    # for _ in range(loops):
+    #     for spaces in range(screen_width - 1):
+    #         click.echo(f"\r{' ' * spaces}🐄", nl=False)
+    #         time.sleep(0.025)
 
-#         for spaces in range(screen_width - 1, -1, -1):
-#             click.echo(f"\r{' ' * spaces"}🐄, nl=False)
-#             time.sleep(0.025)
+    #     for spaces in range(screen_width - 1, -1, -1):
+    #         click.echo(f"\r{' ' * spaces"}🐄, nl=False)
+    #         time.sleep(0.025)
 
 
-# cli.add_command(la_vache, name="lavache")
+cli.add_command(la_vache, name="lavache")
 cli.add_command(pipeline_group, name="run")
 cli.add_command(modules_group, name="modules")
 cli.add_command(hooks_group, name="hooks")
