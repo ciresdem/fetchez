@@ -210,8 +210,8 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
       fetchez run -R <W/E/S/N> [--global-hook <name>] <module_1> [--hook <name>] <module_2> ...
 
     \b
-    * Run `fetchez modules list` to see a full list of supported modules and extensions..
-    * Run `fetchez hooks list` to see a  full list of supported hooks and extensions.
+    * Run `fetchez modules` to learn more about supported modules and extensions..
+    * Run `fetchez hooks` to learn more about supported hooks and extensions.
     """
 
     # \b
