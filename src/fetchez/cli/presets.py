@@ -17,6 +17,7 @@ import yaml
 import click
 from fetchez.registry import PresetRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.recipe import Recipe
 
 
 @click.group(
@@ -78,6 +79,7 @@ def info_preset(name):
     click.echo(f"  Description : {meta.get('description', 'N/A').strip()}")
 
     hooks = meta.get("hooks", [])
+    hooks = Recipe({})._expand_hooks(hooks)
     if hooks:
         click.echo(f"\n  Hooks ({len(hooks)}):")
         for hook in hooks:

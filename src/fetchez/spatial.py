@@ -275,6 +275,8 @@ class Region:
             return f"-R{self.xmin}/{self.xmax}/{self.ymin}/{self.ymax}"
         elif style == "bbox":
             return f"{self.xmin},{self.ymin},{self.xmax},{self.ymax}"
+        elif style == "region":
+            return f"{self.xmin},{self.xmax},{self.ymin},{self.ymax}"
         elif style == "fn":
             ns = "s" if self.ymax < 0 else "n"
             ew = "e" if self.xmin > 0 else "w"
@@ -694,6 +696,29 @@ def parse_region(input_r: Union[str, List]) -> List[Region]:
             logger.warning(f"Failed to parse region {input_r}")
 
     return regions
+
+
+def yield_parsed_regions(region_str):
+    """Parses a region string, location, or vector file.
+
+    Yields (Region, feature_name) for every region found.
+    """
+
+    if not region_str:
+        yield None, None
+        return
+
+    try:
+        raw_regions = parse_region(region_str)
+    except Exception as e:
+        raise ValueError(f"Error parsing region '{region_str}': {e}")
+
+    is_batch = len(raw_regions) > 1
+    for i, r in enumerate(raw_regions):
+        t_reg = Region(*r)
+        # feat_name = f"tile_{i:03d}" if is_batch else None
+        feat_name = t_reg.format("fn") if is_batch else None
+        yield t_reg, feat_name
 
 
 # =============================================================================

@@ -12,11 +12,13 @@ Loads a configuration (The Recipe) and executes it against the target region.
 """
 
 import os
+import copy
 import json
+import yaml
 import logging
 
 from .core import run_fetchez
-from .spatial import parse_region
+from .spatial import parse_region, yield_parsed_regions
 from .registry import (
     ModuleRegistry,
     HookRegistry,
@@ -197,76 +199,90 @@ class Recipe:
             return path
         return os.path.abspath(os.path.join(self.base_dir, path))
 
+    def _init_modules(self, module_defs, target_region=None, global_region_srs="EPSG:4326"):
+        """Takes a flat list of module dictionaries and instantiates the Python classes."""
+
+        modules_to_run = []
+
+        for mod_def in module_defs:
+            mod_key = mod_def.get("module")
+            mod_args = mod_def.get("args", {})
+            mod_region_srs = mod_def.get("region_srs", global_region_srs)
+
+            # Mod regions default to the target region for this batch iteration
+            mod_regions = [target_region] if target_region else [None]
+
+            ModCls = ModuleRegistry.get_class(mod_key)
+            if not ModCls:
+                logger.error(f"Unknown module: {mod_key}")
+                continue
+
+            # Initialize the hooks attached to this specific module
+            mod_hooks = self._init_hooks(mod_def.get("hooks", []))
+
+            for region in mod_regions:
+                if region is not None and region.valid_p():
+                    region.srs = mod_region_srs
+
+                if "path" in mod_args:
+                    mod_args["path"] = self._resolve_path(mod_args["path"])
+
+                try:
+                    instance = ModCls(src_region=region, hook=mod_hooks, **mod_args)
+                    modules_to_run.append(instance)
+                except Exception as e:
+                    logger.error(f"Failed to load {mod_key}: {e}")
+
+        return modules_to_run
+
     def _init_hooks(self, hook_defs, mod=None):
-        if not hook_defs:
-            return []
+        """Takes a flat list of expanded hook dictionaries and instantiates the Python classes."""
+
+        import inspect
 
         HookRegistry.load_all()
-        PresetRegistry.load_all()
-
         active_hooks = []
+
         for h in hook_defs:
             name = h.get("name")
-            is_preset = h.get("preset")
             raw_kwargs = h.get("args", {})
 
             kwargs = {}
             for k, v in raw_kwargs.items():
-                if k in [
-                    "file",
-                    "output",
-                    "output_grid",
-                    "mask_fn",
-                    "dem",
-                    "barrier",
-                    "aux_path",
-                    "path",
-                ]:
+                if k in ["file", "output", "output_grid", "mask_fn", "dem", "barrier", "aux_path", "path"]:
                     kwargs[k] = self._resolve_path(v)
                 else:
                     kwargs[k] = v
 
-            # --- PRESET EXPANSION ---
-            if is_preset:
-                preset_def = PresetRegistry.get_yaml(is_preset)
+            HookCls = HookRegistry.get_class(name)
+            if HookCls:
+                sig = inspect.signature(HookCls.__init__)
 
-                if preset_def:
-                    import copy
+                valid_kwargs = {
+                    k: v for k, v in kwargs.items()
+                    if k in sig.parameters or "kwargs" in str(sig.parameters)
+                }
 
-                    preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
-
-                    # --- ARGUMENT INJECTION ---
-                    for inner_hook in preset_hooks:
-                        h_name = inner_hook.get("name")
-
-                        # If the user passed a dictionary of args specifically for this hook
-                        if h_name in kwargs and isinstance(kwargs[h_name], dict):
-                            inner_hook.setdefault("args", {}).update(kwargs[h_name])
-
-                    # Recursively parse the expanded hooks
-                    expanded_hooks = self._init_hooks(preset_hooks, mod=mod)
-                    active_hooks.extend(expanded_hooks)
-                else:
-                    logger.error(f"Preset '{is_preset}' not found in registry.")
-
-            # --- STANDARD HOOK INITIALIZATION ---
+                active_hooks.append(HookCls(**valid_kwargs))
             else:
-                HookCls = HookRegistry.get_class(name)
-                if HookCls:
-                    import inspect
-
-                    sig = inspect.signature(HookCls.__init__)
-                    valid_kwargs = {
-                        k: v
-                        for k, v in kwargs.items()
-                        if k in sig.parameters or "kwargs" in str(sig.parameters)
-                    }
-
-                    active_hooks.append(HookCls(**valid_kwargs))
-                else:
-                    logger.warning(f"Hook '{name}' missing.")
+                logger.warning(f"Hook '{name}' missing.")
 
         return active_hooks
+
+    def _inject_batch_context(self, config_block, batch_name, batch_region):
+        """Recursively formats strings in the config to inject the batch name."""
+
+        if not batch_name:
+            return config_block
+
+        if isinstance(config_block, dict):
+            return {k: self._inject_batch_context(v, batch_name, batch_region) for k, v in config_block.items()}
+        elif isinstance(config_block, list):
+            return [self._inject_batch_context(v, batch_name, batch_region) for v in config_block]
+        elif isinstance(config_block, str):
+            return config_block.replace("{batch_name}", str(batch_name))
+
+        return config_block
 
     def _get_module_signature(self, mod_dict):
         """Creates a unique signature for a module to handle deduplication.
@@ -282,7 +298,7 @@ class Recipe:
 
         args = mod_dict.get("args", {})
 
-        # Identifiers that make a dataset truly unique within a module
+        # Ids that make a dataset truly unique within a module
         ids = []
         for key in ["datatype", "datasets", "formats", "layer", "product"]:
             if key in args:
@@ -297,9 +313,7 @@ class Recipe:
 
         RecipeRegistry.load_all()
 
-        # Using a dict to preserve order while handling deduplication
         expanded_dict = {}
-
         for mod_dict in raw_modules:
             if isinstance(mod_dict, str):
                 expanded_dict[mod_dict] = mod_dict
@@ -307,8 +321,10 @@ class Recipe:
 
             # Check if this item is a bundle or a nested recipe
             target = mod_dict.get("bundle") or mod_dict.get("recipe")
-
             if target:
+                BundleRegistry.load_all()
+                RecipeRegistry.load_all()
+
                 user_args = mod_dict.get("args", {})
                 user_hooks = mod_dict.get("hooks", [])
 
@@ -338,7 +354,6 @@ class Recipe:
                 # Process the returned children and inject them into our current pipeline
                 for child_mod in child_expanded:
                     if isinstance(child_mod, dict):
-                        # Inherit user hooks from the parent bundle call if any
                         if user_hooks:
                             child_mod.setdefault("hooks", []).extend(user_hooks)
 
@@ -350,7 +365,7 @@ class Recipe:
             elif "module" in mod_dict:
                 sig = self._get_module_signature(mod_dict)
 
-                # --- DEDUPLICATION & MERGE LOGIC ---
+                # --- DEDUPLICATION & MERGE ---
                 if sig in expanded_dict and isinstance(expanded_dict[sig], dict):
                     existing = expanded_dict[sig]
 
@@ -373,129 +388,46 @@ class Recipe:
             else:
                 logger.error(f"Invalid module definition: {mod_dict}")
 
-        # Return as a flat list for the core engine
         return list(expanded_dict.values())
 
-    def run(self):
-        """Execute the recipe!"""
+    def _expand_hooks(self, hook_defs, parent_args=None):
+        """Recursively expands presets into a flat list of hook definition dictionaries."""
 
-        ModuleRegistry.load_all()
-        BundleRegistry.load_all()
-        SchemaRegistry.load_all()
+        expanded_list = []
+        parent_args = parent_args or {}
 
-        if not self.config:
-            return
+        for h in hook_defs:
+            name = h.get("name")
+            is_preset = h.get("preset")
 
-        self.config = SchemaRegistry.apply_schema(self.config)
+            # Merge parent args (from the preset call) with any args explicitly on this hook.
+            # current_args = copy.deepcopy(parent_args)
+            current_args = h.get("args", {})
 
-        self._check_integrity()
-        logger.debug(f"Preparing to execute recipe: {self.name}")
+            # current_args.update(h.get("args", {}))
+            for arg in current_args:
+                if parent_args.get(arg):
+                    current_args[arg] = parent_args[arg]
 
-        run_opts = self.config.get("execution", {})
-        threads = run_opts.get("threads", 1)
+            if is_preset:
+                PresetRegistry.load_all()
+                preset_def = PresetRegistry.get_yaml(is_preset)
 
-        global_hooks = self._init_hooks(self.config.get("global_hooks", []))
-        global_region_def = self.config.get("region")
-        global_region_srs = self.config.get("region_srs", "EPSG:4326")
-        global_regions = (
-            parse_region(global_region_def) if global_region_def else [None]
-        )
+                if preset_def:
+                    preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
 
-        # expanded_modules = []
-
-        # for mod_dict in self.config.get("modules", []):
-        #     if "bundle" in mod_dict:
-        #         bundle_name = mod_dict["bundle"]
-        #         user_args = mod_dict.get("args", {})
-        #         user_hooks = mod_dict.get("hooks", [])
-
-        #         # Fetch the curated package from the registry
-        #         bundle_def = BundleRegistry.get_yaml(bundle_name)
-
-        #         if not bundle_def:
-        #             logger.error(f"Bundle '{bundle_name}' not found!")
-        #             continue
-
-        #         weight_multiplier = float(user_args.get("weight", 1.0))
-
-        #         # Inject the bundle's modules into the main recipe
-        #         for pkg_mod in bundle_def.get("modules", []):
-        #             if "weight" in pkg_mod.setdefault("args", {}):
-        #                 original_weight = float(pkg_mod["args"]["weight"])
-        #                 pkg_mod["args"]["weight"] = original_weight * weight_multiplier
-
-        #             if user_hooks:
-        #                 pkg_mod.setdefault("hooks", []).extend(user_hooks)
-
-        #             expanded_modules.append(pkg_mod)
-        #     else:
-        #         expanded_modules.append(mod_dict)
-
-        # self.config["modules"] = expanded_modules
-
-        self.config["modules"] = self._expand_modules(self.config.get("modules", []))
-
-        modules_to_run = []
-        for mod_def in self.config.get("modules", []):
-            if isinstance(mod_def, str):
-                mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
-
-                # modules_to_run = []
-                # for mod_def in self.config.get("modules", []):
-                #     if isinstance(mod_def, str):
-                #         mod_key, mod_args, mod_hooks, mod_region_def = mod_def, {}, [], None
-                #         mod_region_srs = global_region_srs
+                    # Recursively expand the child hooks, passing down the merged args
+                    expanded_child_hooks = self._expand_hooks(preset_hooks, parent_args=current_args)
+                    expanded_list.extend(expanded_child_hooks)
+                else:
+                    logger.error(f"Preset '{is_preset}' not found in registry.")
             else:
-                mod_key = mod_def.get("module")
-                mod_args = mod_def.get("args", {})
-                mod_hooks = self._init_hooks(mod_def.get("hooks", []), mod=mod_key)
-                mod_region_def = mod_def.get("region")
-                mod_region_srs = mod_def.get("region_srs", global_region_srs)
+                expanded_list.append({
+                    "name": name,
+                    "args": current_args
+                })
 
-            mod_regions = (
-                parse_region(mod_region_def) if mod_region_def else global_regions
-            )
-
-            # Maybe we don't need to enforce this here...
-            # if not mod_regions or mod_regions == [None]:
-            #     logger.warning(f"Module '{mod_key}' has no target region. Skipping.")
-            #     continue
-
-            ModCls = ModuleRegistry.get_class(mod_key)
-            if not ModCls:
-                logger.error(f"Unknown module: {mod_key}")
-                continue
-
-            for region in mod_regions:
-                if region is not None and region.valid_p():
-                    region.srs = mod_region_srs
-
-                if "path" in mod_args:
-                    mod_args["path"] = self._resolve_path(mod_args["path"])
-
-                try:
-                    instance = ModCls(src_region=region, hook=mod_hooks, **mod_args)
-                    modules_to_run.append(instance)
-                except Exception as e:
-                    logger.error(f"Failed to load {mod_key}: {e}")
-
-        if not modules_to_run:
-            logger.warning("Recipe empty. Nothing to execute.")
-            return
-
-        logger.debug(f"Queued {len(modules_to_run)} module queries. Searching...")
-        for mod in modules_to_run:
-            try:
-                mod.run()
-            except Exception as e:
-                logger.error(
-                    f"Module '{mod.name}' failed to generate URLs (Skipping): {e}"
-                )
-
-        run_fetchez(modules_to_run, threads=threads, global_hooks=global_hooks)
-        logger.debug(f"Recipe complete: {self.name}")
-
-        # self._generate_receipt()
+        return expanded_list
 
     def _generate_receipt(self):
         import datetime
@@ -680,3 +612,137 @@ class Recipe:
             check_output_collision(hook, "Global Hooks")
 
         return len(errors) == 0, errors
+
+    def run(self, shared_cache=None, overwrite=False):
+        """Execute the recipe, supporting vector-based batching, caching, and resumption."""
+
+        ModuleRegistry.load_all()
+        BundleRegistry.load_all()
+        SchemaRegistry.load_all()
+
+        if not self.config:
+            return
+
+        # Expand the modules
+        # self.config["modules"] = self._expand_modules(self.config.get("modules", []))
+
+        # Apply any schemas
+        self.config = SchemaRegistry.apply_schema(self.config)
+        self._check_integrity()
+
+        # Execution parameters
+        run_opts = self.config.get("execution", {})
+        threads = run_opts.get("threads", 1)
+        raw_region = self.config.get("region")
+        global_region_srs = self.config.get("region_srs", "EPSG:4326")
+        original_cwd = os.getcwd()
+
+        # State Tracking
+        state_file = os.path.join(original_cwd, ".fetchez_batch_state.json")
+        completed_tiles = []
+        if os.path.exists(state_file) and not overwrite:
+            try:
+                with open(state_file, "r") as f:
+                    completed_tiles = json.load(f)
+            except Exception:
+                pass
+
+        # Shared Cache
+        abs_cache = None
+        if shared_cache:
+            abs_cache = os.path.abspath(shared_cache)
+            os.makedirs(abs_cache, exist_ok=True)
+            logger.info(f"📁 Shared cache enabled: {abs_cache}")
+
+        # Batch Loop
+        for i, (target_region, feat_name) in enumerate(yield_parsed_regions(raw_region)):
+
+            # Batch Name
+            if feat_name:
+                batch_name = str(feat_name)
+            elif target_region and i > 0:
+                batch_name = f"batch_{i:03d}"
+            else:
+                batch_name = self.config.get("project", {}).get("name", "Unnamed")
+
+            # Check State
+            if batch_name and batch_name in completed_tiles and not overwrite:
+                logger.info(f"⏭️ Skipping completed tile: {batch_name} (use --overwrite to force)")
+                continue
+
+            iteration_config = copy.deepcopy(self.config)
+            tile_dir = original_cwd
+
+            # Setup the Sub-Folder
+            if batch_name:
+                logger.info(f"\n--- 🚀 Running Batch Iteration: {batch_name} ---")
+                orig_name = iteration_config.get("project", {}).get("name", "Unnamed")
+                iteration_config.setdefault("project", {})["name"] = f"{orig_name}_{batch_name}"
+
+                tile_dir = os.path.join(original_cwd, batch_name)
+                os.makedirs(tile_dir, exist_ok=True)
+                os.chdir(tile_dir)
+
+            try:
+                # Local Region
+                if target_region:
+                    iteration_config["region"] = target_region.to_list()
+
+                # Initialize & Run Pipeline
+                self.base_dir = tile_dir
+
+                # Expand Hooks and Modules
+                iteration_config["global_hooks"] = self._expand_hooks(iteration_config.get("global_hooks", []))
+                iteration_config["modules"] = self._expand_modules(iteration_config.get("modules", []))
+                for mod in iteration_config["modules"]:
+                    mod["hooks"] = self._expand_hooks(mod.get("hooks", []))
+
+                # Inject outdir for shared caching
+                if abs_cache:
+                    for mod in iteration_config.get("modules", []):
+                        if mod.get("module") not in ["file", "local_fs", "stdin"]:
+                            mod.setdefault("args", {})["outdir"] = abs_cache
+
+                if batch_name:
+                    # Inject the {batch_name} context into outputs
+                    iteration_config = self._inject_batch_context(iteration_config, batch_name, target_region)
+
+                # Initialize Hooks and Modules ( to python classes )
+                global_hooks = self._init_hooks(iteration_config["global_hooks"])
+                modules_to_run = self._init_modules(
+                    iteration_config["modules"],
+                    target_region=target_region,
+                    global_region_srs=global_region_srs
+                )
+
+                if not modules_to_run:
+                    continue
+
+                # Dump the localized recipe for debugging and reproducibility
+                if batch_name:
+                    batch_config_fn = f"{batch_name}_recipe.yaml"
+                    with open(batch_config_fn, "w") as f:
+                        yaml.dump(iteration_config, f, sort_keys=False, default_flow_style=False)
+                    logger.debug(f"Saved localized recipe to {batch_config_fn}")
+
+                for mod in modules_to_run:
+                    mod.run()
+
+                run_fetchez(modules_to_run, threads=threads, global_hooks=global_hooks)
+
+                # Update State
+                if batch_name:
+                    completed_tiles.append(batch_name)
+                    with open(state_file, "w") as f:
+                        json.dump(completed_tiles, f, indent=2)
+
+            except Exception as e:
+                logger.error(f"❌ Batch '{batch_name or 'run'}' failed: {e}")
+                logger.warning("Batch processing halted. Re-run command to resume from this tile.")
+                raise
+
+            finally:
+                self.base_dir = original_cwd
+                os.chdir(original_cwd)
+
+        logger.debug(f"Batch execution complete for {self.name}")

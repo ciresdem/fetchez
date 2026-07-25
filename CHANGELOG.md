@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recusrive bundle support
 - Recipe 'translate' to dump a valid cli from a yaml
 - Ensure `stream-init` gets set as the first hook in the `stream` stage.
+- Add --region and --region-srs options to the `recipes run` cli
+- Recursive preset support
 
 ### CHANGED
 - Modules must now use self.wgs_region to ensure valid wgs api requests, while self.region stays in original srs.
@@ -23,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Promoted pyogrio, shapely and pyproj to standard dependencies.
 - Refresh readthedocs documentation.
 - Refresh CLI documentation and help messages.
+- Moved `yield_parsed_regions` from globato.utils to fetchez.spatial
+- Refactor fetchez.recipe - moved a lot of stuff from globato, incl. batching, shared-cache
 
 ### BUGFIX
 - fix to authentication in fetchez.core, now uses custom sessions
