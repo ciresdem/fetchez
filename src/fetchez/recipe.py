@@ -28,7 +28,7 @@ from .registry import (
     BundleRegistry,
     RecipeRegistry,
 )
-from .utils import TqdmLoggingHandler
+from .utils import TqdmLoggingHandler, colorize, CYAN
 from . import __version__ as fetchez_version
 
 logger = logging.getLogger(__name__)
@@ -636,7 +636,7 @@ class Recipe:
 
         return len(errors) == 0, errors
 
-    def run(self, shared_cache=None, overwrite=False):
+    def run(self, outdir=None, shared_cache=None, overwrite=False):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
         ModuleRegistry.load_all()
@@ -653,12 +653,20 @@ class Recipe:
         # self.config = SchemaRegistry.apply_schema(self.config)
         # self._check_integrity()
 
+        # Check for 'domain' to see if we have the proper extension to run the recipe.
+        # domain = self.config.get("domain")
+
         # Execution parameters
         run_opts = self.config.get("execution", {})
         threads = run_opts.get("threads", 1)
         raw_region = self.config.get("region")
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
+
         original_cwd = os.getcwd()
+        if outdir is None:
+            base_outdir = os.path.abspath(original_cwd)
+        else:
+            base_outdir = os.path.abspath(outdir)
 
         # State Tracking
         state_file = os.path.join(original_cwd, ".fetchez_batch_state.json")
@@ -687,7 +695,8 @@ class Recipe:
             elif target_region and i > 0:
                 batch_name = f"batch_{i:03d}"
             else:
-                batch_name = self.config.get("project", {}).get("name", "Unnamed")
+                batch_name = None
+                # batch_name = self.config.get("project", {}).get("name", "Unnamed")
 
             # Check State
             if batch_name and batch_name in completed_tiles and not overwrite:
@@ -697,19 +706,22 @@ class Recipe:
                 continue
 
             iteration_config = copy.deepcopy(self.config)
-            tile_dir = original_cwd
 
             # Setup the Sub-Folder
+            tile_dir = base_outdir  # original_cwd
             if batch_name:
-                logger.info(f"\n--- Running Batch Iteration: {batch_name} ---")
+                logger.info(
+                    colorize(f"\n--- Running Batch Iteration: {batch_name} ---", CYAN)
+                )
                 orig_name = iteration_config.get("project", {}).get("name", "Unnamed")
                 iteration_config.setdefault("project", {})["name"] = (
                     f"{orig_name}_{batch_name}"
                 )
 
-                tile_dir = os.path.join(original_cwd, batch_name)
-                os.makedirs(tile_dir, exist_ok=True)
-                os.chdir(tile_dir)
+                tile_dir = os.path.join(tile_dir, batch_name)
+
+            os.makedirs(tile_dir, exist_ok=True)
+            os.chdir(tile_dir)
 
             try:
                 # Local Region

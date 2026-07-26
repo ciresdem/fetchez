@@ -304,7 +304,7 @@ def format_dataset_id(dataset_id):
     if not context:
         return basename
 
-    return f"[{context}] {basename}"
+    return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
 
 
 def fn_url_p(fn):
