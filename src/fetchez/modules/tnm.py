@@ -204,7 +204,6 @@ class TheNationalMap(FetchModule):
                 data = req.json()
                 total = data.get("total", 0)
                 items = data.get("items", [])
-
                 for item in items:
                     url = item.get("downloadURL")
                     if not url:
@@ -223,19 +222,33 @@ class TheNationalMap(FetchModule):
                             item_bbox.get("maxY"),
                         )
 
-                    self.add_entry_to_results(
-                        url=url,
-                        dst_fn=filename,
-                        data_type="tnm",
-                        format=fmt,
-                        bounds=bounds,
-                        date=item.get("publicationDate"),
-                        remote_size=item.get("sizeInBytes"),
-                        title=item.get("title"),
-                    )
+                    fn_bn = filename.split("_")[-2]
+                    date = item.get("publicationDate")
+                    add_result = True
+                    for i, r in enumerate(self.results):
+                        if r["dst_fn"].split("_")[-2] == fn_bn:
+                            if int(date.split("-")[0]) > int(r["date"].split("-")[0]):
+                                self.results.pop(i)
+                                add_result = True
+                            else:
+                                add_result = False
+                        else:
+                            add_result = True
+
+                    if add_result:
+                        self.add_entry_to_results(
+                            url=url,
+                            dst_fn=filename,
+                            data_type="tnm",
+                            format=fmt,
+                            bounds=bounds,
+                            date=date,
+                            remote_size=item.get("sizeInBytes"),
+                            title=item.get("title"),
+                        )
 
             except Exception as e:
-                logger.error(f"Error parsing TNM JSON: {e}")
+                logger.exception(f"Error parsing TNM JSON: {e}")
                 break
 
             offset += 100

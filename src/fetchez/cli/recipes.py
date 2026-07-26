@@ -18,6 +18,7 @@ import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.spatial import region_help_msg
 from .schemas import schemas_group
 
 RECIPE_COMMANDS = [
@@ -122,7 +123,8 @@ def info_recipe(name):
                     f"     ⤷ {click.style(arg, fg='cyan')}: {mod.get('args').get(arg)}"
                 )
 
-    global_hooks = config.get("global_hooks", [])
+    # global_hooks = config.get("global_hooks", [])
+    global_hooks = Recipe({})._expand_hooks(config.get("global_hooks", []))
     if global_hooks:
         click.echo(f"\n  Global Pipeline Steps ({len(global_hooks)}):")
         for hook in global_hooks:
@@ -214,33 +216,6 @@ def recipe_validate(name):
         sys.exit(1)
 
 
-@recipes_group.command("run", cls=FetchezMainCommand)
-@click.argument("name")
-def run_recipe(name):
-    """Execute a YAML recipe by registry name or file path."""
-
-    RecipeRegistry.load_all()
-
-    click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
-
-    if os.path.exists(name):
-        Recipe.from_file(name).run()
-        click.secho(
-            "✨ Pipeline execution completed successfully!", fg="green", bold=True
-        )
-        return
-
-    meta = RecipeRegistry.get_yaml(name)
-    if not meta:
-        click.secho(
-            f"Error: Recipe '{name}' not found in registry or local path.", fg="red"
-        )
-        sys.exit(1)
-
-    Recipe.from_dict(meta).run()
-    click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
-
-
 @recipes_group.command("translate", cls=FetchezMainCommand)
 @click.argument("name")
 @click.option(
@@ -266,6 +241,55 @@ def translate_recipe(name, as_json):
         click.secho("\n--- Translated CLI Command ---\n", fg="cyan", bold=True)
         click.echo(recipe_obj.to_cli())
         click.echo("\n")
+
+
+@recipes_group.command("run", cls=FetchezMainCommand)
+@click.option(
+    "-R",
+    "--region",
+    help=f"""\b
+Bounding box (W/E/S/N)
+{region_help_msg()}
+""",
+)
+@click.option(
+    "--region-srs",
+    default="EPSG:4326",
+    help="Set the SRS of the input bounding box (default: EPSG:4326).",
+)
+@click.option(
+    "--shared-cache",
+    type=click.Path(resolve_path=True),
+    help="Centralized directory to cache fetched data.",
+)
+@click.argument("name")
+def run_recipe(name, region, region_srs, shared_cache):
+    """Execute a YAML recipe by registry name or file path."""
+
+    RecipeRegistry.load_all()
+
+    click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
+
+    if os.path.exists(name):
+        base_config = _load_yaml(name)
+    else:
+        meta = RecipeRegistry.get_yaml(name)
+        if not meta:
+            click.secho(f"Error: Recipe '{name}' not found.", fg="red")
+            sys.exit(1)
+        base_config = meta.get("config", {})
+
+    if region:
+        base_config["region"] = region
+        click.secho(f"Overriding recipe region to: {region}", fg="yellow")
+
+        if region_srs:
+            base_config["region_srs"] = region_srs
+
+    recipe = Recipe.from_dict(base_config)
+    recipe.run(shared_cache=shared_cache)
+
+    click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 
 
 recipes_group.add_command(schemas_group, name="schemas")

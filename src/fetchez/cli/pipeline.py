@@ -185,9 +185,16 @@ Bounding box (W/E/S/N)
 @click.option(
     "--export", type=click.Path(), help="Export to YAML instead of executing."
 )
+@click.option(
+    "--shared-cache",
+    type=click.Path(resolve_path=True),
+    help="Centralized directory to cache fetched data.",
+)
 @click.pass_context
 # """Initializes the context before the chained subcommands run."""
-def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads):
+def pipeline_group(
+    ctx, region, region_srs, export, global_hook, schema, threads, shared_cache
+):
     """Fetch/download data and execute processing pipelines.
 
     \b
@@ -205,8 +212,8 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
       fetchez run -R <W/E/S/N> [--global-hook <name>] <module_1> [--hook <name>] <module_2> ...
 
     \b
-    * Run `fetchez modules list` to see a full list of supported modules and extensions..
-    * Run `fetchez hooks list` to see a  full list of supported hooks and extensions.
+    * Run `fetchez modules` to learn more about supported modules and extensions..
+    * Run `fetchez hooks` to learn more about supported hooks and extensions.
     """
 
     # \b
@@ -229,7 +236,7 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
 @pipeline_group.result_callback()
 def process_pipeline(
-    commands, region, region_srs, export, global_hook, schema, threads
+    commands, region, region_srs, export, global_hook, schema, threads, shared_cache
 ):
     """Executes after all chained commands have returned their dictionaries."""
 
@@ -275,4 +282,4 @@ def process_pipeline(
         click.secho(f"Pipeline recipe exported to {export}", fg="green", bold=True)
     else:
         click.secho("Executing dynamic pipeline...", fg="cyan", bold=True, err=True)
-        Recipe.from_dict(config).run()
+        Recipe.from_dict(config).run(shared_cache=shared_cache)
