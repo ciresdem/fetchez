@@ -22,6 +22,7 @@ from .modules import modules_group
 from .hooks import hooks_group
 from .recipes import recipes_group
 from .streams import streams_group
+from .regions import regions_group
 
 
 # =============================================================================
@@ -73,12 +74,13 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
     cls=FetchezMainGroup,
     # help=f"\b{_cli_logo('fetchez', 'Fetch geospatial data with ease.', __version__)}",
     fetchez_commands={
-        "Execution": ["run"],
+        "Pipeline": ["run"],
         "Discovery and Management": [
             "modules",
             "hooks",
             "recipes",
             "streams",
+            "regions",
             "lavache",
         ],
     },
@@ -149,6 +151,7 @@ cli.add_command(modules_group, name="modules")
 cli.add_command(hooks_group, name="hooks")
 cli.add_command(recipes_group, name="recipes")
 cli.add_command(streams_group, name="streams")
+cli.add_command(regions_group, name="regions")
 
 
 if __name__ == "__main__":

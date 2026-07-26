@@ -15,6 +15,7 @@ import os
 import copy
 import json
 import yaml
+import inspect
 import logging
 
 from .core import run_fetchez
@@ -208,14 +209,18 @@ class Recipe:
             mod_key = mod_def.get("module")
             mod_args = mod_def.get("args", {})
             mod_region_srs = mod_def.get("region_srs", global_region_srs)
-
-            # Mod regions default to the target region for this batch iteration
             mod_regions = [target_region] if target_region else [None]
 
             ModCls = ModuleRegistry.get_class(mod_key)
             if not ModCls:
                 logger.error(f"Unknown module: {mod_key}")
                 continue
+
+            sig = inspect.signature(ModCls.__init__)
+            valid_mod_args = {
+                k: v for k, v in mod_args.items()
+                if k in sig.parameters or "kwargs" in str(sig.parameters)
+            }
 
             # Initialize the hooks attached to this specific module
             mod_hooks = self._init_hooks(mod_def.get("hooks", []))
@@ -228,7 +233,7 @@ class Recipe:
                     mod_args["path"] = self._resolve_path(mod_args["path"])
 
                 try:
-                    instance = ModCls(src_region=region, hook=mod_hooks, **mod_args)
+                    instance = ModCls(src_region=region, hook=mod_hooks, **valid_mod_args)
                     modules_to_run.append(instance)
                 except Exception as e:
                     logger.error(f"Failed to load {mod_key}: {e}")
@@ -237,8 +242,6 @@ class Recipe:
 
     def _init_hooks(self, hook_defs, mod=None):
         """Takes a flat list of expanded hook dictionaries and instantiates the Python classes."""
-
-        import inspect
 
         HookRegistry.load_all()
         active_hooks = []
@@ -626,9 +629,9 @@ class Recipe:
         # Expand the modules
         # self.config["modules"] = self._expand_modules(self.config.get("modules", []))
 
-        # Apply any schemas
-        self.config = SchemaRegistry.apply_schema(self.config)
-        self._check_integrity()
+        # # Apply any schemas
+        # self.config = SchemaRegistry.apply_schema(self.config)
+        # self._check_integrity()
 
         # Execution parameters
         run_opts = self.config.get("execution", {})
@@ -694,6 +697,7 @@ class Recipe:
                 # Expand Hooks and Modules
                 iteration_config["global_hooks"] = self._expand_hooks(iteration_config.get("global_hooks", []))
                 iteration_config["modules"] = self._expand_modules(iteration_config.get("modules", []))
+
                 for mod in iteration_config["modules"]:
                     mod["hooks"] = self._expand_hooks(mod.get("hooks", []))
 
@@ -706,6 +710,10 @@ class Recipe:
                 if batch_name:
                     # Inject the {batch_name} context into outputs
                     iteration_config = self._inject_batch_context(iteration_config, batch_name, target_region)
+
+                # Apply any schemas
+                iteration_config = SchemaRegistry.apply_schema(iteration_config)
+                self._check_integrity()
 
                 # Initialize Hooks and Modules ( to python classes )
                 global_hooks = self._init_hooks(iteration_config["global_hooks"])
@@ -724,6 +732,7 @@ class Recipe:
                     with open(batch_config_fn, "w") as f:
                         yaml.dump(iteration_config, f, sort_keys=False, default_flow_style=False)
                     logger.debug(f"Saved localized recipe to {batch_config_fn}")
+
 
                 for mod in modules_to_run:
                     mod.run()
