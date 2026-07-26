@@ -675,7 +675,7 @@ class Recipe:
         if shared_cache:
             abs_cache = os.path.abspath(shared_cache)
             os.makedirs(abs_cache, exist_ok=True)
-            logger.info(f"📁 Shared cache enabled: {abs_cache}")
+            logger.info(f"Shared cache enabled: {abs_cache}")
 
         # Batch Loop
         for i, (target_region, feat_name) in enumerate(
@@ -692,7 +692,7 @@ class Recipe:
             # Check State
             if batch_name and batch_name in completed_tiles and not overwrite:
                 logger.info(
-                    f"⏭️ Skipping completed tile: {batch_name} (use --overwrite to force)"
+                    f"Skipping completed tile: {batch_name} (use --overwrite to force)"
                 )
                 continue
 
@@ -701,7 +701,7 @@ class Recipe:
 
             # Setup the Sub-Folder
             if batch_name:
-                logger.info(f"\n--- 🚀 Running Batch Iteration: {batch_name} ---")
+                logger.info(f"\n--- Running Batch Iteration: {batch_name} ---")
                 orig_name = iteration_config.get("project", {}).get("name", "Unnamed")
                 iteration_config.setdefault("project", {})["name"] = (
                     f"{orig_name}_{batch_name}"
@@ -781,7 +781,7 @@ class Recipe:
                         json.dump(completed_tiles, f, indent=2)
 
             except Exception as e:
-                logger.error(f"❌ Batch '{batch_name or 'run'}' failed: {e}")
+                logger.error(f"Batch '{batch_name or 'run'}' failed: {e}")
                 logger.warning(
                     "Batch processing halted. Re-run command to resume from this tile."
                 )
