@@ -192,7 +192,9 @@ Bounding box (W/E/S/N)
 )
 @click.pass_context
 # """Initializes the context before the chained subcommands run."""
-def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads, shared_cache):
+def pipeline_group(
+    ctx, region, region_srs, export, global_hook, schema, threads, shared_cache
+):
     """Fetch/download data and execute processing pipelines.
 
     \b
@@ -234,7 +236,7 @@ def pipeline_group(ctx, region, region_srs, export, global_hook, schema, threads
 
 @pipeline_group.result_callback()
 def process_pipeline(
-        commands, region, region_srs, export, global_hook, schema, threads, shared_cache
+    commands, region, region_srs, export, global_hook, schema, threads, shared_cache
 ):
     """Executes after all chained commands have returned their dictionaries."""
 

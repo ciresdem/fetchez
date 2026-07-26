@@ -227,7 +227,6 @@ class TheNationalMap(FetchModule):
                     add_result = True
                     for i, r in enumerate(self.results):
                         if r["dst_fn"].split("_")[-2] == fn_bn:
-                            print(date, r["date"])
                             if int(date.split("-")[0]) > int(r["date"].split("-")[0]):
                                 self.results.pop(i)
                                 add_result = True

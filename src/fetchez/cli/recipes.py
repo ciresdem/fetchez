@@ -18,7 +18,7 @@ import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
-from fetchez.spatial import parse_region, region_help_msg
+from fetchez.spatial import region_help_msg
 from .schemas import schemas_group
 
 RECIPE_COMMANDS = [

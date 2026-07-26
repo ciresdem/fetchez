@@ -19,7 +19,7 @@ import inspect
 import logging
 
 from .core import run_fetchez
-from .spatial import parse_region, yield_parsed_regions
+from .spatial import yield_parsed_regions
 from .registry import (
     ModuleRegistry,
     HookRegistry,
@@ -200,7 +200,9 @@ class Recipe:
             return path
         return os.path.abspath(os.path.join(self.base_dir, path))
 
-    def _init_modules(self, module_defs, target_region=None, global_region_srs="EPSG:4326"):
+    def _init_modules(
+        self, module_defs, target_region=None, global_region_srs="EPSG:4326"
+    ):
         """Takes a flat list of module dictionaries and instantiates the Python classes."""
 
         modules_to_run = []
@@ -218,7 +220,8 @@ class Recipe:
 
             sig = inspect.signature(ModCls.__init__)
             valid_mod_args = {
-                k: v for k, v in mod_args.items()
+                k: v
+                for k, v in mod_args.items()
                 if k in sig.parameters or "kwargs" in str(sig.parameters)
             }
 
@@ -233,7 +236,9 @@ class Recipe:
                     mod_args["path"] = self._resolve_path(mod_args["path"])
 
                 try:
-                    instance = ModCls(src_region=region, hook=mod_hooks, **valid_mod_args)
+                    instance = ModCls(
+                        src_region=region, hook=mod_hooks, **valid_mod_args
+                    )
                     modules_to_run.append(instance)
                 except Exception as e:
                     logger.error(f"Failed to load {mod_key}: {e}")
@@ -252,7 +257,16 @@ class Recipe:
 
             kwargs = {}
             for k, v in raw_kwargs.items():
-                if k in ["file", "output", "output_grid", "mask_fn", "dem", "barrier", "aux_path", "path"]:
+                if k in [
+                    "file",
+                    "output",
+                    "output_grid",
+                    "mask_fn",
+                    "dem",
+                    "barrier",
+                    "aux_path",
+                    "path",
+                ]:
                     kwargs[k] = self._resolve_path(v)
                 else:
                     kwargs[k] = v
@@ -262,7 +276,8 @@ class Recipe:
                 sig = inspect.signature(HookCls.__init__)
 
                 valid_kwargs = {
-                    k: v for k, v in kwargs.items()
+                    k: v
+                    for k, v in kwargs.items()
                     if k in sig.parameters or "kwargs" in str(sig.parameters)
                 }
 
@@ -279,9 +294,15 @@ class Recipe:
             return config_block
 
         if isinstance(config_block, dict):
-            return {k: self._inject_batch_context(v, batch_name, batch_region) for k, v in config_block.items()}
+            return {
+                k: self._inject_batch_context(v, batch_name, batch_region)
+                for k, v in config_block.items()
+            }
         elif isinstance(config_block, list):
-            return [self._inject_batch_context(v, batch_name, batch_region) for v in config_block]
+            return [
+                self._inject_batch_context(v, batch_name, batch_region)
+                for v in config_block
+            ]
         elif isinstance(config_block, str):
             return config_block.replace("{batch_name}", str(batch_name))
 
@@ -420,15 +441,14 @@ class Recipe:
                     preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
 
                     # Recursively expand the child hooks, passing down the merged args
-                    expanded_child_hooks = self._expand_hooks(preset_hooks, parent_args=current_args)
+                    expanded_child_hooks = self._expand_hooks(
+                        preset_hooks, parent_args=current_args
+                    )
                     expanded_list.extend(expanded_child_hooks)
                 else:
                     logger.error(f"Preset '{is_preset}' not found in registry.")
             else:
-                expanded_list.append({
-                    "name": name,
-                    "args": current_args
-                })
+                expanded_list.append({"name": name, "args": current_args})
 
         return expanded_list
 
@@ -658,8 +678,9 @@ class Recipe:
             logger.info(f"📁 Shared cache enabled: {abs_cache}")
 
         # Batch Loop
-        for i, (target_region, feat_name) in enumerate(yield_parsed_regions(raw_region)):
-
+        for i, (target_region, feat_name) in enumerate(
+            yield_parsed_regions(raw_region)
+        ):
             # Batch Name
             if feat_name:
                 batch_name = str(feat_name)
@@ -670,7 +691,9 @@ class Recipe:
 
             # Check State
             if batch_name and batch_name in completed_tiles and not overwrite:
-                logger.info(f"⏭️ Skipping completed tile: {batch_name} (use --overwrite to force)")
+                logger.info(
+                    f"⏭️ Skipping completed tile: {batch_name} (use --overwrite to force)"
+                )
                 continue
 
             iteration_config = copy.deepcopy(self.config)
@@ -680,7 +703,9 @@ class Recipe:
             if batch_name:
                 logger.info(f"\n--- 🚀 Running Batch Iteration: {batch_name} ---")
                 orig_name = iteration_config.get("project", {}).get("name", "Unnamed")
-                iteration_config.setdefault("project", {})["name"] = f"{orig_name}_{batch_name}"
+                iteration_config.setdefault("project", {})["name"] = (
+                    f"{orig_name}_{batch_name}"
+                )
 
                 tile_dir = os.path.join(original_cwd, batch_name)
                 os.makedirs(tile_dir, exist_ok=True)
@@ -695,8 +720,12 @@ class Recipe:
                 self.base_dir = tile_dir
 
                 # Expand Hooks and Modules
-                iteration_config["global_hooks"] = self._expand_hooks(iteration_config.get("global_hooks", []))
-                iteration_config["modules"] = self._expand_modules(iteration_config.get("modules", []))
+                iteration_config["global_hooks"] = self._expand_hooks(
+                    iteration_config.get("global_hooks", [])
+                )
+                iteration_config["modules"] = self._expand_modules(
+                    iteration_config.get("modules", [])
+                )
 
                 for mod in iteration_config["modules"]:
                     mod["hooks"] = self._expand_hooks(mod.get("hooks", []))
@@ -709,7 +738,9 @@ class Recipe:
 
                 if batch_name:
                     # Inject the {batch_name} context into outputs
-                    iteration_config = self._inject_batch_context(iteration_config, batch_name, target_region)
+                    iteration_config = self._inject_batch_context(
+                        iteration_config, batch_name, target_region
+                    )
 
                 # Apply any schemas
                 iteration_config = SchemaRegistry.apply_schema(iteration_config)
@@ -720,7 +751,7 @@ class Recipe:
                 modules_to_run = self._init_modules(
                     iteration_config["modules"],
                     target_region=target_region,
-                    global_region_srs=global_region_srs
+                    global_region_srs=global_region_srs,
                 )
 
                 if not modules_to_run:
@@ -730,9 +761,13 @@ class Recipe:
                 if batch_name:
                     batch_config_fn = f"{batch_name}_recipe.yaml"
                     with open(batch_config_fn, "w") as f:
-                        yaml.dump(iteration_config, f, sort_keys=False, default_flow_style=False)
+                        yaml.dump(
+                            iteration_config,
+                            f,
+                            sort_keys=False,
+                            default_flow_style=False,
+                        )
                     logger.debug(f"Saved localized recipe to {batch_config_fn}")
-
 
                 for mod in modules_to_run:
                     mod.run()
@@ -747,7 +782,9 @@ class Recipe:
 
             except Exception as e:
                 logger.error(f"❌ Batch '{batch_name or 'run'}' failed: {e}")
-                logger.warning("Batch processing halted. Re-run command to resume from this tile.")
+                logger.warning(
+                    "Batch processing halted. Re-run command to resume from this tile."
+                )
                 raise
 
             finally:
