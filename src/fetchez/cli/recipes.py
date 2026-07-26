@@ -253,6 +253,13 @@ Bounding box (W/E/S/N)
 """,
 )
 @click.option(
+    "-D",
+    "--outdir",
+    type=click.Path(resolve_path=True),
+    default=None,
+    help="Base output directory for recipe outputs.",
+)
+@click.option(
     "--region-srs",
     default="EPSG:4326",
     help="Set the SRS of the input bounding box (default: EPSG:4326).",
@@ -263,7 +270,7 @@ Bounding box (W/E/S/N)
     help="Centralized directory to cache fetched data.",
 )
 @click.argument("name")
-def run_recipe(name, region, region_srs, shared_cache):
+def run_recipe(name, region, region_srs, outdir, shared_cache):
     """Execute a YAML recipe by registry name or file path."""
 
     RecipeRegistry.load_all()
@@ -287,7 +294,7 @@ def run_recipe(name, region, region_srs, shared_cache):
             base_config["region_srs"] = region_srs
 
     recipe = Recipe.from_dict(base_config)
-    recipe.run(shared_cache=shared_cache)
+    recipe.run(outdir=outdir, shared_cache=shared_cache)
 
     click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 

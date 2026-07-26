@@ -88,7 +88,7 @@ This project is used by the following open-source projects:
 
 * **[globato](https://github.com/continuous-dems/globato)** - A full Fetchez extension, optimized hooks, modules, streams and more to aid in the development of DEMs.
 * **[ivert](https://github.com/continuous-dems/ivert)** - The ICESat-2 Validation of Elevations Reporting Tool.
-* **[transformez](https://github.com/continuous-dems/transformez)** - Transformez is a standalone Python engine for converting geospatial data between vertical datums.
+* **[transformez](https://github.com/continuous-dems/transformez)** - A standalone Python engine for converting geospatial data between vertical datums.
 
 *Are you using this project? Open a Pull Request to add your project to the list!*
 
