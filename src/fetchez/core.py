@@ -924,6 +924,7 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                 for future in concurrent.futures.as_completed(futures):
                     if STOP_EVENT.is_set():
                         raise KeyboardInterrupt("Pipeline aborted by user.")
+
                     mod, original_entry = futures[future]
                     file_name = os.path.basename(original_entry.get("dst_fn", "item"))
                     short_name = (
