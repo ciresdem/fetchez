@@ -277,9 +277,11 @@ def run_recipe(name, region, region_srs, outdir, shared_cache):
 
     click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
 
+    base_config = None
     if os.path.exists(name):
         base_config = _load_yaml(name)
-    else:
+
+    if not base_config:
         meta = RecipeRegistry.get_yaml(name)
         if not meta:
             click.secho(f"Error: Recipe '{name}' not found.", fg="red")
