@@ -948,7 +948,7 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                     lf_hooks = [h for h in mod.hooks if h.stage == "file"]
 
                     active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
-                    #active_hooks_full.extend(active_file_hooks)
+                    # active_hooks_full.extend(active_file_hooks)
                     active_hooks_full.append(active_file_hooks)
 
                     current_entries = [(mod, original_entry)]
