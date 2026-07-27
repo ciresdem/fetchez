@@ -97,3 +97,14 @@ def test_parse_hook_string_no_args():
     hook = parse_hook_string("unzip")
     assert hook["name"] == "unzip"
     assert hook.get("args") is None
+
+
+def test_region_echo_bbox(runner):
+    """Test the spatial parsing engine (No network required)."""
+
+    result = runner.invoke(
+        cli, ["regions", "echo", "-R", "-120/-119/34/35", "-F", "gmt"]
+    )
+
+    assert result.exit_code == 0
+    assert "-120.0/-119.0/34.0/35.0" in result.output.strip()
