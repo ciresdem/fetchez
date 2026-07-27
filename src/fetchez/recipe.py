@@ -324,7 +324,16 @@ class Recipe:
 
         # Ids that make a dataset truly unique within a module
         ids = []
-        for key in ["datatype", "datasets", "formats", "layer", "product"]:
+        for key in [
+            "datatype",
+            "datasets",
+            "formats",
+            "layer",
+            "product",
+            "survey_id",
+            "url",
+            "path",
+        ]:
             if key in args:
                 ids.append(f"{key}={args[key]}")
 

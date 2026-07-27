@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### BUGFIX
+ - keyboard interrupt wouldn't correctly get passed to the concurrent threads and got looped into the logging library; moving the try/except to inside the with concurrent and adding a logging.debug in the keyboardinterrupt solves this and now is responsive and acting as expected.
 
 ## [0.7.0 - 2026-07-22]
 ### ADDED
