@@ -665,6 +665,7 @@ class Recipe:
         if not self.config:
             return
 
+        self._check_integrity()
         # Expand the modules
         # self.config["modules"] = self._expand_modules(self.config.get("modules", []))
 
@@ -776,8 +777,12 @@ class Recipe:
                 )
 
                 # Apply any schemas
-                iteration_config = SchemaRegistry.apply_schema(iteration_config)
-                self._check_integrity()
+                iteration_config_mutated = SchemaRegistry.apply_schema(iteration_config.copy())
+                iteration_valid, iteration_errors = Recipe(iteration_config_mutated).validate()
+                if not iteration_valid:
+                    logger.warning(f"The recipe that was mutated by the schema is invalid: {errors}")
+                else:
+                    iteration_config = copy.deepcopy(iteration_config)
 
                 # Initialize Hooks and Modules ( to python classes )
                 try:
