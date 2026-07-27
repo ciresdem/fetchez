@@ -376,13 +376,11 @@ class Recipe:
                 child_expanded = self._expand_modules(child_modules, current_weight)
 
                 # Process the returned children and inject them into our current pipeline
-                # Update the module hooks based on the incoming user hooks
-                if user_hooks:
-                    hook_map = {hook.get("name"): hook for hook in user_hooks if "name" in hook}
-
                 for child_mod in child_expanded:
                     if isinstance(child_mod, dict) and "hooks" in child_mod:
-                        child_mod["hooks"] = self._expand_hooks(child_mod.get("hooks", []), user_hooks)
+                        child_mod["hooks"] = self._expand_hooks(
+                            child_mod.get("hooks", []), user_hooks
+                        )
 
                     sig = self._get_module_signature(child_mod)
 
@@ -429,15 +427,13 @@ class Recipe:
 
             hook_map = {}
             if parent_hooks:
-                hook_map = {hook.get("name"): hook for hook in parent_hooks if "name" in hook}
+                hook_map = {
+                    hook.get("name"): hook for hook in parent_hooks if "name" in hook
+                }
                 if name in hook_map:
                     h_args = h.get("args", {}).copy()
                     h_args.update(hook_map[name].get("args", {}))
                     h["args"] = h_args
-                    if name == "multi_stack":
-                        print(hook_map)
-                        print(h)
-                        print(h_args)
 
             if is_preset:
                 user_args = h.get("args")
@@ -450,7 +446,11 @@ class Recipe:
 
                     if user_args:
                         if parent_hooks:
-                            hook_map = {hook.get("name"): hook for hook in user_args if "name" in hook}
+                            hook_map = {
+                                hook.get("name"): hook
+                                for hook in user_args
+                                if "name" in hook
+                            }
                             for parent_hook in parent_hooks:
                                 name = parent_hook.get("name")
 
@@ -770,7 +770,9 @@ class Recipe:
                 # if batch_name:
                 # Inject the {batch_name} context into outputs
                 iteration_config = self._inject_batch_context(
-                    iteration_config, batch_name or target_region.format("fn"), target_region
+                    iteration_config,
+                    batch_name or target_region.format("fn"),
+                    target_region,
                 )
 
                 # Apply any schemas
