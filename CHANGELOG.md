@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ensure `stream-init` gets set as the first hook in the `stream` stage.
 - Add --region and --region-srs options to the `recipes run` cli
 - Recursive preset support
+- Added regions cli (from globato)
 
 ### CHANGED
 - Modules must now use self.wgs_region to ensure valid wgs api requests, while self.region stays in original srs.
