@@ -906,8 +906,8 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
     final_results_with_owner = []
     active_hooks_full = []
 
-    try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+        try:
             futures = {
                 executor.submit(_fetch_worker, mod, entry, verbose=True): (mod, entry)
                 for mod, entry in all_entries
@@ -938,13 +938,14 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                     except Exception as e:
                         logger.error(f"Worker exception: {e}")
                         original_entry.update({"status": -1})
+                        continue
 
                     # --- File Hooks ---
                     gf_hooks = [h for h in global_hooks if h.stage == "file"]
                     lf_hooks = [h for h in mod.hooks if h.stage == "file"]
 
                     active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
-                    active_hooks_full.append(active_file_hooks)
+                    active_hooks_full.extend(active_file_hooks)
 
                     current_entries = [(mod, original_entry)]
 
@@ -968,7 +969,7 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                         key=lambda hook: 0 if hook.name == "stream-init" else 1
                     )
 
-                    active_hooks_full.append(active_stream_hooks)
+                    active_hooks_full.extend(active_stream_hooks)
                     if active_stream_hooks:
                         # If stream hooks exist but no stream is active.
                         has_stream = any(
@@ -1032,28 +1033,29 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                     final_results_with_owner.extend(processed_entries)
                     pbar.update(1)
 
-    except KeyboardInterrupt:
-        STOP_EVENT.set()
-        executor.shutdown(wait=False, cancel_futures=True)
-        raise
+        except KeyboardInterrupt:
+            STOP_EVENT.set()
+            logger.debug("stop set")
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
 
-    finally:
-        # --- Teardown The Hook(s) ---
-        logger.debug("Running teardown for all hooks...")
+        finally:
+            # --- Teardown The Hook(s) ---
+            logger.debug("Running teardown for all hooks...")
 
-        all_possible_hooks = active_hooks_full
-        for h in global_hooks:
-            all_possible_hooks.append(h)
-        for m in modules:
-            for h in m.hooks:
+            all_possible_hooks = active_hooks_full
+            for h in global_hooks:
                 all_possible_hooks.append(h)
+            for m in modules:
+                for h in m.hooks:
+                    all_possible_hooks.append(h)
 
-        for hook in all_possible_hooks:
-            if hasattr(hook, "teardown"):
-                try:
-                    hook.teardown()
-                except Exception as e:
-                    logger.error(f"Teardown failed for hook '{hook.name}': {e}")
+            for hook in all_possible_hooks:
+                if hasattr(hook, "teardown"):
+                    try:
+                        hook.teardown()
+                    except Exception as e:
+                        logger.error(f"Teardown failed for hook '{hook.name}': {e}")
 
     # --- Post Hooks ---
     # Module-level Post-Hooks
