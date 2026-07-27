@@ -923,7 +923,6 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
             ) as pbar:
                 for future in concurrent.futures.as_completed(futures):
                     if STOP_EVENT.is_set():
-                        # If GDAL swallowed the exception earlier, force it to raise now!
                         raise KeyboardInterrupt("Pipeline aborted by user.")
                     mod, original_entry = futures[future]
                     file_name = os.path.basename(original_entry.get("dst_fn", "item"))
@@ -941,14 +940,15 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                     except Exception as e:
                         logger.error(f"Worker exception: {e}")
                         original_entry.update({"status": -1})
-                        continue
+                        # continue
 
                     # --- File Hooks ---
                     gf_hooks = [h for h in global_hooks if h.stage == "file"]
                     lf_hooks = [h for h in mod.hooks if h.stage == "file"]
 
                     active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
-                    active_hooks_full.extend(active_file_hooks)
+                    #active_hooks_full.extend(active_file_hooks)
+                    active_hooks_full.append(active_file_hooks)
 
                     current_entries = [(mod, original_entry)]
 
@@ -972,7 +972,8 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                         key=lambda hook: 0 if hook.name == "stream-init" else 1
                     )
 
-                    active_hooks_full.extend(active_stream_hooks)
+                    # active_hooks_full.extend(active_stream_hooks)
+                    active_hooks_full.append(active_stream_hooks)
                     if active_stream_hooks:
                         # If stream hooks exist but no stream is active.
                         has_stream = any(
