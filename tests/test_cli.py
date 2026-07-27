@@ -1,12 +1,24 @@
+# test_cli.py
+import pytest
 import subprocess
 import sys
 
 from fetchez.utils import parse_hook_string
+from fetchez.cli import cli
+
+from click.testing import CliRunner
 
 # Testing CLI using subprocess
 
 # CMD will run Fetchez
 CMD = [sys.executable, "-m", "fetchez.cli.__init__"]
+
+
+@pytest.fixture
+def runner():
+    """Fixture to provide a Click CliRunner for all tests."""
+
+    return CliRunner()
 
 
 def run_fetchez(args):
