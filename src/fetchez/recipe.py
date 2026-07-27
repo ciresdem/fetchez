@@ -768,19 +768,25 @@ class Recipe:
                         if mod.get("module") not in ["file", "local_fs", "stdin"]:
                             mod.setdefault("args", {})["outdir"] = abs_cache
 
-                # if batch_name:
-                # Inject the {batch_name} context into outputs
-                iteration_config = self._inject_batch_context(
-                    iteration_config,
-                    batch_name or target_region.format("fn"),
-                    target_region,
-                )
+                if batch_name or target_region:
+                    # Inject the {batch_name} context into outputs
+                    iteration_config = self._inject_batch_context(
+                        iteration_config,
+                        batch_name or target_region.format("fn"),
+                        target_region,
+                    )
 
                 # Apply any schemas
-                iteration_config_mutated = SchemaRegistry.apply_schema(iteration_config.copy())
-                iteration_valid, iteration_errors = Recipe(iteration_config_mutated).validate()
+                iteration_config_mutated = SchemaRegistry.apply_schema(
+                    iteration_config.copy()
+                )
+                iteration_valid, iteration_errors = Recipe(
+                    iteration_config_mutated
+                ).validate()
                 if not iteration_valid:
-                    logger.warning(f"The recipe that was mutated by the schema is invalid: {errors}")
+                    logger.warning(
+                        f"The recipe that was mutated by the schema is invalid: {iteration_errors}"
+                    )
                 else:
                     iteration_config = copy.deepcopy(iteration_config)
 
