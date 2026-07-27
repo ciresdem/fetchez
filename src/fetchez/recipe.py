@@ -376,10 +376,13 @@ class Recipe:
                 child_expanded = self._expand_modules(child_modules, current_weight)
 
                 # Process the returned children and inject them into our current pipeline
+                # Update the module hooks based on the incoming user hooks
+                if user_hooks:
+                    hook_map = {hook.get("name"): hook for hook in user_hooks if "name" in hook}
+
                 for child_mod in child_expanded:
-                    if isinstance(child_mod, dict):
-                        if user_hooks:
-                            child_mod.setdefault("hooks", []).extend(user_hooks)
+                    if isinstance(child_mod, dict) and "hooks" in child_mod:
+                        child_mod["hooks"] = self._expand_hooks(child_mod.get("hooks", []), user_hooks)
 
                     sig = self._get_module_signature(child_mod)
 
@@ -414,41 +417,57 @@ class Recipe:
 
         return list(expanded_dict.values())
 
-    def _expand_hooks(self, hook_defs, parent_args=None):
+    def _expand_hooks(self, hook_defs, parent_hooks=None):
         """Recursively expands presets into a flat list of hook definition dictionaries."""
 
         expanded_list = []
-        parent_args = parent_args or {}
+        parent_hooks = parent_hooks or []
 
         for h in hook_defs:
             name = h.get("name")
             is_preset = h.get("preset")
 
-            # Merge parent args (from the preset call) with any args explicitly on this hook.
-            # current_args = copy.deepcopy(parent_args)
-            current_args = h.get("args", {})
-
-            # current_args.update(h.get("args", {}))
-            for arg in current_args:
-                if parent_args.get(arg):
-                    current_args[arg] = parent_args[arg]
+            hook_map = {}
+            if parent_hooks:
+                hook_map = {hook.get("name"): hook for hook in parent_hooks if "name" in hook}
+                if name in hook_map:
+                    h_args = h.get("args", {}).copy()
+                    h_args.update(hook_map[name].get("args", {}))
+                    h["args"] = h_args
+                    if name == "multi_stack":
+                        print(hook_map)
+                        print(h)
+                        print(h_args)
 
             if is_preset:
+                user_args = h.get("args")
+
                 PresetRegistry.load_all()
                 preset_def = PresetRegistry.get_yaml(is_preset)
 
                 if preset_def:
                     preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
 
+                    if user_args:
+                        if parent_hooks:
+                            hook_map = {hook.get("name"): hook for hook in user_args if "name" in hook}
+                            for parent_hook in parent_hooks:
+                                name = parent_hook.get("name")
+
+                                if name in hook_map:
+                                    parent_hook.update(hook_map[name])
+                        else:
+                            parent_hooks.extend(user_args)
+
                     # Recursively expand the child hooks, passing down the merged args
                     expanded_child_hooks = self._expand_hooks(
-                        preset_hooks, parent_args=current_args
+                        preset_hooks, parent_hooks=parent_hooks
                     )
                     expanded_list.extend(expanded_child_hooks)
                 else:
                     logger.error(f"Preset '{is_preset}' not found in registry.")
             else:
-                expanded_list.append({"name": name, "args": current_args})
+                expanded_list.append(h)
 
         return expanded_list
 
@@ -661,6 +680,7 @@ class Recipe:
         threads = run_opts.get("threads", 1)
         raw_region = self.config.get("region")
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
+        recipe_name = self.config.get("project", {}).get("name", "Unnamed")
 
         original_cwd = os.getcwd()
         if outdir is None:
@@ -696,7 +716,6 @@ class Recipe:
                 batch_name = f"batch_{i:03d}"
             else:
                 batch_name = None
-                # batch_name = self.config.get("project", {}).get("name", "Unnamed")
 
             # Check State
             if batch_name and batch_name in completed_tiles and not overwrite:
@@ -748,38 +767,47 @@ class Recipe:
                         if mod.get("module") not in ["file", "local_fs", "stdin"]:
                             mod.setdefault("args", {})["outdir"] = abs_cache
 
-                if batch_name:
-                    # Inject the {batch_name} context into outputs
-                    iteration_config = self._inject_batch_context(
-                        iteration_config, batch_name, target_region
-                    )
+                # if batch_name:
+                # Inject the {batch_name} context into outputs
+                iteration_config = self._inject_batch_context(
+                    iteration_config, batch_name or target_region.format("fn"), target_region
+                )
 
                 # Apply any schemas
                 iteration_config = SchemaRegistry.apply_schema(iteration_config)
                 self._check_integrity()
 
                 # Initialize Hooks and Modules ( to python classes )
-                global_hooks = self._init_hooks(iteration_config["global_hooks"])
-                modules_to_run = self._init_modules(
-                    iteration_config["modules"],
-                    target_region=target_region,
-                    global_region_srs=global_region_srs,
-                )
+                try:
+                    global_hooks = self._init_hooks(iteration_config["global_hooks"])
+                except Exception as e:
+                    logger.error(f"Could not initialize recipe global hooks: {e}")
+                    continue
+
+                try:
+                    modules_to_run = self._init_modules(
+                        iteration_config["modules"],
+                        target_region=target_region,
+                        global_region_srs=global_region_srs,
+                    )
+                except Exception as e:
+                    logger.error(f"Could not initialize recipe modules: {e}")
+                    continue
 
                 if not modules_to_run:
                     continue
 
                 # Dump the localized recipe for debugging and reproducibility
-                if batch_name:
-                    batch_config_fn = f"{batch_name}_recipe.yaml"
-                    with open(batch_config_fn, "w") as f:
-                        yaml.dump(
-                            iteration_config,
-                            f,
-                            sort_keys=False,
-                            default_flow_style=False,
-                        )
-                    logger.debug(f"Saved localized recipe to {batch_config_fn}")
+                # if batch_name:
+                batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
+                with open(batch_config_fn, "w") as f:
+                    yaml.dump(
+                        iteration_config,
+                        f,
+                        sort_keys=False,
+                        default_flow_style=False,
+                    )
+                logger.debug(f"Saved localized recipe to {batch_config_fn}")
 
                 for mod in modules_to_run:
                     mod.run()
