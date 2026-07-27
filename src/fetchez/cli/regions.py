@@ -17,7 +17,7 @@ import json
 import math
 
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
-from fetchez.spatial import yield_parsed_regions, region_help_msg
+from fetchez.spatial import yield_parsed_regions
 
 REGION_COMMANDS = ["echo", "buffer", "split", "transform"]
 
@@ -29,10 +29,7 @@ def region_dec(f):
         "-R",
         "--region",
         "region_str",
-        help=f"""\b
-Bounding box (W/E/S/N)
-{region_help_msg()}
-        """,
+        help="Bounding box (W/E/S/N)",
         hidden=False,
         required=True,
     )(f)
@@ -52,15 +49,22 @@ Bounding box (W/E/S/N)
 #     # required=True,
 #     help="Bounding box (W/E/S/N) or location string, or geojson file.",
 # )
-@region_dec
-@click.pass_context
-def regions_group(ctx, region_str):
-    """Generate and manipulate spatial bounding boxes and tilesets."""
+# @region_dec
+# @click.pass_context
+def regions_group():  # ctx, region_str):
+    """Generate and manipulate spatial bounding boxes and tilesets.
 
-    ctx.ensure_object(dict)
-    ctx.obj["region_str"] = region_str
+    \b
+    Region Formats:
+      xmin/xmax/ymin/ymax      : Bounding box
+      loc:"City,State"         : Geocode place name
+      file.geojson             : Bounding box(es) of vector file
+    """
 
-    # pass
+    # ctx.ensure_object(dict)
+    # ctx.obj["region_str"] = region_str
+
+    pass
 
 
 @regions_group.command("echo", cls=FetchezMainCommand)
@@ -72,15 +76,15 @@ def regions_group(ctx, region_str):
     default="gmt",
     help="Output format.",
 )
-@click.pass_context
-def region_echo(ctx, region_str, format):
+# @click.pass_context
+def region_echo(region_str, format):
     """Parse a region and echo it to stdout.
 
     Useful for geocoding a location and piping it to another command.
     Example: globato region echo --region loc:"San Diego, CA" -F wkt
     """
 
-    region_str = region_str or ctx.obj.get("region_str")
+    # region_str = region_str or ctx.obj.get("region_str")
     try:
         for region, feat_name in yield_parsed_regions(region_str):
             prefix = f"{feat_name}: " if feat_name else ""
@@ -90,12 +94,13 @@ def region_echo(ctx, region_str, format):
         click.secho(str(e), fg="red")
         sys.exit(1)
 
-    except AttributeError as e:
-        click.echo(ctx.get_help())
-        click.secho(str(e), fg="red")
+    # except AttributeError as e:
+    #     click.echo(ctx.get_help())
+    #     click.secho(str(e), fg="red")
 
 
 @regions_group.command("buffer", cls=FetchezMainCommand)
+@region_dec
 @click.option(
     "--pct",
     type=float,
@@ -108,15 +113,14 @@ def region_echo(ctx, region_str, format):
     type=click.Choice(["gmt", "bbox", "wkt", "geojson", "fn"]),
     default="gmt",
 )
-# @region_dec
-@click.pass_context
-def region_buffer(ctx, pct, format):
+# @click.pass_context
+def region_buffer(region_str, pct, format):
     """Expand a bounding box by a given percentage.
 
     Example: fetchez regions --region -120/-119/34/35 buffer --pct 10
     """
 
-    region_str = ctx.obj.get("region_str")
+    # region_str = ctx.obj.get("region_str")
     try:
         for region, feat_name in yield_parsed_regions(region_str):
             prefix = f"{feat_name}: " if feat_name else ""
@@ -129,6 +133,7 @@ def region_buffer(ctx, pct, format):
 
 
 @regions_group.command("split", cls=FetchezMainCommand)
+@region_dec
 @click.option(
     "--size",
     type=float,
@@ -143,14 +148,14 @@ def region_buffer(ctx, pct, format):
     default="tile",
     help="Prefix for the generated tile names (default: 'tile').",
 )
-@click.pass_context
-def region_split(ctx, size, out, prefix):
+# @click.pass_context
+def region_split(region_str, size, out, prefix):
     """Split a region into a GeoJSON tileset for batch processing.
 
     Example: fetchez region split loc:"California" --size 0.5 -O cali_tiles.geojson
     """
 
-    region_str = ctx.obj.get("region_str")
+    # region_str = ctx.obj.get("region_str")
     try:
         for region, feat_name in yield_parsed_regions(region_str):
             prefix = f"{feat_name}: " if feat_name else ""
@@ -219,6 +224,7 @@ def region_split(ctx, size, out, prefix):
 
 
 @regions_group.command("transform", cls=FetchezMainCommand)
+@region_dec
 @click.option(
     "--t-srs", required=True, help="Target spatial reference system (e.g., EPSG:3857)."
 )
@@ -234,9 +240,8 @@ def region_split(ctx, size, out, prefix):
     default="gmt",
     help="Output format.",
 )
-@region_dec
-@click.pass_context
-def region_transform(ctx, region_str, t_srs, s_srs, format):
+# @click.pass_context
+def region_transform(region_str, t_srs, s_srs, format):
     """Transform a region to a new coordinate reference system.
 
     Densifies the boundary before projecting to ensure safe encapsulation.
@@ -244,7 +249,7 @@ def region_transform(ctx, region_str, t_srs, s_srs, format):
     Example: fetchez region transform loc:"San Francisco" --t-srs EPSG:3857
     """
 
-    region_str = ctx.obj.get("region_str")
+    # region_str = ctx.obj.get("region_str")
     try:
         for region, feat_name in yield_parsed_regions(region_str):
             prefix = f"{feat_name}: " if feat_name else ""
