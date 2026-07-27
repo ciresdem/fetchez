@@ -455,9 +455,18 @@ class Recipe:
                                 name = parent_hook.get("name")
 
                                 if name in hook_map:
-                                    parent_hook.update(hook_map[name])
+                                    # parent_hook.update(hook_map[name])
+                                    merged_args = parent_hook.get("args", {}).copy()
+                                    merged_args.update(hook_map[name].get("args", {}))
+                                    parent_hook["args"] = merged_args
+
                         else:
-                            parent_hooks.extend(user_args)
+                            # parent_hooks.extend(user_args)
+                            parent_hooks = (
+                                copy.deepcopy(parent_hooks)
+                                if parent_hooks
+                                else copy.deepcopy(user_args)
+                            )
 
                     # Recursively expand the child hooks, passing down the merged args
                     expanded_child_hooks = self._expand_hooks(
