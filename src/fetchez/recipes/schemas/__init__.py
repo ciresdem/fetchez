@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.schemas
+fetchez.recipes.schemas
 ~~~~~~~~~~~~~~~~~~~~~~
 
 schemas init
