@@ -557,7 +557,39 @@ class SchemaRegistry(PluginRegistry):
     user_folder = "recipes/schemas"
 
     @classmethod
-    def validate(cls, config):
+    def validate_recipe(cls, config):
+        """Looks for schemas in the config and validates the structure against them."""
+
+        schemas = config.get("schemas", [])
+        if isinstance(schemas, str):
+            schemas = [schemas]
+
+        errors = []
+        for schema_name in schemas:
+            schema_name = schema_name.lower()
+            if schema_name in cls.get_registry():
+                logger.info(f"Validating recipe against '{schema_name}' schema...")
+                SchemaCls = cls.get_class(schema_name)
+
+                passed, schema_errors = SchemaCls.validate(config)
+                if not passed:
+                    errors.extend(schema_errors)
+            else:
+                logger.warning(
+                    f"Schema '{schema_name}' requested but not registered. Ignoring."
+                )
+
+        return len(errors) == 0, errors
+
+
+class _SchemaRegistry(PluginRegistry):
+    base_class = BaseSchema
+    builtin_pkg = "fetchez.recipes.schemas"
+    entry_point_group = "fetchez.recipes.schemas"
+    user_folder = "recipes/schemas"
+
+    @classmethod
+    def validate_recipe(cls, config):
         """Looks for a schema in the config and applies its rules."""
 
         schemas = config.get("schemas")

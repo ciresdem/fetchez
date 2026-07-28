@@ -806,10 +806,13 @@ class Recipe:
                     iteration_config = copy.deepcopy(iteration_config)
 
                 # Validate final recipe with any Schemas
-                _iteration_validations = SchemaRegistry.validate(
+                iteration_valid, iteration_errors = SchemaRegistry.validate_recipe(
                     iteration_config.copy()
                 )
-                # TODO: warn/quite if any schema returns invalid
+                if not iteration_valid:
+                    logger.warning(
+                        f"The recipe is invalid based on defined schemas: {iteration_errors}"
+                    )
 
                 # Initialize Hooks and Modules ( to python classes )
                 try:
