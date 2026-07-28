@@ -26,6 +26,7 @@ from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
+from fetchez.recipes.modifiers import BaseModifier
 from fetchez.recipes.schemas import BaseSchema
 from fetchez.streams import BaseReader
 from fetchez.utils import get_class_arguments
@@ -522,7 +523,29 @@ class HookRegistry(PluginRegistry):
     user_folder = "hooks"
 
 
-# Schemas extend Recipes
+# Modifiers modify recipes and Schemas validate them.
+class ModifierRegistry(PluginRegistry):
+    base_class = BaseModifier
+    builtin_pkg = "fetchez.recipes.modifiers"
+    entry_point_group = "fetchez.recipes.modifiers"
+    user_folder = "recipes/modifiers"
+
+    @classmethod
+    def apply_modifiers(cls, config):
+        """Looks for a modifer in the config and applies its rules."""
+
+        modifiers = config.get("modifiers", [])
+        if isinstance(modifiers, str):
+            modifiers = [modifiers]
+
+        for mod_name in modifiers:
+            mod_cls = cls.get_class(mod_name.lower())
+            if mod_cls:
+                config = mod_cls.apply(config)
+
+        return config
+
+
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
     builtin_pkg = "fetchez.recipes.schemas"
