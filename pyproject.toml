@@ -54,6 +54,7 @@ dev = [
     "mypy",
     "types-requests>=2.31.0.6",
     "types-tqdm>=4.67.0.20241221",
+    # "yamllint"
 ]
 test = [
     "pytest",
