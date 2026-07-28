@@ -11,6 +11,7 @@ modules_and_bundles
 hooks_and_presets
 plugins_and_extensions
 recipes
+modifiers
 schemas
 data_persistence
 ```
