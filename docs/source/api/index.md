@@ -12,6 +12,7 @@ modules
 hooks
 spatial
 recipe
+modifiers
 schemas
 streams
 fred

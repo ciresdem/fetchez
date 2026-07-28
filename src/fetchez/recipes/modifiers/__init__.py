@@ -3,7 +3,7 @@
 
 """
 fetchez.recipes.modifiers
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 modifiers init
 

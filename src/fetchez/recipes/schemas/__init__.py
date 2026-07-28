@@ -3,7 +3,7 @@
 
 """
 fetchez.recipes.schemas
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 schemas init
 

@@ -1,4 +1,4 @@
-# 🏛️ Domain Modifiers
+# 🛠️ Domain Modifiers
 
 While standard Recipes are great for chaining commands, sometimes you need to inject on-the-fly runtime changes to a recipe across an entire project.
 
