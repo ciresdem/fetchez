@@ -26,6 +26,7 @@ from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
+from fetchez.recipes.modifiers import BaseModifier
 from fetchez.recipes.schemas import BaseSchema
 from fetchez.streams import BaseReader
 from fetchez.utils import get_class_arguments
@@ -522,7 +523,33 @@ class HookRegistry(PluginRegistry):
     user_folder = "hooks"
 
 
-# Schemas extend Recipes
+# Modifiers modify recipes and Schemas validate them.
+class ModifierRegistry(PluginRegistry):
+    base_class = BaseModifier
+    builtin_pkg = "fetchez.recipes.modifiers"
+    entry_point_group = "fetchez.recipes.modifiers"
+    user_folder = "recipes/modifiers"
+
+    @classmethod
+    def apply_modifiers(cls, config):
+        """Looks for a modifer in the config and applies its rules."""
+
+        modifiers = config.get("modifiers", [])
+        if isinstance(modifiers, str):
+            modifiers = [modifiers]
+
+        for mod_name in modifiers:
+            mod_cls = cls.get_class(mod_name.lower())
+            if mod_cls:
+                config = mod_cls.apply(config)
+            else:
+                logger.warning(
+                    f"Modifier '{mod_name}' requested but not registered. Ignoring."
+                )
+
+        return config
+
+
 class SchemaRegistry(PluginRegistry):
     base_class = BaseSchema
     builtin_pkg = "fetchez.recipes.schemas"
@@ -530,22 +557,58 @@ class SchemaRegistry(PluginRegistry):
     user_folder = "recipes/schemas"
 
     @classmethod
-    def apply_schema(cls, config):
-        """Looks for a schema in the config and applies its rules."""
+    def validate_recipe(cls, config):
+        """Looks for schemas in the config and validates the structure against them."""
 
-        schema_name = config.get("schema")
-        if schema_name:
+        schemas = config.get("schemas", [])
+        if isinstance(schemas, str):
+            schemas = [schemas]
+
+        errors = []
+        for schema_name in schemas:
             schema_name = schema_name.lower()
             if schema_name in cls.get_registry():
-                logger.info(f"Applying '{schema_name}' schema rules to recipe...")
+                logger.info(f"Validating recipe against '{schema_name}' schema...")
                 SchemaCls = cls.get_class(schema_name)
-                return SchemaCls.apply(config)
+
+                passed, schema_errors = SchemaCls.validate(config)
+                if not passed:
+                    errors.extend(schema_errors)
             else:
                 logger.warning(
                     f"Schema '{schema_name}' requested but not registered. Ignoring."
                 )
 
-        return config
+        return len(errors) == 0, errors
+
+
+class _SchemaRegistry(PluginRegistry):
+    base_class = BaseSchema
+    builtin_pkg = "fetchez.recipes.schemas"
+    entry_point_group = "fetchez.recipes.schemas"
+    user_folder = "recipes/schemas"
+
+    @classmethod
+    def validate_recipe(cls, config):
+        """Looks for a schema in the config and applies its rules."""
+
+        schemas = config.get("schemas")
+        if isinstance(schemas, str):
+            schemas = [schemas]
+
+        schema_validity = {}
+        for schema_name in schemas:
+            schema_cls = cls.get_class(schema_name.lower())
+            if schema_cls:
+                logger.info(f"Validating recipe using '{schema_name}'...")
+                valid, errors = schema_cls.validate(config)
+                schema_validity[schema_name] = [valid, errors]
+            else:
+                logger.warning(
+                    f"Schema '{schema_name}' requested but not registered. Ignoring."
+                )
+
+        return schema_validity
 
 
 class ReaderRegistry(PluginRegistry):

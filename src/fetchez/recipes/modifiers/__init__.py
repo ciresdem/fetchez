@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.recipes.schemas
-~~~~~~~~~~~~~~~~~~~~~~~
+fetchez.recipes.modifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-schemas init
+modifiers init
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
 """
 
-from .base import BaseSchema
+from .base import BaseModifier
 
-__all__ = ["BaseSchema"]
+__all__ = ["BaseModifier"]

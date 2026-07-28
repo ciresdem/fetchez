@@ -20,6 +20,7 @@ from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 from fetchez.spatial import region_help_msg
 from .schemas import schemas_group
+from .modifiers import modifiers_group
 
 RECIPE_COMMANDS = [
     "copy",
@@ -28,6 +29,7 @@ RECIPE_COMMANDS = [
     "list",
     "validate",
     "run",
+    "modifiers",
     "schemas",
     "translate",
 ]
@@ -67,7 +69,8 @@ def recipes_group():
 
     \b
     This command group lets you explore and run the available 'Recipes' that hold the
-    instructions and the 'Schemas' that can modify them.
+    instructions and the 'Modifiers' that can modify them and 'Schemas' that can validate
+    them.
     """
 
     pass
@@ -302,3 +305,4 @@ def run_recipe(name, region, region_srs, outdir, shared_cache):
 
 
 recipes_group.add_command(schemas_group, name="schemas")
+recipes_group.add_command(modifiers_group, name="modifiers")

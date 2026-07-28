@@ -35,6 +35,7 @@ from .registry import (
     HookRegistry,
     RecipeRegistry,
     SchemaRegistry,
+    ModifierRegistry,
     PresetRegistry,
     ProfileRegistry,
 )
@@ -101,6 +102,14 @@ def list_schemas() -> Dict[str, Any]:
 
 def search_schemas(term) -> Dict[str, Any]:
     return _search_registry(SchemaRegistry, term)
+
+
+def list_modifier() -> Dict[str, Any]:
+    return _search_registry(ModifierRegistry)
+
+
+def search_modifiers(term) -> Dict[str, Any]:
+    return _search_registry(ModifierRegistry, term)
 
 
 def list_presets() -> Dict[str, Any]:

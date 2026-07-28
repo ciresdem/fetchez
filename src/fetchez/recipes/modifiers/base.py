@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-fetchez.recipes.schemas.base
+fetchez.recipes.modifiers.base
 ~~~~~~~~~~~~~~
 
-Generic Schema Registry for the Fetchez Recipe Engine.
+Generic Modifier Registry for the Fetchez Recipe Engine.
 Allows external domains (like Globato) to register
-custom recipe validations.
+custom recipe mutators.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
 :license: MIT, see LICENSE for more details.
@@ -18,15 +18,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseSchema:
-    """The generic base class for all recipe schemas."""
+class BaseModifier:
+    """The generic base class for all recipe modifiers."""
 
     name = "base"
 
     @classmethod
-    def validate(cls, config):
-        """Validatesthe recipe config based on rules and returns [True/False, {errors}]
+    def apply(cls, config):
+        """Mutates and returns the recipe config.
         Subclasses must override this to inject their domain-specific rules.
         """
 
-        return True, []
+        return config
