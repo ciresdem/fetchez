@@ -74,6 +74,8 @@ Would you like to know more? Check out our [Official Documentation](https://fetc
 
 * **Hooks & Presets:** Automate unzipping, filtering, and processing fetch modules.
 
+* **Recipe Modifiers:** Catcha recipe before it runs and modify it on the fly at runtime.
+
 * **Domain Schemas:** Enforce rigorous geospatial standards automatically.
 
 * **Custom Plugins:** Write your own data fetch modules, processing hooks, extensions and recipes.
