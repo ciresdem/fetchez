@@ -4,7 +4,8 @@
 """
 fetchez.recipe
 ~~~~~~~~~~~~~~
-The Workflow Engine.
+
+The Recipe Engine.
 Loads a configuration (The Recipe) and executes it against the target region.
 
 :copyright: (c) 2010-2026 Regents of the University of Colorado
@@ -684,14 +685,8 @@ class Recipe:
             return
 
         self._check_integrity()
-        # Expand the modules
-        # self.config["modules"] = self._expand_modules(self.config.get("modules", []))
-
-        # # Apply any schemas
-        # self.config = SchemaRegistry.apply_schema(self.config)
-        # self._check_integrity()
-
         # Check for 'domain' to see if we have the proper extension to run the recipe.
+        # Maybe add something like this to _check_integrity
         # domain = self.config.get("domain")
 
         # Execution parameters
@@ -829,7 +824,6 @@ class Recipe:
                     continue
 
                 # Dump the localized recipe for debugging and reproducibility
-                # if batch_name:
                 batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
                 with open(batch_config_fn, "w") as f:
                     yaml.dump(
