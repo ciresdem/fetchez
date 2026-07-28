@@ -24,7 +24,6 @@ from . import config
 from . import spatial
 
 from shapely.geometry import shape
-# from shapely.strtree import STRtree
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +143,7 @@ class FRED:
     def search(
         self,
         region: Optional[Tuple[float, float, float, float]] = None,
-        where: List[str] = [],
+        where: Optional[List[str]] = None,
         layer: Optional[str] = None,
     ) -> List[Dict]:
         """Search for data in the reference vector file.
@@ -159,6 +158,7 @@ class FRED:
             List of dictionaries containing the properties of matching features.
         """
 
+        where = where or []
         results = []
 
         search_geom = None

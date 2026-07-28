@@ -111,14 +111,13 @@ def parse_fmod_argparse(arg_str):
     return None, mod_name, args
 
 
-def _populate_subparser(
-    subparser, module_cls, global_args=["self", "kwargs", "params"]
-):
+def _populate_subparser(subparser, module_cls, global_args=None):
     """Introspect module __init__ to populate subparser arguments."""
 
     if not module_cls:
         return
 
+    global_args = global_args or ["self", "kwargs", "params"]
     sig = inspect.signature(module_cls.__init__)
 
     # Get help text from decorator if available
