@@ -24,6 +24,7 @@ from .spatial import yield_parsed_regions
 from .registry import (
     ModuleRegistry,
     HookRegistry,
+    ModifierRegistry,
     SchemaRegistry,
     PresetRegistry,
     BundleRegistry,
@@ -679,6 +680,7 @@ class Recipe:
 
         ModuleRegistry.load_all()
         BundleRegistry.load_all()
+        ModifierRegistry.load_all()
         SchemaRegistry.load_all()
 
         if not self.config:
@@ -789,16 +791,16 @@ class Recipe:
                         target_region,
                     )
 
-                # Apply any schemas
-                iteration_config_mutated = SchemaRegistry.apply_schema(
+                # Apply any modifiers
+                iteration_config_modified = ModifierRegistry.apply_modifier(
                     iteration_config.copy()
                 )
                 iteration_valid, iteration_errors = Recipe(
-                    iteration_config_mutated
+                    iteration_config_modified
                 ).validate()
                 if not iteration_valid:
                     logger.warning(
-                        f"The recipe that was mutated by the schema is invalid: {iteration_errors}"
+                        f"The recipe that was mutated by the modifier is invalid: {iteration_errors}"
                     )
                 else:
                     iteration_config = copy.deepcopy(iteration_config)
