@@ -36,6 +36,8 @@ logger = logging.getLogger(__name__)
 class PluginRegistry:
     """Base class for dynamically discovering and registering plugins."""
 
+    _registry: Dict[str, Any]
+
     # These must be defined by the subclasses
     base_class: Optional[Type] = None
     builtin_pkg: str = ""
@@ -424,6 +426,8 @@ class PluginRegistry:
 class YamlRegistry:
     """A registry for discovering and loading yaml configuration files (recipes and hook presets)."""
 
+    _registry: Dict[str, Any]
+
     # These must be defined by the subclasses
     base_class: Optional[Type] = None
     builtin_pkg: str = ""
@@ -721,7 +725,8 @@ class ProfileRegistry(YamlRegistry):
 class _RecipeRegistry:
     """A registry for discovering and loading YAML recipes."""
 
-    # _registry = {}
+    _registry: Dict[str, Any]
+
     entry_point_group = "fetchez.recipes"
     user_folder = "recipes"
 
@@ -807,6 +812,8 @@ class _RecipeRegistry:
 
 class _PresetRegistry:
     """A registry for discovering and loading hook Presets (Macros)."""
+
+    _registry: Dict[str, Any]
 
     builtin_pkg = "fetchez.presets"
     entry_point_group = "fetchez.presets"
