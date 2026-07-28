@@ -29,4 +29,4 @@ class BaseSchema:
         Subclasses must override this to inject their domain-specific rules.
         """
 
-        return config
+        return True, []

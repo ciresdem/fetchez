@@ -542,6 +542,10 @@ class ModifierRegistry(PluginRegistry):
             mod_cls = cls.get_class(mod_name.lower())
             if mod_cls:
                 config = mod_cls.apply(config)
+            else:
+                logger.warning(
+                    f"Modifier '{mod_name}' requested but not registered. Ignoring."
+                )
 
         return config
 
@@ -553,22 +557,26 @@ class SchemaRegistry(PluginRegistry):
     user_folder = "recipes/schemas"
 
     @classmethod
-    def apply_schema(cls, config):
+    def validate(cls, config):
         """Looks for a schema in the config and applies its rules."""
 
-        schema_name = config.get("schema")
-        if schema_name:
-            schema_name = schema_name.lower()
-            if schema_name in cls.get_registry():
-                logger.info(f"Applying '{schema_name}' schema rules to recipe...")
-                SchemaCls = cls.get_class(schema_name)
-                return SchemaCls.apply(config)
+        schemas = config.get("schemas")
+        if isinstance(schemas, str):
+            schemas = [schemas]
+
+        schema_validity = {}
+        for schema_name in schemas:
+            schema_cls = cls.get_class(schema_name.lower())
+            if schema_cls:
+                logger.info(f"Validating recipe using '{schema_name}'...")
+                valid, errors = schema_cls.validate(config)
+                schema_validity[schema_name] = [valid, errors]
             else:
                 logger.warning(
                     f"Schema '{schema_name}' requested but not registered. Ignoring."
                 )
 
-        return config
+        return schema_validity
 
 
 class ReaderRegistry(PluginRegistry):

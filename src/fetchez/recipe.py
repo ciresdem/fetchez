@@ -791,7 +791,7 @@ class Recipe:
                         target_region,
                     )
 
-                # Apply any modifiers
+                # Apply any Modifiers
                 iteration_config_modified = ModifierRegistry.apply_modifier(
                     iteration_config.copy()
                 )
@@ -804,6 +804,12 @@ class Recipe:
                     )
                 else:
                     iteration_config = copy.deepcopy(iteration_config)
+
+                # Validate final recipe with any Schemas
+                _iteration_validations = SchemaRegistry.validate(
+                    iteration_config.copy()
+                )
+                # TODO: warn/quite if any schema returns invalid
 
                 # Initialize Hooks and Modules ( to python classes )
                 try:
