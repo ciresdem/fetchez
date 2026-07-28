@@ -50,12 +50,12 @@ class CopyArtifactHook(FetchHook):
     def run(self, entries):
         os.makedirs(self.target_dir, exist_ok=True)
 
-        for mod, entry in entries:
+        for _mod, entry in entries:
             artifacts = entry.get("artifacts", {})
             files_to_copy = []
 
             if self.matches:
-                for key, path in artifacts.items():
+                for _key, path in artifacts.items():
                     if any(m in path for m in self.matches) and os.path.exists(path):
                         files_to_copy.append(path)
             else:

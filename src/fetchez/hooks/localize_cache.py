@@ -40,7 +40,7 @@ class LocalizeCacheHook(FetchHook):
     def run(self, entries):
         os.makedirs(self.target_dir, exist_ok=True)
 
-        for mod, entry in entries:
+        for _mod, entry in entries:
             current_path = entry.get("dst_fn") or entry.get("src_fn")
 
             if not current_path or not os.path.exists(current_path):

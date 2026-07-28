@@ -28,7 +28,7 @@ class ListEntries(FetchHook):
     meta_category = "metadata"
 
     def run(self, entries):
-        for mod, entry in entries:
+        for _mod, entry in entries:
             with PRINT_LOCK:
                 sys.stdout.write(entry.get("url", "") + "\n")
                 sys.stdout.flush()

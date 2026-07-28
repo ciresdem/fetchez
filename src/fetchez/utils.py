@@ -24,7 +24,7 @@ import tqdm
 import re
 import inspect
 import click
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +101,10 @@ def _cli_logo(name="fetchez", desc="", version=""):
 class FetchezMainGroup(click.Group):
     """Custom group to categorize the main CLI commands."""
 
-    def __init__(self, fetchez_commands=[], **kwargs):
+    def __init__(self, fetchez_commands: Optional[List[str]] = None, **kwargs):
         super().__init__(**kwargs)
 
-        self.fetchez_commands = fetchez_commands
+        self.fetchez_commands = fetchez_commands or []
 
     def format_usage(self, ctx, formatter):
         usage_pieces = self.collect_usage_pieces(ctx)
@@ -959,19 +959,19 @@ def _log_hook_history(entries, hook):
         "timestamp": datetime.datetime.now().isoformat(),
     }
 
-    for owner, item in entries:
-        if "history" not in item:
-            item["history"] = []
+    for _mod, entry in entries:
+        if "history" not in entry:
+            entry["history"] = []
 
-        if item["history"]:
-            last = item["history"][-1]
+        if entry["history"]:
+            last = entry["history"][-1]
             if (
                 last["hook"] == history_record["hook"]
                 and last["stage"] == history_record["stage"]
             ):
                 continue
 
-        item["history"].append(history_record.copy())
+        entry["history"].append(history_record.copy())
 
 
 # =============================================================================

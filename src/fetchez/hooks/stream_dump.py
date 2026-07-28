@@ -37,7 +37,7 @@ class DataStream(FetchHook):
         self.reader_kwargs = kwargs
 
     def run(self, entries):
-        for mod, entry in entries:
+        for _mod, entry in entries:
             if entry.get("stream") or entry.get("raster_stream"):
                 for chunk in entry.get("stream"):
                     contents = chunk

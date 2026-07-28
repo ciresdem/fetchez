@@ -42,7 +42,7 @@ class Rename(FetchHook):
         if not self.match:
             return entries
 
-        for mod, entry in entries:
+        for _mod, entry in entries:
             dst = entry.get("dst_fn")
             if not dst:
                 continue

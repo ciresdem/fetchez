@@ -31,14 +31,14 @@ class TransferLog(FetchHook):
         super().__init__(**kwargs)
         self.filename = file
 
-    def run(self, all_results):
-        if not all_results:
-            return all_results
+    def run(self, entries):
+        if not entries:
+            return entries
 
         successes = []
         failures = []
 
-        for mod, entry in all_results:
+        for _mod, entry in entries:
             # Status 0 indicates success in fetchez
             if entry.get("status") == 0:
                 successes.append(entry)
@@ -77,4 +77,4 @@ class TransferLog(FetchHook):
         except Exception as e:
             logger.error(f"Failed to write transfer log: {e}")
 
-        return all_results
+        return entries

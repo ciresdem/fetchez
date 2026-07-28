@@ -216,7 +216,7 @@ def get(
     # Grab the final results from the fetchez pipeline
     final_results = run_fetchez([mod_instance], threads=threads)
     downloaded_files = []
-    for mod, entry in final_results:  # mod_instance.results:
+    for _mod, entry in final_results:  # mod_instance.results:
         if entry.get("status") == 0:
             fn = entry.get("dst_fn")
             if fn and os.path.exists(fn):

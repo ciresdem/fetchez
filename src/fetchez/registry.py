@@ -36,6 +36,8 @@ logger = logging.getLogger(__name__)
 class PluginRegistry:
     """Base class for dynamically discovering and registering plugins."""
 
+    _registry: Dict[str, Any]
+
     # These must be defined by the subclasses
     base_class: Optional[Type] = None
     builtin_pkg: str = ""
@@ -47,9 +49,9 @@ class PluginRegistry:
         """Initialization of the class-level registry dictionary."""
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
+            cls._registry = {}
 
-        return getattr(cls, "_registry")
+        return cls._registry
 
     @classmethod
     def load_builtins(cls):
@@ -254,7 +256,7 @@ class PluginRegistry:
             registry = cls.get_registry()
             packages = set()
 
-            for key, val in registry.items():
+            for _key, val in registry.items():
                 if "import_path" in val:
                     base_pkg = val["import_path"].split(".")[0]
                     if base_pkg not in ["fetchez", "builtins", "fetchez_user_modules"]:
@@ -424,6 +426,8 @@ class PluginRegistry:
 class YamlRegistry:
     """A registry for discovering and loading yaml configuration files (recipes and hook presets)."""
 
+    _registry: Dict[str, Any]
+
     # These must be defined by the subclasses
     base_class: Optional[Type] = None
     builtin_pkg: str = ""
@@ -434,8 +438,9 @@ class YamlRegistry:
     def get_registry(cls) -> Dict[str, Any]:
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
-        return getattr(cls, "_registry")
+            cls._registry = {}
+
+        return cls._registry
 
     @classmethod
     def load_all(cls):
@@ -720,7 +725,8 @@ class ProfileRegistry(YamlRegistry):
 class _RecipeRegistry:
     """A registry for discovering and loading YAML recipes."""
 
-    # _registry = {}
+    _registry: Dict[str, Any]
+
     entry_point_group = "fetchez.recipes"
     user_folder = "recipes"
 
@@ -729,9 +735,9 @@ class _RecipeRegistry:
         """Initialization of the class-level registry dictionary."""
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
+            cls._registry = {}
 
-        return getattr(cls, "_registry")
+        return cls._registry
 
     # @classmethod
     # def get_registry(cls) -> Dict[str, Any]:
@@ -807,6 +813,8 @@ class _RecipeRegistry:
 class _PresetRegistry:
     """A registry for discovering and loading hook Presets (Macros)."""
 
+    _registry: Dict[str, Any]
+
     builtin_pkg = "fetchez.presets"
     entry_point_group = "fetchez.presets"
     user_folder = "presets"
@@ -815,8 +823,8 @@ class _PresetRegistry:
     def get_registry(cls) -> Dict[str, Any]:
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
-        return getattr(cls, "_registry")
+            cls._registry = {}
+        return cls._registry
 
     @classmethod
     def load_all(cls):
