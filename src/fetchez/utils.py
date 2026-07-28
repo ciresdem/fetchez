@@ -959,19 +959,19 @@ def _log_hook_history(entries, hook):
         "timestamp": datetime.datetime.now().isoformat(),
     }
 
-    for owner, item in entries:
-        if "history" not in item:
-            item["history"] = []
+    for _mod, entry in entries:
+        if "history" not in entry:
+            entry["history"] = []
 
-        if item["history"]:
-            last = item["history"][-1]
+        if entry["history"]:
+            last = entry["history"][-1]
             if (
                 last["hook"] == history_record["hook"]
                 and last["stage"] == history_record["stage"]
             ):
                 continue
 
-        item["history"].append(history_record.copy())
+        entry["history"].append(history_record.copy())
 
 
 # =============================================================================

@@ -42,7 +42,7 @@ class Checksum(FetchHook):
             self.algo = "md5"
 
     def run(self, entries):
-        for mod, entry in entries:
+        for _mod, entry in entries:
             filepath = entry.get("dst_fn")
 
             if entry.get("status") != 0 or not os.path.exists(filepath):

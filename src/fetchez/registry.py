@@ -47,9 +47,9 @@ class PluginRegistry:
         """Initialization of the class-level registry dictionary."""
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
+            cls._registry = {}
 
-        return getattr(cls, "_registry")
+        return cls._registry
 
     @classmethod
     def load_builtins(cls):
@@ -254,7 +254,7 @@ class PluginRegistry:
             registry = cls.get_registry()
             packages = set()
 
-            for key, val in registry.items():
+            for _key, val in registry.items():
                 if "import_path" in val:
                     base_pkg = val["import_path"].split(".")[0]
                     if base_pkg not in ["fetchez", "builtins", "fetchez_user_modules"]:
@@ -434,8 +434,9 @@ class YamlRegistry:
     def get_registry(cls) -> Dict[str, Any]:
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
-        return getattr(cls, "_registry")
+            cls._registry = {}
+
+        return cls._registry
 
     @classmethod
     def load_all(cls):
@@ -729,9 +730,9 @@ class _RecipeRegistry:
         """Initialization of the class-level registry dictionary."""
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
+            cls._registry = {}
 
-        return getattr(cls, "_registry")
+        return cls._registry
 
     # @classmethod
     # def get_registry(cls) -> Dict[str, Any]:
@@ -815,8 +816,8 @@ class _PresetRegistry:
     def get_registry(cls) -> Dict[str, Any]:
 
         if not hasattr(cls, "_registry"):
-            setattr(cls, "_registry", {})
-        return getattr(cls, "_registry")
+            cls._registry = {}
+        return cls._registry
 
     @classmethod
     def load_all(cls):

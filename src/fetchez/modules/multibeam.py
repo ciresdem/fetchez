@@ -231,7 +231,7 @@ class Multibeam(FetchModule):
         with tqdm(
             total=len(surveys_found), desc="Scanning multibeam files...", leave=False
         ) as pbar:
-            for survey, data in surveys_found.items():
+            for _survey, data in surveys_found.items():
                 versions = data["versions"]
                 target_version = "2" if self.processed_p and "2" in versions else "1"
                 if target_version not in versions:

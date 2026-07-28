@@ -151,7 +151,7 @@ class HRDEM(FetchModule):
                 z.extractall(self._outdir)
 
             v_shp = None
-            for root, dirs, files in os.walk(self._outdir):
+            for root, _dirs, files in os.walk(self._outdir):
                 for f in files:
                     if f.endswith(".shp") and "Footprint" in f:
                         v_shp = os.path.join(root, f)

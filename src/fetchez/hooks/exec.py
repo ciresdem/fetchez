@@ -39,7 +39,7 @@ class Exec(FetchHook):
 
     def run(self, entries):
         if self.cmd:
-            for mod, entry in entries:
+            for _mod, entry in entries:
                 if entry.get("status") != 0:
                     continue
 

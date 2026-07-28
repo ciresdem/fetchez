@@ -714,7 +714,7 @@ def yield_parsed_regions(region_str):
         raise ValueError(f"Error parsing region '{region_str}': {e}")
 
     is_batch = len(raw_regions) > 1
-    for i, r in enumerate(raw_regions):
+    for _i, r in enumerate(raw_regions):
         t_reg = Region(*r)
         # feat_name = f"tile_{i:03d}" if is_batch else None
         feat_name = t_reg.format("fn") if is_batch else None

@@ -32,7 +32,7 @@ class PipeOutput(FetchHook):
     def run(self, entries):
         """Input is: [url, path, type, status]"""
 
-        for mod, entry in entries:
+        for _mod, entry in entries:
             if entry.get("status") == 0:
                 with PRINT_LOCK:
                     sys.stdout.write(os.path.abspath(entry.get("dst_fn")) + "\n")

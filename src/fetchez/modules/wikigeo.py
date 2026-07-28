@@ -58,10 +58,10 @@ class WikiGeo(FetchModule):
             return []
 
         # Wikipedia 'gsbbox' requires: top|left|bottom|right (North|West|South|East)
-        # We chunk the region because Wiki API fails on large bboxes
+        # Chunk the region because Wiki API fails on large bboxes
         chunks = spatial.chunk_region(self.wgs_region, self.chunk_size)
 
-        for i, chunk in enumerate(chunks):
+        for chunk in chunks:
             w, e, s, n = chunk
 
             # Format for API: Top|Left|Bottom|Right -> N|W|S|E
