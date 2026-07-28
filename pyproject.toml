@@ -144,10 +144,12 @@ ignore_missing_imports = true
 [tool.ruff.lint]
 # select = ["ALL"]  # Goal :)
 extend-select = [  # Extend the default ruleset:
+    # "B0",
     "B006",  # mutable argument defaults
     "B008", # Blocks function calls in argument defaults
     "F401", # Detects unused imports.
     "F841", # Finds local variables that are assigned but never used.
+    # "SIM102",
     "T20",  # flake8-print <https://docs.astral.sh/ruff/rules/#flake8-print-t20>
 ]
 
