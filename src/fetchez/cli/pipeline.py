@@ -19,7 +19,7 @@ from fetchez.registry import (
     BundleRegistry,
     PresetRegistry,
     HookRegistry,
-    SchemaRegistry,
+    # SchemaRegistry,
 )
 from fetchez.spatial import parse_region, region_help_msg
 from fetchez.utils import (
@@ -178,7 +178,12 @@ Bounding box (W/E/S/N)
     help="Set the SRS of the input bounding box (default: EPSG:4326).",
 )
 @click.option("--global-hook", multiple=True, help="Attach a global processing hook.")
-@click.option("--schema", help="Apply a validation schema (e.g., 'crm').")
+@click.option(
+    "--modifier", multiple=True, help="Apply a recipe modifier to mutate the pipeline."
+)
+@click.option(
+    "--schema", multiple=True, help="Apply validation schemas (e.g., 'cudem')."
+)
 @click.option(
     "--threads", default=1, help="Number of parallel download threads (default: 1)."
 )
@@ -236,7 +241,15 @@ def pipeline_group(
 
 @pipeline_group.result_callback()
 def process_pipeline(
-    commands, region, region_srs, export, global_hook, schema, threads, shared_cache
+    commands,
+    region,
+    region_srs,
+    export,
+    global_hook,
+    modifier,
+    schema,
+    threads,
+    shared_cache,
 ):
     """Executes after all chained commands have returned their dictionaries."""
 
@@ -259,6 +272,8 @@ def process_pipeline(
         parsed_global_hooks.append(parsed_h)
 
     # parsed_global_hooks = [parse_hook_string(h) for h in global_hook]
+    parsed_modifiers = [parse_hook_string(m) for m in modifier]
+    parsed_schemas = [s for s in schema]
 
     # Build the recipe configuration dictionary
     config = {
@@ -269,9 +284,15 @@ def process_pipeline(
         "global_hooks": parsed_global_hooks,
     }
 
+    if parsed_modifiers:
+        config["modifiers"] = parsed_modifiers
+
     if schema:
-        if SchemaRegistry.get_registry().get_class(schema) is not None:
-            config["schema"] = schema
+        config["schemas"] = parsed_schemas
+
+    # if schema:
+    #     if SchemaRegistry.get_registry().get_class(schema) is not None:
+    #         config["schema"] = schema
 
     if threads:
         config["execution"] = {"threads": threads}

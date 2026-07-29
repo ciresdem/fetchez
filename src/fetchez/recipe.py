@@ -289,6 +289,64 @@ class Recipe:
 
         return active_hooks
 
+    def _init_modifiers(self, modifier_defs):
+        """Looks for modifiers in the config and applies their rules."""
+
+        ModifierRegistry.load_all()
+        active_modifiers = []
+
+        for modifier in modifier_defs:
+            name = modifier.get("name")
+            raw_kwargs = modifier.get("args", {})
+
+            kwargs = {}
+            for k, v in raw_kwargs.items():
+                if k in [
+                    "file",
+                    "output",
+                    "output_grid",
+                    "mask_fn",
+                    "dem",
+                    "barrier",
+                    "aux_path",
+                    "path",
+                ]:
+                    kwargs[k] = self._resolve_path(v)
+                else:
+                    kwargs[k] = v
+
+            ModifierCls = ModifierRegistry.get_class(name)
+            if ModifierCls:
+                sig = inspect.signature(ModifierCls.__init__)
+
+                valid_kwargs = {
+                    k: v
+                    for k, v in kwargs.items()
+                    if k in sig.parameters or "kwargs" in str(sig.parameters)
+                }
+
+                active_modifiers.append(ModifierCls(**valid_kwargs))
+            else:
+                logger.warning(f"Modifier '{name}' missing.")
+
+        return active_modifiers
+
+    def _init_schemas(self, schema_defs):
+        """Looks for modifiers in the config and applies their rules."""
+
+        SchemaRegistry.load_all()
+        active_schemas = []
+
+        for schema in schema_defs:
+            name = schema.get("name")
+            SchemaCls = SchemaRegistry.get_class(name)
+            if SchemaCls:
+                active_schemas.append(SchemaCls())
+            else:
+                logger.warning(f"Schema '{name}' missing.")
+
+        return active_schemas
+
     def _inject_batch_context(self, config_block, batch_name, batch_region):
         """Recursively formats strings in the config to inject the batch name."""
 
@@ -583,98 +641,6 @@ class Recipe:
         logger.info(f"📄 Full processing receipt saved to: {receipt_filename}")
         logger.info("=" * 67)
 
-    def validate(self):
-        """Validates the recipe for syntax, missing plugins, dependencies, and logical errors.
-
-        Returns:
-          bool: True if valid, False if errors exist.
-          list: List of error messages.
-        """
-
-        ModuleRegistry.load_all()
-        HookRegistry.load_all()
-
-        errors = []
-        claimed_outputs = set()
-
-        def check_output_collision(hook_dict, context_name):
-            """Helper to check if a hook is clobbering an existing file."""
-
-            out_file = hook_dict.get("args", {}).get("output")
-            if out_file:
-                if out_file in claimed_outputs:
-                    errors.append(
-                        f"[{context_name}] Output Collision: Multiple hooks are attempting to write to '{out_file}'."
-                    )
-                claimed_outputs.add(out_file)
-
-        # Validate Modules
-        for mod in self.config.get("modules", []):
-            mod_name = mod.get("module")
-            mod_keys = mod.keys()
-            valid_keys = [
-                "module",
-                "bundle",
-                "hooks",
-                "args",
-                "region",
-                "region_srs",
-                "description",
-                "_comment",
-            ]
-
-            for key in mod_keys:
-                if key not in valid_keys:
-                    errors.append(
-                        f"Module `{mod_name}` has unexpected reference to `{key}`"
-                    )
-
-            if not ModuleRegistry.get_class(mod_name) and mod_name not in [
-                "file",
-                "local_fs",
-            ]:
-                errors.append(f"Missing Module: '{mod_name}'")
-
-            # Check Module-level Hooks
-            # mod_hook_counts = {}
-            for hook in mod.get("hooks", []):
-                h_name = hook.get("name")
-                HookCls = HookRegistry.get_class(h_name)
-
-                if not HookCls:
-                    errors.append(f"Missing Hook: '{h_name}' (in module {mod_name})")
-                    continue
-
-                # Dependency Check
-                if hasattr(HookCls, "_validate_deps"):
-                    passed, msg = HookCls()._validate_deps()
-                    if not passed:
-                        errors.append(
-                            f"[{mod_name} -> {h_name}] Missing Dependency: {msg}"
-                        )
-
-                check_output_collision(hook, f"Module: {mod_name}")
-
-        # Validate Global Hooks
-        # global_hook_counts = {}
-        for hook in self.config.get("global_hooks", []):
-            h_name = hook.get("name")
-            HookCls = HookRegistry.get_class(h_name)
-
-            if not HookCls:
-                errors.append(f"Missing Global Hook: '{h_name}'")
-                continue
-
-            # Dependency Check
-            if hasattr(HookCls, "_validate_deps"):
-                passed, msg = HookCls()._validate_deps()
-                if not passed:
-                    errors.append(f"[Global -> {h_name}] Missing Dependency: {msg}")
-
-            check_output_collision(hook, "Global Hooks")
-
-        return len(errors) == 0, errors
-
     def run(self, outdir=None, shared_cache=None, overwrite=False):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
@@ -791,28 +757,30 @@ class Recipe:
                         target_region,
                     )
 
-                # Apply any Modifiers
-                iteration_config_modified = ModifierRegistry.apply_modifier(
-                    iteration_config.copy()
-                )
-                iteration_valid, iteration_errors = Recipe(
-                    iteration_config_modified
-                ).validate()
-                if not iteration_valid:
+                # Apply any Modifiers and validate with any Schemas
+                modifiers = self._init_modifiers(iteration_config.get("modifiers", []))
+                iteration_config_modified = iteration_config.copy()
+                for modifier in modifiers:
+                    iteration_config_modified = modifier.apply(
+                        iteration_config_modified
+                    )
+
+                schemas = self._init_schemas(iteration_config.get("schemas", []))
+                errors = []
+                for schema in schemas:
+                    logger.info(f"Validating recipe with {schema} schema")
+                    iteration_valid, iteration_errors = schema.validate(
+                        iteration_config_modified
+                    )
+                    if not iteration_valid:
+                        errors.extend(iteration_errors)
+
+                if len(errors) > 0:
                     logger.warning(
-                        f"The recipe that was mutated by the modifier is invalid: {iteration_errors}"
+                        f"The recipe is invalid based on defined schemas: {errors}"
                     )
                 else:
-                    iteration_config = copy.deepcopy(iteration_config)
-
-                # Validate final recipe with any Schemas
-                iteration_valid, iteration_errors = SchemaRegistry.validate_recipe(
-                    iteration_config.copy()
-                )
-                if not iteration_valid:
-                    logger.warning(
-                        f"The recipe is invalid based on defined schemas: {iteration_errors}"
-                    )
+                    iteration_config = copy.deepcopy(iteration_config_modified)
 
                 # Initialize Hooks and Modules ( to python classes )
                 try:

@@ -23,8 +23,11 @@ class BaseModifier:
 
     name = "base"
 
-    @classmethod
-    def apply(cls, config):
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    # @classmethod
+    def apply(self, config):
         """Mutates and returns the recipe config.
         Subclasses must override this to inject their domain-specific rules.
         """
