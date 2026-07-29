@@ -221,9 +221,14 @@ def recipe_validate(name, schema):
 
     errors = []
     for schema in schemas:
+        schema_name = click.style(schema.name, bold=True)
+        click.secho(f"Validating against {schema_name} schema...", nl=False)
         _valid, _errors = schema.validate(recipe_config)
         if not _valid:
+            click.secho("FAIL", fg="red", bold=True)
             errors.extend(_errors)
+        else:
+            click.secho("PASS", fg="green", bold=True)
 
     is_valid = len(errors) == 0
 
