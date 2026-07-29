@@ -225,10 +225,10 @@ def recipe_validate(name, schema):
         click.secho(f"Validating against {schema_name} schema...", nl=False)
         _valid, _errors = schema.validate(recipe_config)
         if not _valid:
-            click.secho("FAIL", fg="red", bold=True)
+            click.secho("FAIL", fg="red")
             errors.extend(_errors)
         else:
-            click.secho("PASS", fg="green", bold=True)
+            click.secho("PASS", bg="green")
 
     is_valid = len(errors) == 0
 
