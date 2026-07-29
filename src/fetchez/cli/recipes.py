@@ -192,7 +192,10 @@ def copy_recipe(name):
 
 @recipes_group.command("validate", cls=FetchezMainCommand)
 @click.argument("name")
-def recipe_validate(name):
+@click.option(
+    "--schema", multiple=True, help="Apply validation schemas (e.g., 'cudem')."
+)
+def recipe_validate(name, schema):
     """Check a recipe for syntax errors, logical issues, and missing dependencies."""
 
     base_config = _load_yaml(name)
@@ -205,7 +208,24 @@ def recipe_validate(name):
     click.secho(f"Validating {name}...", fg="blue")
 
     recipe_obj = Recipe.from_dict(base_config)
-    is_valid, errors = recipe_obj.validate()
+    recipe_config = recipe_obj.config
+    recipe_config["modules"] = recipe_obj._expand_modules(
+        recipe_obj.config.get("modules", [])
+    )
+    recipe_config["global_hooks"] = recipe_obj._expand_hooks(
+        recipe_obj.config.get("global_hooks", [])
+    )
+
+    schema_defs = [{"name": x} for x in schema]
+    schemas = recipe_obj._init_schemas(schema_defs)
+
+    errors = []
+    for schema in schemas:
+        _valid, _errors = schema.validate(recipe_config)
+        if not _valid:
+            errors.extend(_errors)
+
+    is_valid = len(errors) == 0
 
     if is_valid:
         click.secho("Recipe appears valid!", fg="green", bold=True)
