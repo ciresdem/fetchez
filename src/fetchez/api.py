@@ -104,7 +104,7 @@ def search_schemas(term) -> Dict[str, Any]:
     return _search_registry(SchemaRegistry, term)
 
 
-def list_modifier() -> Dict[str, Any]:
+def list_modifiers() -> Dict[str, Any]:
     return _search_registry(ModifierRegistry)
 
 
@@ -135,6 +135,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "hooks": _search_registry(HookRegistry, term),
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
+        "modifiers": _search_registry(ModifierRegistry, term),
         "presets": _search_registry(PresetRegistry, term),
         "profiles": _search_registry(ProfileRegistry, term),
     }
@@ -147,6 +148,8 @@ def get(
     outdir: Optional[str] = None,
     threads: int = 4,
     hooks: Optional[List[str]] = None,
+    dry_run: bool = False,
+    verbose: bool = True,
     **kwargs,
 ) -> List[str]:
     """Fetch data from a module in one line.
@@ -158,11 +161,17 @@ def get(
         outdir: Where to save files (default: ./<module>).
         threads: Parallel download threads.
         hooks: List of hook strings (e.g. ['unzip', 'audit']).
+        dry_run: Don't download any data.
+        verbose: Run in verbose mode.
         **kwargs: Arguments passed directly to the module (year=..., datatype=...).
 
     Returns:
         A list of absolute paths to the downloaded files.
     """
+
+    from .recipe import setup_logging
+
+    setup_logging(verbose)
 
     ModuleRegistry.load_all()
     HookRegistry.load_all()
@@ -222,6 +231,20 @@ def get(
         logger.debug(f"No results found for {module} with given parameters.")
         return []
 
+    if dry_run:
+        manifest = []
+        for _mod, entry in mod_instance.results:
+            source = (
+                entry.get("url") or entry.get("path") or entry.get("name") or str(entry)
+            )
+            manifest.append(source)
+
+        if verbose:
+            logger.info(f"DRY RUN: Found {len(manifest)} items to fetch.")
+            for item in manifest:
+                logger.info(f"  -> {item}")
+        return manifest
+
     # Grab the final results from the fetchez pipeline
     final_results = run_fetchez([mod_instance], threads=threads)
     downloaded_files = []
@@ -238,6 +261,8 @@ def run_recipe(
     target: str,
     region: Optional[str] = None,
     region_srs: Optional[str] = "EPSG:4326",
+    modifiers: Optional[List[str | Dict]] = None,
+    schemas: Optional[List[str]] = None,
 ) -> bool:
     """Execute a YAML recipe.
 
@@ -269,8 +294,14 @@ def run_recipe(
     if region_srs:
         base_config["region_srs"] = region_srs
 
+    if modifiers:
+        base_config["modifiers"] = base_config.get("modifiers", []) + modifiers
+    if schemas:
+        base_config["schemas"] = base_config.get("schemas", []) + schemas
+
     try:
-        Recipe.from_file(base_config).run()
+        # Recipe.from_file(base_config).run()
+        Recipe(base_config).run()
         return True
     except Exception as e:
         logger.error(f"Failed to run recipe '{target}': {e}")
