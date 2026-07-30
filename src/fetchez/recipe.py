@@ -338,16 +338,19 @@ class Recipe:
         active_schemas = []
 
         for schema in schema_defs:
-            name = schema.get("name")
-            SchemaCls = SchemaRegistry.get_class(name)
-            if SchemaCls:
-                active_schemas.append(SchemaCls())
+            if isinstance(schema, dict):
+                name = schema.get("name")
+                SchemaCls = SchemaRegistry.get_class(name)
+                if SchemaCls:
+                    active_schemas.append(SchemaCls())
+                else:
+                    logger.warning(f"Schema '{name}' missing.")
             else:
-                logger.warning(f"Schema '{name}' missing.")
+                logger.debug("Invalid schema formatting: {schema}")
 
         return active_schemas
 
-    def _inject_batch_context(self, config_block, batch_name, batch_region):
+    def _inject_batch_context(self, config_block, name, batch_name, batch_region):
         """Recursively formats strings in the config to inject the batch name."""
 
         if not batch_name:
@@ -355,16 +358,17 @@ class Recipe:
 
         if isinstance(config_block, dict):
             return {
-                k: self._inject_batch_context(v, batch_name, batch_region)
+                k: self._inject_batch_context(v, name, batch_name, batch_region)
                 for k, v in config_block.items()
             }
         elif isinstance(config_block, list):
             return [
-                self._inject_batch_context(v, batch_name, batch_region)
+                self._inject_batch_context(v, name, batch_name, batch_region)
                 for v in config_block
             ]
         elif isinstance(config_block, str):
-            return config_block.replace("{batch_name}", str(batch_name))
+            return config_block.replace("%name%", str(name))
+            return config_block.replace("%batch_name%", str(batch_name))
 
         return config_block
 
@@ -743,6 +747,14 @@ class Recipe:
                 for mod in iteration_config["modules"]:
                     mod["hooks"] = self._expand_hooks(mod.get("hooks", []))
 
+                # Apply any Modifiers and validate with any Schemas
+                iteration_config_modified = copy.deepcopy(iteration_config)
+                modifiers = self._init_modifiers(iteration_config.pop("modifiers", []))
+                for modifier in modifiers:
+                    iteration_config_modified = modifier.apply(
+                        iteration_config_modified
+                    )
+
                 # Inject outdir for shared caching
                 if abs_cache:
                     for mod in iteration_config.get("modules", []):
@@ -753,22 +765,15 @@ class Recipe:
                     # Inject the {batch_name} context into outputs
                     iteration_config = self._inject_batch_context(
                         iteration_config,
+                        self.config.get("project", {}).get("name", "fetchez"),
                         batch_name or target_region.format("fn"),
                         target_region,
-                    )
-
-                # Apply any Modifiers and validate with any Schemas
-                modifiers = self._init_modifiers(iteration_config.get("modifiers", []))
-                iteration_config_modified = iteration_config.copy()
-                for modifier in modifiers:
-                    iteration_config_modified = modifier.apply(
-                        iteration_config_modified
                     )
 
                 schemas = self._init_schemas(iteration_config.get("schemas", []))
                 errors = []
                 for schema in schemas:
-                    logger.info(f"Validating recipe with {schema} schema")
+                    logger.info(f"Validating recipe with {schema.name} schema")
                     iteration_valid, iteration_errors = schema.validate(
                         iteration_config_modified
                     )

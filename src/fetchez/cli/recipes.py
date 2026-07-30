@@ -17,7 +17,7 @@ import yaml
 import click
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
-from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import FetchezMainGroup, FetchezMainCommand, parse_hook_string
 from fetchez.spatial import region_help_msg
 from .schemas import schemas_group
 from .modifiers import modifiers_group
@@ -297,8 +297,14 @@ Bounding box (W/E/S/N)
     type=click.Path(resolve_path=True),
     help="Centralized directory to cache fetched data.",
 )
+@click.option(
+    "--modifier", multiple=True, help="Apply a recipe modifier to mutate the pipeline."
+)
+@click.option(
+    "--schema", multiple=True, help="Apply validation schemas (e.g., 'cudem')."
+)
 @click.argument("name")
-def run_recipe(name, region, region_srs, outdir, shared_cache):
+def run_recipe(name, region, region_srs, outdir, shared_cache, modifier, schema):
     """Execute a YAML recipe by registry name or file path."""
 
     RecipeRegistry.load_all()
@@ -322,6 +328,26 @@ def run_recipe(name, region, region_srs, outdir, shared_cache):
 
         if region_srs:
             base_config["region_srs"] = region_srs
+
+        global_hooks = base_config.get("global_hooks", [])
+        for hook in global_hooks:
+            hook_args = hook.get("args", [])
+            for arg in hook_args:
+                if arg == "region":
+                    hook_args[arg] = region
+                    click.secho(
+                        f"Overriding recipe hook {hook.get('name', 'unknown')} region to: {region}",
+                        fg="yellow",
+                    )
+
+    parsed_modifiers = [parse_hook_string(m) for m in modifier]
+    parsed_schemas = [s for s in schema]
+
+    if parsed_modifiers:
+        base_config["modifiers"] = parsed_modifiers
+
+    if schema:
+        base_config["schemas"] = parsed_schemas
 
     recipe = Recipe.from_dict(base_config)
     recipe.run(outdir=outdir, shared_cache=shared_cache)
