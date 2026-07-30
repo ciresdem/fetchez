@@ -21,7 +21,8 @@ from .base import BaseSchema
 
 
 class CheckModules(BaseSchema):
-    name = "check-modules"
+    name = "validate-recipe"
+    meta_desc = "validate the recipe for syntax, missing modules and hooks, and valid arguments."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
