@@ -178,7 +178,7 @@ class FetchModule:
 
         # BLACKLIST
         ignored_keys = {
-            "outdir",
+            # "outdir",
             "hooks",
             "results",
             "status",
