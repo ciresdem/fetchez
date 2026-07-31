@@ -90,11 +90,12 @@ class CopernicusMarineSDB(FetchModule):
                 maximum_latitude=self.wgs_region.ymax,
                 output_directory=self._outdir,
                 output_filename=out_fn,
-                # overwrite_output_data=True,
+                # overwrite=True,
+                skip_existing=True,
             )
             if os.path.exists(out_path):
                 self.add_entry_to_results(
-                    url=f"file://{out_path}",
+                    url=f"file://{out_fn}",
                     dst_fn=out_fn,
                     data_type="copernicus_sdb",
                 )
