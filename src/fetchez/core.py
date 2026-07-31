@@ -575,6 +575,11 @@ class Fetch:
         if self.url and self.url.startswith("file://"):
             src_path = self.url[7:]  # Strip 'file://'
 
+            if not os.path.isabs(src_path):
+                src_path = os.path.join(
+                    os.path.dirname(os.path.abspath(dst_fn)), src_path
+                )
+
             # Source == Destination
             # Just index/verify the file, not move it.
             if os.path.abspath(src_path) == os.path.abspath(dst_fn):
