@@ -680,6 +680,17 @@ class Fetch:
                                 os.rename(part_fn, dst_fn)
                                 return 0
 
+                            # Remove the Range header if the server doesn't support resume
+                            if resume_byte_pos > 0 and req.status_code == 200:
+                                logger.warning(
+                                    f"Server ignored resume request for {os.path.basename(dst_fn)}. "
+                                    "Restarting download from scratch."
+                                )
+                                mode = "wb"
+                                resume_byte_pos = 0
+                                if "Range" in self.headers:
+                                    del self.headers["Range"]
+
                             # Error Codes
                             if req.status_code == 416:
                                 # Range No Good: Local file is likely corrupt.
