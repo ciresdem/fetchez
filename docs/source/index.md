@@ -4,7 +4,7 @@
 
 *Fetchez Les Données*
 
-**Fetchez** is a lightweight, modular, and highly extendable Python framework designed to orchestrate geospatial data engineering workflows.
+**Fetchez** is a robust, highly concurrent, modular and extensible Python framework designed to orchestrate complex geospatial data engineering workflows.
 
 Originally developed as the core fetching engine for the [CUDEM](https://github.com/continuous-dems/cudem) project, Fetchez has evolved into a standalone ETL platform. It seamlessly retrieves Bathymetry, Topography, Imagery, and Oceanographic data from dozens of global repositories (NOAA, USGS, Copernicus, ESA) and processes it on the fly.
 
@@ -41,7 +41,7 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 ## Key Features
 
-* **Unified Interface**: Access [70+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+* **Unified Interface**: Access [80+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
 
 * **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
 
@@ -49,7 +49,11 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 * **Pipeline Hooks**: Transparently stream, filter, and process data as it is being downloaded.
 
-* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources and domain schemas.
+* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks and more.
+
+* **Cross-Process Concurrency & Caching:** Safely run multiple overlapping instances of Fetchez without race conditions. A spatial-hashing engine and file-locking guarantee no clobbering in shared caches, making it perfect for multi-user workshops and shared environments.
+
+* **High-Performance Fetching:** Multi-threaded downloading with automatic retry, timeout handling, partial-download resumption, and automated cleanup of temporary batch directories.
 
 ```{toctree}
 :maxdepth: 2
