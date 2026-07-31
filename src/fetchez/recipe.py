@@ -82,6 +82,7 @@ class Recipe:
     def __init__(self, config, base_dir=None):
         self.config = config
         self.base_dir = base_dir or os.getcwd()
+        self.recipe_dir = self.base_dir
         self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
         setup_logging(True)
 
@@ -191,7 +192,7 @@ class Recipe:
                 )
                 raise RuntimeError("Fetchez version incompatibility.")
 
-    def _resolve_path(self, path):
+    def _resolve_path(self, path, base=None):
         """Resolves output paths relative to the recipe file."""
 
         if not isinstance(path, str):
@@ -200,7 +201,7 @@ class Recipe:
             return path
         if os.path.isabs(path):
             return path
-        return os.path.abspath(os.path.join(self.base_dir, path))
+        return os.path.abspath(os.path.join(base or self.base_dir, path))
 
     def _init_modules(
         self, module_defs, target_region=None, global_region_srs="EPSG:4326"
@@ -220,6 +221,12 @@ class Recipe:
                 logger.error(f"Unknown module: {mod_key}")
                 continue
 
+            for path_key in ["path", "outdir", "cache_dir"]:
+                if path_key in mod_args:
+                    mod_args[path_key] = self._resolve_path(
+                        mod_args[path_key], base=self.recipe_dir
+                    )
+
             sig = inspect.signature(ModCls.__init__)
             valid_mod_args = {
                 k: v
@@ -233,9 +240,6 @@ class Recipe:
             for region in mod_regions:
                 if region is not None and region.valid_p():
                     region.srs = mod_region_srs
-
-                if "path" in mod_args:
-                    mod_args["path"] = self._resolve_path(mod_args["path"])
 
                 try:
                     instance = ModCls(
@@ -258,17 +262,23 @@ class Recipe:
             raw_kwargs = h.get("args", {})
 
             kwargs = {}
+
+            input_keys = [
+                "file",
+                "mask_fn",
+                "dem",
+                "barrier",
+                "aux_path",
+                "path",
+                "outdir",
+                "cache_dir",
+            ]
+            output_keys = ["output", "output_grid"]
+
             for k, v in raw_kwargs.items():
-                if k in [
-                    "file",
-                    "output",
-                    "output_grid",
-                    "mask_fn",
-                    "dem",
-                    "barrier",
-                    "aux_path",
-                    "path",
-                ]:
+                if k in input_keys:
+                    kwargs[k] = self._resolve_path(v, base=self.recipe_dir)
+                elif k in output_keys:
                     kwargs[k] = self._resolve_path(v)
                 else:
                     kwargs[k] = v
@@ -300,17 +310,23 @@ class Recipe:
             raw_kwargs = modifier.get("args", {})
 
             kwargs = {}
+
+            input_keys = [
+                "file",
+                "mask_fn",
+                "dem",
+                "barrier",
+                "aux_path",
+                "path",
+                "outdir",
+                "cache_dir",
+            ]
+            output_keys = ["output", "output_grid"]
+
             for k, v in raw_kwargs.items():
-                if k in [
-                    "file",
-                    "output",
-                    "output_grid",
-                    "mask_fn",
-                    "dem",
-                    "barrier",
-                    "aux_path",
-                    "path",
-                ]:
+                if k in input_keys:
+                    kwargs[k] = self._resolve_path(v, base=self.recipe_dir)
+                elif k in output_keys:
                     kwargs[k] = self._resolve_path(v)
                 else:
                     kwargs[k] = v
@@ -645,7 +661,7 @@ class Recipe:
         logger.info(f"📄 Full processing receipt saved to: {receipt_filename}")
         logger.info("=" * 67)
 
-    def run(self, outdir=None, shared_cache=None, overwrite=False):
+    def run(self, outdir=None, shared_cache=None, overwrite=False, refresh=False):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
         ModuleRegistry.load_all()
@@ -756,10 +772,15 @@ class Recipe:
                     )
 
                 # Inject outdir for shared caching
-                if abs_cache:
-                    for mod in iteration_config.get("modules", []):
-                        if mod.get("module") not in ["file", "local_fs", "stdin"]:
-                            mod.setdefault("args", {})["outdir"] = abs_cache
+                for mod in iteration_config.get("modules", []):
+                    if refresh:
+                        mod.setdefault("args", {})["use_cache"] = False
+                    if abs_cache and mod.get("module") not in [
+                        "file",
+                        "local_fs",
+                        "stdin",
+                    ]:
+                        mod.setdefault("args", {})["outdir"] = abs_cache
 
                 if batch_name or target_region:
                     # Inject the {batch_name} context into outputs

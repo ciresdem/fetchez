@@ -303,8 +303,13 @@ Bounding box (W/E/S/N)
 @click.option(
     "--schema", multiple=True, help="Apply validation schemas (e.g., 'cudem')."
 )
+@click.option(
+    "--refresh", is_flag=True, help="Force fresh API fetch, bypassing local cache."
+)
 @click.argument("name")
-def run_recipe(name, region, region_srs, outdir, shared_cache, modifier, schema):
+def run_recipe(
+    name, region, region_srs, outdir, shared_cache, modifier, schema, refresh
+):
     """Execute a YAML recipe by registry name or file path."""
 
     RecipeRegistry.load_all()
@@ -350,7 +355,7 @@ def run_recipe(name, region, region_srs, outdir, shared_cache, modifier, schema)
         base_config["schemas"] = parsed_schemas
 
     recipe = Recipe.from_dict(base_config)
-    recipe.run(outdir=outdir, shared_cache=shared_cache)
+    recipe.run(outdir=outdir, shared_cache=shared_cache, refresh=refresh)
 
     click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 
