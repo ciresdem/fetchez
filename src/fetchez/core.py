@@ -1033,6 +1033,7 @@ def run_fetchez(
 
                     current_entries = [(mod, original_entry)]
 
+                    hook_failed = False
                     for hook in active_file_hooks:
                         try:
                             current_entries = hook.run(current_entries)
