@@ -6,11 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.0 - 2026-07-31]
 ### ADDED
 - Add new ModifierRegistry to intercept recipes and modify them before running
+- Add `filelock` as dependency and include it's use in fetchez.core to prevent multiple processes from trying to fetch the same data.
+- Add `filelock` to the copernicus_marine module (this uses a third-party library for fetching, so we wrap it in filelock).
+- Add `cache` command cli to clear cache info
+- Add `--refresh` option to refresh cache at runtime
 
 ### CHANGED
 - Schemas are now for pure validation, mutations happen with modifiers instead
+- Update recipe._generate_receipt to give some more useful information
+- Update the use of paths in modules.base so that we use relative paths
+- Update modules.base cached_run to use relative paths in cache instead of absolute paths
 
 ### BUGFIX
  - keyboard interrupt wouldn't correctly get passed to the concurrent threads and got looped into the logging library; moving the try/except to inside the with concurrent and adding a logging.debug in the keyboardinterrupt solves this and now is responsive and acting as expected.
