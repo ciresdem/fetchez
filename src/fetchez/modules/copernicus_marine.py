@@ -14,6 +14,7 @@ the copernincusmarine api.
 
 import os
 import logging
+import filelock
 from fetchez.modules import FetchModule
 from fetchez import cli
 from fetchez.core import get_raw_credentials
@@ -80,19 +81,27 @@ class CopernicusMarineSDB(FetchModule):
 
             out_fn = f"{self.dataset_id}_{self.wgs_region.xmin}_{self.wgs_region.ymin}_{self.wgs_region.xmax}_{self.wgs_region.ymax}.nc"
             out_path = os.path.join(self._outdir, out_fn)
-            copernicusmarine.subset(
-                dataset_id=self.dataset_id,
-                username=self.username,
-                password=self.password,
-                minimum_longitude=self.wgs_region.xmin,
-                maximum_longitude=self.wgs_region.xmax,
-                minimum_latitude=self.wgs_region.ymin,
-                maximum_latitude=self.wgs_region.ymax,
-                output_directory=self._outdir,
-                output_filename=out_fn,
-                # overwrite=True,
-                skip_existing=True,
-            )
+            lock_fn = f"{out_path}.lock"
+
+            with filelock.FileLock(lock_fn, timeout=3600):
+                if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+                    pass  # Skip the download, the file is already there and valid
+
+                else:
+                    copernicusmarine.subset(
+                        dataset_id=self.dataset_id,
+                        username=self.username,
+                        password=self.password,
+                        minimum_longitude=self.wgs_region.xmin,
+                        maximum_longitude=self.wgs_region.xmax,
+                        minimum_latitude=self.wgs_region.ymin,
+                        maximum_latitude=self.wgs_region.ymax,
+                        output_directory=self._outdir,
+                        output_filename=out_fn,
+                        # overwrite=True,
+                        skip_existing=True,
+                    )
+
             if os.path.exists(out_path):
                 self.add_entry_to_results(
                     url=f"file://{out_fn}",

@@ -32,6 +32,7 @@ import concurrent.futures
 import requests
 import lxml.etree
 import lxml.html as lh
+import filelock
 
 from shapely.geometry import Polygon, mapping
 
@@ -613,151 +614,182 @@ class Fetch:
                 pass
 
         part_fn = f"{dst_fn}.part"
+        lock_fn = f"{dst_fn}.lock"
 
         if not overwrite and os.path.exists(dst_fn):
-            if not check_size:
+            if not check_size or os.path.getsize(dst_fn) > 0:
                 return 0  # Exists
 
-            if os.path.getsize(dst_fn) > 0:
-                return 0  # Exists
+        lock = filelock.FileLock(lock_fn, timeout=3600)
 
-        for attempt in range(tries):
-            resume_byte_pos = 0
-            mode = "wb"
-
-            # Resume if partial file exists
-            if os.path.exists(part_fn):
-                resume_byte_pos = os.path.getsize(part_fn)
-                if resume_byte_pos > 0:
-                    self.headers["Range"] = f"bytes={resume_byte_pos}-"
-                    mode = "ab"
-
-            try:
-                with self.session.request(
-                    method=method,
-                    url=self.url,
-                    stream=True,
-                    params=params,
-                    # data=data,
-                    # json=json,
-                    auth=self.auth,
-                    headers=self.headers,
-                    timeout=(timeout, read_timeout),
-                    verify=self.verify,
-                    allow_redirects=self.allow_redirects,
-                ) as req:
-                    # Finished/Cached by Server (304) or Pre-check
-                    if req.status_code == 304:
-                        return 0
-
-                    # Get Expected Size
-                    remote_size = int(req.headers.get("content-length", 0))
-                    total_size = remote_size
-
-                    # Adjust expectation if this is a partial response
-                    if req.status_code == 206:
-                        content_range = req.headers.get("Content-Range", "")
-                        if "/" in content_range:
-                            total_size = int(content_range.split("/")[-1])
-
-                    # Check if already done (.part matches full size)
-                    if check_size and total_size > 0 and resume_byte_pos == total_size:
-                        ## We have the whole file in .part, just move it.
-                        os.rename(part_fn, dst_fn)
-                        return 0
-
-                    # Error Codes
-                    if req.status_code == 416:
-                        # Range No Good: Local file is likely corrupt.
-                        # Delete .part and retry from scratch (next loop iteration)
+        try:
+            with lock:
+                if not overwrite and os.path.exists(dst_fn):
+                    if not check_size or os.path.getsize(dst_fn) > 0:
                         logger.debug(
-                            f"Invalid Range for {os.path.basename(dst_fn)}. Restarting..."
+                            f"File {os.path.basename(dst_fn)} was downloaded by another process. Skipping."
                         )
-                        if os.path.exists(part_fn):
-                            os.remove(part_fn)
-                        if "Range" in self.headers:
-                            del self.headers["Range"]
-                        continue
+                        return 0
 
-                    elif req.status_code in [401, 403]:
-                        # Unauthorized / Forbidden
-                        raise UnboundLocalError("Authentication Failed / Forbidden")
+                for attempt in range(tries):
+                    resume_byte_pos = 0
+                    mode = "wb"
 
-                    elif req.status_code not in [200, 206]:
-                        # Fatal error for this attempt
+                    # Resume if partial file exists
+                    if os.path.exists(part_fn):
+                        resume_byte_pos = os.path.getsize(part_fn)
+                        if resume_byte_pos > 0:
+                            self.headers["Range"] = f"bytes={resume_byte_pos}-"
+                            mode = "ab"
+
+                    try:
+                        with self.session.request(
+                            method=method,
+                            url=self.url,
+                            stream=True,
+                            params=params,
+                            # data=data,
+                            # json=json,
+                            auth=self.auth,
+                            headers=self.headers,
+                            timeout=(timeout, read_timeout),
+                            verify=self.verify,
+                            allow_redirects=self.allow_redirects,
+                        ) as req:
+                            # Finished/Cached by Server (304) or Pre-check
+                            if req.status_code == 304:
+                                return 0
+
+                            # Get Expected Size
+                            remote_size = int(req.headers.get("content-length", 0))
+                            total_size = remote_size
+
+                            # Adjust expectation if this is a partial response
+                            if req.status_code == 206:
+                                content_range = req.headers.get("Content-Range", "")
+                                if "/" in content_range:
+                                    total_size = int(content_range.split("/")[-1])
+
+                            # Check if already done (.part matches full size)
+                            if (
+                                check_size
+                                and total_size > 0
+                                and resume_byte_pos == total_size
+                            ):
+                                ## We have the whole file in .part, just move it.
+                                os.rename(part_fn, dst_fn)
+                                return 0
+
+                            # Error Codes
+                            if req.status_code == 416:
+                                # Range No Good: Local file is likely corrupt.
+                                # Delete .part and retry from scratch (next loop iteration)
+                                logger.debug(
+                                    f"Invalid Range for {os.path.basename(dst_fn)}. Restarting..."
+                                )
+                                if os.path.exists(part_fn):
+                                    os.remove(part_fn)
+                                if "Range" in self.headers:
+                                    del self.headers["Range"]
+                                continue
+
+                            elif req.status_code in [401, 403]:
+                                # Unauthorized / Forbidden
+                                raise UnboundLocalError(
+                                    "Authentication Failed / Forbidden"
+                                )
+
+                            elif req.status_code not in [200, 206]:
+                                # Fatal error for this attempt
+                                if attempt < tries - 1:
+                                    time.sleep(2)
+                                    continue
+                                status_msg = f"Status {req.status_code}"
+                                try:
+                                    body = req.json()
+                                    extras = ", ".join(
+                                        f"{k}: {body[k]}"
+                                        for k in ("error", "message")
+                                        if k in body
+                                    )
+                                    if extras:
+                                        status_msg += f" ({extras})"
+                                except Exception:
+                                    pass
+                                raise ConnectionError(status_msg)
+
+                            with open(part_fn, mode) as f:
+                                # desc = utils.str_truncate_middle(self.url, n=60)
+                                desc = utils.format_dataset_id(self.url)
+                                show_bar = verbose and not self.silent
+                                with tqdm(
+                                    desc=desc,
+                                    total=total_size,
+                                    initial=resume_byte_pos,
+                                    disable=not show_bar,
+                                    unit="B",
+                                    unit_scale=True,
+                                    unit_divisor=1024,
+                                    leave=False,
+                                ) as pbar:
+                                    for chunk in req.iter_content(chunk_size=8192):
+                                        if STOP_EVENT.is_set():
+                                            logger.warning(
+                                                "Download cancelled by user."
+                                            )
+                                            return -1
+                                        if chunk:
+                                            f.write(chunk)
+                                            pbar.update(len(chunk))
+
+                            # If we got here without exception, check size, if wanted
+                            if check_size and total_size > 0:
+                                final_size = os.path.getsize(part_fn)
+                                if final_size < total_size:
+                                    # If smaller, the connection was most likely cut.
+                                    raise IOError(
+                                        f"Incomplete download: {final_size}/{total_size} bytes"
+                                    )
+
+                                elif final_size > total_size:
+                                    # If larger, it was likely decompressed on the fly (GZIP).
+                                    logger.debug(
+                                        f"File size ({final_size}) > Header ({total_size}). "
+                                        "Assuming transparent decompression."
+                                    )
+
+                                else:
+                                    pass
+
+                            os.rename(part_fn, dst_fn)
+                            return 0
+
+                    except (
+                        requests.exceptions.RequestException,
+                        IOError,
+                        UnboundLocalError,
+                    ) as e:
                         if attempt < tries - 1:
-                            time.sleep(2)
-                            continue
-                        status_msg = f"Status {req.status_code}"
-                        try:
-                            body = req.json()
-                            extras = ", ".join(
-                                f"{k}: {body[k]}"
-                                for k in ("error", "message")
-                                if k in body
-                            )
-                            if extras:
-                                status_msg += f" ({extras})"
-                        except Exception:
-                            pass
-                        raise ConnectionError(status_msg)
-
-                    with open(part_fn, mode) as f:
-                        # desc = utils.str_truncate_middle(self.url, n=60)
-                        desc = utils.format_dataset_id(self.url)
-                        show_bar = verbose and not self.silent
-                        with tqdm(
-                            desc=desc,
-                            total=total_size,
-                            initial=resume_byte_pos,
-                            disable=not show_bar,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                            leave=False,
-                        ) as pbar:
-                            for chunk in req.iter_content(chunk_size=8192):
-                                if STOP_EVENT.is_set():
-                                    logger.warning("Download cancelled by user.")
-                                    return -1
-                                if chunk:
-                                    f.write(chunk)
-                                    pbar.update(len(chunk))
-
-                    # If we got here without exception, check size, if wanted
-                    if check_size and total_size > 0:
-                        final_size = os.path.getsize(part_fn)
-                        if final_size < total_size:
-                            # If smaller, the connection was most likely cut.
-                            raise IOError(
-                                f"Incomplete download: {final_size}/{total_size} bytes"
-                            )
-
-                        elif final_size > total_size:
-                            # If larger, it was likely decompressed on the fly (GZIP).
+                            wait_time = (attempt + 1) * 2
                             logger.debug(
-                                f"File size ({final_size}) > Header ({total_size}). "
-                                "Assuming transparent decompression."
+                                f"Download failed: {e}. Retrying in {wait_time}s..."
                             )
-
+                            time.sleep(wait_time)
                         else:
-                            pass
+                            logger.warning(f"Failed to download {self.url}: {e}")
+                            return -1
 
-                    os.rename(part_fn, dst_fn)
-                    return 0
-
-            except (
-                requests.exceptions.RequestException,
-                IOError,
-                UnboundLocalError,
-            ) as e:
-                if attempt < tries - 1:
-                    wait_time = (attempt + 1) * 2
-                    logger.debug(f"Download failed: {e}. Retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                else:
-                    logger.warning(f"Failed to download {self.url}: {e}")
-                    return -1
+        except filelock.Timeout:
+            logger.error(
+                f"Timeout waiting for lock on {dst_fn}. Another process may be hanging."
+            )
+            return -1
+        finally:
+            if os.path.exists(lock_fn):
+                try:
+                    os.remove(lock_fn)
+                except OSError:
+                    pass
 
         return -1
 
