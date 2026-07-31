@@ -53,7 +53,6 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 * **Cross-Process Concurrency & Caching:** Safely run multiple overlapping instances of Fetchez without race conditions. A spatial-hashing engine and file-locking guarantee no clobbering in shared caches, making it perfect for multi-user workshops and shared environments.
 
-* **High-Performance Fetching:** Multi-threaded downloading with automatic retry, timeout handling, partial-download resumption, and automated cleanup of temporary batch directories.
 
 ```{toctree}
 :maxdepth: 2
