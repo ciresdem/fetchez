@@ -211,6 +211,7 @@ def pipeline_group(
     region_srs,
     export,
     global_hook,
+    modifier,
     schema,
     threads,
     shared_cache,
