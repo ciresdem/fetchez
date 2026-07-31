@@ -12,10 +12,12 @@ This holds the FetchModule super class
 """
 
 import os
+import time
 import logging
 import urllib.parse
 import json
 import hashlib
+from math import floor
 from typing import List, Dict, Any
 
 import pyproj
@@ -178,7 +180,7 @@ class FetchModule:
 
         # BLACKLIST
         ignored_keys = {
-            # "outdir",
+            "outdir",
             "hooks",
             "results",
             "status",
@@ -249,9 +251,15 @@ class FetchModule:
 
         cache_key = self._generate_cache_key()
         cache_file = os.path.join(cache_dir, f"{self.name}_{cache_key}.json")
+
         if os.path.exists(cache_file):
             try:
-                logger.debug(f"[{self.name}] Using Fetchez cache_file: {cache_file}")
+                file_age_days = floor(
+                    (time.time() - os.path.getmtime(cache_file)) / 86400
+                )
+                logger.info(
+                    f"[{self.name}] Using cached API response from {file_age_days} days ago. (Pass --refresh to force an update)"
+                )
 
                 # Custom decoder to rebuild the Region object with its SRS
                 def _json_object_hook(d):
@@ -262,7 +270,17 @@ class FetchModule:
                     return d
 
                 with open(cache_file, "r") as f:
-                    self.results = json.load(f, object_hook=_json_object_hook)
+                    cached_results = json.load(f, object_hook=_json_object_hook)
+
+                # Rehydrate relative paths to absolute paths for the current environment
+                for entry in cached_results:
+                    if "dst_fn" in entry and entry["dst_fn"]:
+                        if not os.path.isabs(entry["dst_fn"]):
+                            entry["dst_fn"] = os.path.abspath(
+                                os.path.join(self._outdir, entry["dst_fn"])
+                            )
+
+                self.results = cached_results
                 logger.debug(
                     f"[{self.name}] Loaded {len(self.results)} results from cache."
                 )
@@ -276,8 +294,6 @@ class FetchModule:
 
         def _json_fallback(obj):
             """Safely serialize custom objects like Region."""
-
-            # Explicitly capture Region objects to preserve their SRS
             if type(obj).__name__ == "Region":
                 return {
                     "__type__": "Region",
@@ -287,15 +303,29 @@ class FetchModule:
                     "n": obj.n,
                     "srs": obj.srs,
                 }
-
             if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
                 return list(obj)
-
             return str(obj)
 
         try:
+            # Create a localized copy of the results to safely store in the cache
+            portable_results = []
+            for entry in self.results:
+                portable_entry = entry.copy()
+                if "dst_fn" in portable_entry and portable_entry["dst_fn"]:
+                    try:
+                        # Strip the absolute prefix to make it portable relative to outdir
+                        portable_entry["dst_fn"] = os.path.relpath(
+                            portable_entry["dst_fn"], self._outdir
+                        )
+                    except ValueError:
+                        # Fallback for cross-drive path issues on Windows
+                        pass
+                portable_results.append(portable_entry)
+
             with open(cache_file, "w") as f:
-                json.dump(self.results, f, indent=2, default=_json_fallback)
+                json.dump(portable_results, f, indent=2, default=_json_fallback)
+
             logger.debug(f"[{self.name}] Saved API results to cache.")
         except Exception as e:
             logger.warning(f"[{self.name}] Failed to save cache: {e}")

@@ -23,6 +23,7 @@ from .hooks import hooks_group
 from .recipes import recipes_group
 from .streams import streams_group
 from .regions import regions_group
+from .cache import cache_group
 
 
 # =============================================================================
@@ -81,6 +82,7 @@ def setup_logging(name="fetchez", quiet=False, verbose=False):
             "recipes",
             "streams",
             "regions",
+            "cache",
             "lavache",
         ],
     },
@@ -152,6 +154,7 @@ cli.add_command(hooks_group, name="hooks")
 cli.add_command(recipes_group, name="recipes")
 cli.add_command(streams_group, name="streams")
 cli.add_command(regions_group, name="regions")
+cli.add_command(cache_group, name="cache")
 
 
 if __name__ == "__main__":
