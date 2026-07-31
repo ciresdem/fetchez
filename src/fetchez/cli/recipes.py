@@ -306,9 +306,22 @@ Bounding box (W/E/S/N)
 @click.option(
     "--refresh", is_flag=True, help="Force fresh API fetch, bypassing local cache."
 )
+@click.option(
+    "--ignore-failures",
+    is_flag=True,
+    help="Continue processing through failures (Warning: may result in incomplete data or products).",
+)
 @click.argument("name")
 def run_recipe(
-    name, region, region_srs, outdir, shared_cache, modifier, schema, refresh
+    name,
+    region,
+    region_srs,
+    outdir,
+    shared_cache,
+    modifier,
+    schema,
+    refresh,
+    ignore_failures,
 ):
     """Execute a YAML recipe by registry name or file path."""
 
@@ -355,7 +368,12 @@ def run_recipe(
         base_config["schemas"] = parsed_schemas
 
     recipe = Recipe.from_dict(base_config)
-    recipe.run(outdir=outdir, shared_cache=shared_cache, refresh=refresh)
+    recipe.run(
+        outdir=outdir,
+        shared_cache=shared_cache,
+        refresh=refresh,
+        ignore_failures=ignore_failures,
+    )
 
     click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 
