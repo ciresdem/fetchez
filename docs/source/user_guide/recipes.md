@@ -100,11 +100,12 @@ Available placeholders include:
 * **`%region_srs%`**: The spatial reference system (CRS) of the target region.
 
 **Example Usage:**
+
 ```yaml
 modules:
   - module: tnm
     args:
-	  - outdir: "%tile_dir%"
+      - outdir: "%tile_dir%"
     hooks: stream_reproject
       args:
         cache_dir: "%shared_cache%"
