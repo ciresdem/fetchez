@@ -51,8 +51,6 @@ files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'file
 
 * **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks and more.
 
-* **Cross-Process Concurrency & Caching:** Safely run multiple overlapping instances of Fetchez without race conditions. A spatial-hashing engine and file-locking guarantee no clobbering in shared caches, making it perfect for multi-user workshops and shared environments.
-
 
 ```{toctree}
 :maxdepth: 2
