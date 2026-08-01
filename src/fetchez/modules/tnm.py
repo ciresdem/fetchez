@@ -123,8 +123,6 @@ class TheNationalMap(FetchModule):
         if self.wgs_region is None or not spatial.region_valid_p(self.wgs_region):
             return []
 
-        # Convert region tuple to string for API: "xmin,ymin,xmax,ymax"
-        # Note: TNM uses comma-separated bbox
         w, e, s, n = self.wgs_region
         bbox_str = f"{w},{s},{e},{n}"
 
@@ -144,10 +142,10 @@ class TheNationalMap(FetchModule):
                     f"Could not parse datasets '{self.datasets}'. Using default."
                 )
 
-        # Default to NED 1 arc-second if nothing valid selected
         if not dataset_names:
             dataset_names = ["National Elevation Dataset (NED) 1 arc-second"]
 
+        best_tiles = {}
         while True:
             params = {
                 "bbox": bbox_str,
@@ -167,10 +165,11 @@ class TheNationalMap(FetchModule):
                 params["start"] = self.date_start
                 params["end"] = (
                     self.date_end if self.date_end else utils.this_date()[:8]
-                )  # YYYYMMDD
+                )
                 params["dateType"] = self.date_type
 
             req = core.Fetch(TNM_API_PRODUCTS_URL).fetch_req(params=params)
+
             if (
                 req
                 and "All dataset queries failed" in req.text
@@ -204,6 +203,7 @@ class TheNationalMap(FetchModule):
                 data = req.json()
                 total = data.get("total", 0)
                 items = data.get("items", [])
+
                 for item in items:
                     url = item.get("downloadURL")
                     if not url:
@@ -222,30 +222,28 @@ class TheNationalMap(FetchModule):
                             item_bbox.get("maxY"),
                         )
 
+                    # Extract the tile footprint (e.g., 'n35w120')
                     fn_bn = filename.split("_")[-2]
-                    date = item.get("publicationDate")
-                    add_result = True
-                    for i, r in enumerate(self.results):
-                        if r["dst_fn"].split("_")[-2] == fn_bn:
-                            if int(date.split("-")[0]) > int(r["date"].split("-")[0]):
-                                self.results.pop(i)
-                                add_result = True
-                            else:
-                                add_result = False
-                        else:
-                            add_result = True
+                    date = item.get("publicationDate", "")
 
-                    if add_result:
-                        self.add_entry_to_results(
-                            url=url,
-                            dst_fn=filename,
-                            data_type="tnm",
-                            format=fmt,
-                            bounds=bounds,
-                            date=date,
-                            remote_size=item.get("sizeInBytes"),
-                            title=item.get("title"),
-                        )
+                    item_data = {
+                        "url": url,
+                        "dst_fn": filename,
+                        "data_type": "tnm",
+                        "format": fmt,
+                        "bounds": bounds,
+                        "date": date,
+                        "remote_size": item.get("sizeInBytes"),
+                        "title": item.get("title"),
+                    }
+
+                    # Check if we already have this tile and compare dates
+                    if fn_bn not in best_tiles:
+                        best_tiles[fn_bn] = item_data
+                    else:
+                        existing_date = best_tiles[fn_bn]["date"]
+                        if date and date > existing_date:
+                            best_tiles[fn_bn] = item_data
 
             except Exception as e:
                 logger.exception(f"Error parsing TNM JSON: {e}")
@@ -254,6 +252,9 @@ class TheNationalMap(FetchModule):
             offset += 100
             if offset >= total:
                 break
+
+        for tile_data in best_tiles.values():
+            self.add_entry_to_results(**tile_data)
 
         return self
 

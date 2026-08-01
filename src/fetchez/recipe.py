@@ -367,25 +367,23 @@ class Recipe:
 
         return active_schemas
 
-    def _inject_batch_context(self, config_block, name, batch_name, batch_region):
-        """Recursively formats strings in the config to inject the batch name."""
-
-        if not batch_name:
-            return config_block
+    def _inject_batch_context(self, config_block, **kwargs):
+        """Recursively formats strings in the config to inject runtime context variables."""
 
         if isinstance(config_block, dict):
             return {
-                k: self._inject_batch_context(v, name, batch_name, batch_region)
+                k: self._inject_batch_context(v, **kwargs)
                 for k, v in config_block.items()
             }
         elif isinstance(config_block, list):
-            return [
-                self._inject_batch_context(v, name, batch_name, batch_region)
-                for v in config_block
-            ]
+            return [self._inject_batch_context(v, **kwargs) for v in config_block]
         elif isinstance(config_block, str):
-            return config_block.replace("%name%", str(name))
-            return config_block.replace("%batch_name%", str(batch_name))
+            res = config_block
+            # Dynamically replace any provided kwargs!
+            for key, val in kwargs.items():
+                if val is not None:
+                    res = res.replace(f"%{key}%", str(val))
+            return res
 
         return config_block
 
@@ -779,12 +777,16 @@ class Recipe:
                         mod.setdefault("args", {})["outdir"] = abs_cache
 
                 if batch_name or target_region:
-                    # Inject the {batch_name} context into outputs
+                    # Inject the %place-holder% context into outputs
                     iteration_config = self._inject_batch_context(
                         iteration_config,
-                        self.config.get("project", {}).get("name", "fetchez"),
-                        batch_name or target_region.format("fn"),
-                        target_region,
+                        name=self.config.get("project", {}).get("name", "fetchez"),
+                        batch_name=batch_name
+                        or (target_region.format("fn") if target_region else ""),
+                        shared_cache=abs_cache or tile_dir,
+                        outdir=base_outdir,
+                        tile_dir=tile_dir,
+                        region_srs=global_region_srs,
                     )
 
                 schemas = self._init_schemas(iteration_config.get("schemas", []))
@@ -848,23 +850,36 @@ class Recipe:
                     if ignore_failures:
                         logger.error(f"[{mod.name}] Module execution failed: {e}")
                         logger.warning(
-                            f"[{mod.name}] '--ignore-failures' is SET. "
+                            f"[{mod.name}] 'ignore-failures' is SET. "
                             "Pipeline will continue, but your final output may be incomplete!"
                         )
                     else:
                         # Default behavior: Fail and abort
                         logger.critical(
                             f"[{mod.name}] Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
-                            "Use '--ignore-failures' if you wish to bypass this."
+                            "Set 'ignore_failures' if you wish to bypass this."
                         )
                         raise
 
-                run_fetchez(
-                    modules_to_run,
-                    threads=threads,
-                    global_hooks=global_hooks,
-                    ignore_failures=ignore_failures,
-                )
+                try:
+                    run_fetchez(
+                        modules_to_run,
+                        threads=threads,
+                        global_hooks=global_hooks,
+                        ignore_failures=ignore_failures,
+                    )
+                except Exception as e:
+                    if ignore_failures:
+                        logger.error(f"fetchez execution failed: {e}")
+                        logger.warning(
+                            f"[{mod.name}] 'ignore-failures' is SET. "
+                            "Pipeline will continue, but your final output may be incomplete!"
+                        )
+                    logger.critical(
+                        "Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
+                        "Set 'ignore_failures' if you wish to bypass this."
+                    )
+                    raise
 
                 # Update State
                 if batch_name:

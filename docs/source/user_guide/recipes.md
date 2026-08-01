@@ -86,6 +86,35 @@ global_hooks:
       file: "miami_data_audit.json"
 ```
 
+## Runtime Context Placeholders
+When writing complex recipes, you often need to route data to dynamic directories or reference the current batch's region. Fetchez automatically injects runtime variables into your YAML configuration using `%placeholder%` syntax.
+
+**Important YAML Formatting Note:** To ensure your YAML parses correctly, you must enclose any string containing a placeholder in quotes (e.g., `"%shared_cache%"`).
+
+Available placeholders include:
+* **`%name%`**: The project name defined in the recipe.
+* **`%batch_name%`**: The name of the current batch/tile being processed (or the formatted bounding box).
+* **`%shared_cache%`**: The absolute path to the shared cache directory (falls back to the batch's tile directory if no cache is specified).
+* **`%outdir%`**: The base output directory for the execution.
+* **`%tile_dir%`**: The specific working directory for the current batch iteration.
+* **`%region_srs%`**: The spatial reference system (CRS) of the target region.
+
+**Example Usage:**
+
+```yaml
+modules:
+  - module: tnm
+    args:
+      - outdir: "%tile_dir%"
+    hooks: stream_reproject
+      args:
+        cache_dir: "%shared_cache%"
+global_hooks:
+  - name: multi_stack
+    args:
+      output: "%name%_%batch_name%_stack.tif"
+```
+
 ## Understanding Hooks and the Lifecycle
 Hooks are the specialized tools that intercept and process your data. It is critical to understand when they run. `fetchez` processes hooks in three distinct stages:
 
@@ -105,6 +134,21 @@ Hooks are the specialized tools that intercept and process your data. It is crit
 * **Module Hooks** (`modules.hooks`): Only execute on the files fetched by that specific module. For example, you might only want to run the unzip hook on USGS data, but leave Copernicus files as tarballs.
 
 * **Global Hooks** (`global_hooks`): Execute on the entire, aggregated dataset from all modules simultaneously.
+
+## Advanced Execution: Modifiers and Schemas
+
+Fetchez provides advanced tools to alter and validate your recipes at runtime without modifying the underlying YAML files.
+
+### Modifiers
+Modifiers dynamically mutate your recipe configuration before execution begins. This is useful for temporarily excluding large modules, or injecting arguments during a specific run. Modifiers can be invoked via the CLI:
+
+```bash
+# Injecting a new cache_dir argument into the stream_reproject module at runtime
+fetchez recipes run my_recipe.yaml --modifier inject_args:match=stream_reproject,cache_dir=socal_data
+```
+
+### Schemas
+Schemas act as quality control for your pipelines. They enforce strict validation rules to ensure a recipe is formatted correctly and contains all required fields before `fetchez` attempts to run it. If a recipe fails schema validation, the engine will warn you before any downloads begin, preventing partial or failed executions.
 
 ## Extending Recipes (Plugins and Extensions)
 Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own recipes either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.RecipeRegistry`
