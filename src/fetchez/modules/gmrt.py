@@ -147,7 +147,7 @@ class GMRT(FetchModule):
             )
 
             if req_urls and req_urls.status_code == 200:
-                logger.info(req_urls.url)
+                logger.debug(f"GMRT url: {req_urls.url}")
                 urls = req_urls.json()
 
                 if urls and isinstance(urls, list):

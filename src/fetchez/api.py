@@ -150,6 +150,7 @@ def get(
     hooks: Optional[List[str]] = None,
     dry_run: bool = False,
     verbose: bool = True,
+    ignore_failures: bool = False,
     **kwargs,
 ) -> List[str]:
     """Fetch data from a module in one line.
@@ -163,6 +164,7 @@ def get(
         hooks: List of hook strings (e.g. ['unzip', 'audit']).
         dry_run: Don't download any data.
         verbose: Run in verbose mode.
+        ignore_failures: Ignore exceptions and push through.
         **kwargs: Arguments passed directly to the module (year=..., datatype=...).
 
     Returns:
@@ -246,10 +248,13 @@ def get(
         return manifest
 
     # Grab the final results from the fetchez pipeline
-    final_results = run_fetchez([mod_instance], threads=threads)
+    final_results = run_fetchez(
+        [mod_instance], threads=threads, ignore_failures=ignore_failures
+    )
+
     downloaded_files = []
     for _mod, entry in final_results:  # mod_instance.results:
-        if entry.get("status") == 0:
+        if entry.get("status", 0) == 0:
             fn = entry.get("dst_fn")
             if fn and os.path.exists(fn):
                 downloaded_files.append(os.path.abspath(fn))
@@ -263,6 +268,7 @@ def run_recipe(
     region_srs: Optional[str] = "EPSG:4326",
     modifiers: Optional[List[str | Dict]] = None,
     schemas: Optional[List[str]] = None,
+    ignore_failures: bool = False,
 ) -> bool:
     """Execute a YAML recipe.
 
@@ -301,7 +307,7 @@ def run_recipe(
 
     try:
         # Recipe.from_file(base_config).run()
-        Recipe(base_config).run()
+        Recipe(base_config).run(ignore_failures=ignore_failures)
         return True
     except Exception as e:
         logger.error(f"Failed to run recipe '{target}': {e}")

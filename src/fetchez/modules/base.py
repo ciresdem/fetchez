@@ -258,7 +258,7 @@ class FetchModule:
                     (time.time() - os.path.getmtime(cache_file)) / 86400
                 )
                 logger.info(
-                    f"[{self.name}] Using cached API response from {file_age_days} days ago. (Pass --refresh to force an update)"
+                    f"[{self.name}] Using cached API response from {file_age_days} days ago."
                 )
 
                 # Custom decoder to rebuild the Region object with its SRS

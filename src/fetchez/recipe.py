@@ -649,7 +649,14 @@ class Recipe:
 
         logger.debug(f"Saved execution receipt to {receipt_filename}")
 
-    def run(self, outdir=None, shared_cache=None, overwrite=False, refresh=False):
+    def run(
+        self,
+        outdir=None,
+        shared_cache=None,
+        overwrite=False,
+        refresh=False,
+        ignore_failures=False,
+    ):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
         ModuleRegistry.load_all()
@@ -833,10 +840,30 @@ class Recipe:
 
                 self._generate_receipt(iteration_config, batch_name)
 
-                for mod in modules_to_run:
-                    mod.run()
+                try:
+                    for mod in modules_to_run:
+                        mod.run()
+                except Exception as e:
+                    if ignore_failures:
+                        logger.error(f"[{mod.name}] Module execution failed: {e}")
+                        logger.warning(
+                            f"[{mod.name}] '--ignore-failures' is SET. "
+                            "Pipeline will continue, but your final output may be incomplete!"
+                        )
+                    else:
+                        # Default behavior: Fail and abort
+                        logger.critical(
+                            f"[{mod.name}] Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
+                            "Use '--ignore-failures' if you wish to bypass this."
+                        )
+                        raise
 
-                run_fetchez(modules_to_run, threads=threads, global_hooks=global_hooks)
+                run_fetchez(
+                    modules_to_run,
+                    threads=threads,
+                    global_hooks=global_hooks,
+                    ignore_failures=ignore_failures,
+                )
 
                 # Update State
                 if batch_name:

@@ -520,7 +520,8 @@ class Fetch:
 
                 else:
                     logger.error(f"Request from {req.url} returned {req.status_code}")
-                    return req
+                    req.raise_for_status()
+                    # return req
 
             except Exception as e:
                 logger.debug(f"Attempt {attempt + 1}/{tries} failed: {e}")
@@ -763,11 +764,12 @@ class Fetch:
                                     )
 
                                 elif final_size > total_size:
-                                    # If larger, it was likely decompressed on the fly (GZIP).
+                                    # If larger, it was likely decompressed on the fly ? (GZIP).
                                     logger.debug(
                                         f"File size ({final_size}) > Header ({total_size}). "
                                         "Assuming transparent decompression."
                                     )
+                                    # req.raise_for_status()
 
                                 else:
                                     pass
@@ -788,7 +790,8 @@ class Fetch:
                             time.sleep(wait_time)
                         else:
                             logger.warning(f"Failed to download {self.url}: {e}")
-                            return -1
+                            # return -1
+                            req.raise_for_status()
 
         except filelock.Timeout:
             logger.error(
@@ -870,19 +873,30 @@ class Fetch:
 def _fetch_worker(module, entry, verbose=True):
     """Helper wrapper to call fetch_entry on a module."""
 
-    try:
-        return module.fetch_entry(entry, check_size=True, verbose=verbose)
-    except Exception as e:
-        logger.error(f"Worker failed for {entry.get('url', 'unknown')}: {e}")
-        return -1
+    # Let exceptions pass through
+    return module.fetch_entry(entry, check_size=True, verbose=verbose)
+    # try:
+    #     return module.fetch_entry(entry, check_size=True, verbose=verbose)
+    # except Exception as e:
+    #     logger.error(f"Worker failed for {entry.get('url', 'unknown')}: {e}")
+    #     return -1
 
 
 # List[FetchModule]
-def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
+def run_fetchez(
+    modules: List[Any],
+    threads: int = 3,
+    global_hooks: Optional[List[Any]] = None,
+    ignore_failures: bool = False,
+):
     """Run Fetchez in parallel with hooks.
 
-    - mod.hooks: Run ONLY on entries belonging to 'mod'.
-    - global_hooks: Run on ALL entries combined.
+    Args:
+        modules: List of FetchModule instances.
+        threads: Number of parallel download threads.
+        global_hooks: List of hooks to run globally across all entries.
+        ignore_failures: If False (default), raises an exception on any failure.
+                        If True, tags failed entries with status='failed' and continues.
     """
 
     STOP_EVENT.clear()
@@ -907,9 +921,11 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
 
                 utils._log_hook_history(local_entries, hook)
             except Exception as e:
-                logger.error(
-                    f'Module "{mod.name}" manifest-hook "{hook.name}" failed: {e}'
-                )
+                err_msg = f'Module "{mod.name}" manifest-hook "{hook.name}" failed: {e}'
+                if not ignore_failures:
+                    logger.critical(f"CRITICAL: {err_msg}")
+                    raise RuntimeError(err_msg) from e
+                logger.error(f"{err_msg} (Skipping due to ignore_failures=True)")
 
         # Update the mod.results
         mod.results = [e for m, e in local_entries]
@@ -941,7 +957,11 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
 
             utils._log_hook_history(all_entries, hook)
         except Exception as e:
-            logger.error(f'Global manifest-hook "{hook.name}" failed: {e}')
+            err_msg = f'Global manifest-hook "{hook.name}" failed: {e}'
+            if not ignore_failures:
+                logger.critical(f"CRITICAL: {err_msg}")
+                raise RuntimeError(err_msg) from e
+            logger.error(f"{err_msg} (Skipping due to ignore_failures=True)")
 
     total_files = len(all_entries)
     if total_files == 0:
@@ -979,17 +999,30 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                         file_name[:30] + "..." if len(file_name) > 30 else file_name
                     )
                     pbar.set_description(f"[{mod.name}] {short_name}")
+
                     try:
                         status = future.result()
-                        original_entry.update({"status": status})
                         if status != 0:
-                            logger.error(
-                                f"Failed to fetch: {os.path.basename(original_entry['dst_fn'])}"
+                            raise IOError(
+                                f"Fetch worker returned non-zero status code: {status}"
                             )
                     except Exception as e:
-                        logger.error(f"Worker exception: {e}")
-                        original_entry.update({"status": -1})
-                        # continue
+                        err_msg = f"Failed to fetch {file_name}: {e}"
+                        if not ignore_failures:
+                            logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
+                            STOP_EVENT.set()
+                            executor.shutdown(wait=False, cancel_futures=True)
+                            raise RuntimeError(err_msg) from e
+
+                        logger.error(f"[{mod.name}] {err_msg} (Continuing...)")
+                        original_entry["status"] = "failed"
+                        original_entry["error_message"] = str(e)
+                        final_results_with_owner.append((mod, original_entry))
+                        pbar.update(1)
+                        continue
+                        # logger.error(f"Worker exception: {e}")
+                        # original_entry.update({"status": -1})
+                        # # continue
 
                     # --- File Hooks ---
                     gf_hooks = [h for h in global_hooks if h.stage == "file"]
@@ -1000,6 +1033,7 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
 
                     current_entries = [(mod, original_entry)]
 
+                    hook_failed = False
                     for hook in active_file_hooks:
                         try:
                             current_entries = hook.run(current_entries)
@@ -1007,7 +1041,25 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                                 current_entries = []
                             utils._log_hook_history(current_entries, hook)
                         except Exception as e:
-                            logger.exception(f'File hook "{hook.name}" failed: {e}')
+                            err_msg = (
+                                f'File hook "{hook.name}" failed on {file_name}: {e}'
+                            )
+                            if not ignore_failures:
+                                logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
+                                STOP_EVENT.set()
+                                executor.shutdown(wait=False, cancel_futures=True)
+                                raise RuntimeError(err_msg) from e
+
+                            logger.error(f"[{mod.name}] {err_msg}")
+                            original_entry["status"] = "failed"
+                            original_entry["error_message"] = str(e)
+                            hook_failed = True
+                            break
+
+                    if hook_failed:
+                        final_results_with_owner.append((mod, original_entry))
+                        pbar.update(1)
+                        continue
 
                     # --- Stream Hooks ---
                     gs_hooks = [h for h in global_hooks if h.stage == "stream"]
@@ -1057,9 +1109,23 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                                     current_entries = []
                                 utils._log_hook_history(current_entries, hook)
                             except Exception as e:
-                                logger.exception(
-                                    f'Stream hook "{hook.name}" failed: {e}'
-                                )
+                                err_msg = f'Stream hook "{hook.name}" failed on {file_name}: {e}'
+                                if not ignore_failures:
+                                    logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
+                                    STOP_EVENT.set()
+                                    executor.shutdown(wait=False, cancel_futures=True)
+                                    raise RuntimeError(err_msg) from e
+
+                                logger.error(f"[{mod.name}] {err_msg}")
+                                original_entry["status"] = "failed"
+                                original_entry["error_message"] = str(e)
+                                hook_failed = True
+                                break
+
+                    if hook_failed:
+                        final_results_with_owner.append((mod, original_entry))
+                        pbar.update(1)
+                        continue
 
                     # --- Stream Exhaustion ---
                     processed_entries = []
@@ -1075,9 +1141,19 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                                 )
                                 collections.deque(stream, maxlen=0)
                             except Exception as e:
-                                logger.exception(
-                                    f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
-                                )
+                                err_msg = f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
+                                if not ignore_failures:
+                                    logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
+                                    STOP_EVENT.set()
+                                    executor.shutdown(wait=False, cancel_futures=True)
+                                    raise RuntimeError(err_msg) from e
+
+                                logger.error(f"[{mod.name}] {err_msg}")
+                                item["status"] = "failed"
+                                item["error_message"] = str(e)
+                                # logger.exception(
+                                #     f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
+                                # )
 
                         processed_entries.append((owner, item))
 
@@ -1127,9 +1203,14 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                         current_mod_entries = []
                     utils._log_hook_history(current_mod_entries, hook)
                 except Exception as e:
-                    logger.error(
+                    err_msg = (
                         f'Module "{mod.name}" collection-hook "{hook.name}" failed: {e}'
                     )
+                    if not ignore_failures:
+                        logger.critical(f"CRITICAL: {err_msg}")
+                        raise RuntimeError(err_msg) from e
+                    logger.error(f"{err_msg} (Skipping...)")
+
             results_by_mod[mod] = current_mod_entries
 
     # Re-flatten the lists after module-level post-hooks have modified them
@@ -1146,6 +1227,10 @@ def run_fetchez(modules: List[Any], threads: int = 3, global_hooks=None):
                 flat_results = []
             utils._log_hook_history(flat_results, hook)
         except Exception as e:
-            logger.error(f'Global collection-hook "{hook.name}" failed: {e}')
+            err_msg = f'Global collection-hook "{hook.name}" failed: {e}'
+            if not ignore_failures:
+                logger.critical(f"CRITICAL: {err_msg}")
+                raise RuntimeError(err_msg) from e
+            logger.error(f"{err_msg} (Skipping...)")
 
     return flat_results
