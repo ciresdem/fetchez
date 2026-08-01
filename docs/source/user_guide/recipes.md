@@ -87,7 +87,7 @@ global_hooks:
 ```
 
 ## Runtime Context Placeholders
-When writing complex recipes, you often need to route data to dynamic directories or reference the current batch's region. Fetchez automatically injects runtime variables into your YAML configuration using `%placeholder%` syntax.
+Fetchez automatically injects runtime variables into your YAML configuration using `%placeholder%` syntax.
 
 **Important YAML Formatting Note:** To ensure your YAML parses correctly, you must enclose any string containing a placeholder in quotes (e.g., `"%shared_cache%"`).
 
