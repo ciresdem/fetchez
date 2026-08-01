@@ -106,7 +106,11 @@ Hooks are the specialized tools that intercept and process your data. It is crit
 
 * **Global Hooks** (`global_hooks`): Execute on the entire, aggregated dataset from all modules simultaneously.
 
-## Runtime Context Placeholders
+## Advanced Execution: Placeholders, Modifiers and Schemas
+
+Fetchez provides advanced tools to alter and validate your recipes at runtime without modifying the underlying YAML files.
+
+### Runtime Context Placeholders
 Fetchez automatically injects runtime variables into your YAML configuration using `%placeholder%` syntax.
 
 **Important YAML Formatting Note:** To ensure your YAML parses correctly, you must enclose any string containing a placeholder in quotes (e.g., `"%shared_cache%"`).
@@ -134,10 +138,6 @@ global_hooks:
     args:
       output: "%name%_%batch_name%_stack.tif"
 ```
-
-## Advanced Execution: Modifiers and Schemas
-
-Fetchez provides advanced tools to alter and validate your recipes at runtime without modifying the underlying YAML files.
 
 ### Modifiers
 Modifiers dynamically mutate your recipe configuration before execution begins. This is useful for temporarily excluding large modules, or injecting arguments during a specific run. Modifiers can be invoked via the CLI:

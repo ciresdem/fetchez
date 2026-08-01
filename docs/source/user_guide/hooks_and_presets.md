@@ -1,10 +1,10 @@
 # 🪝 Hooks and Presets
 
-Fetchez is designed to be highly extendable. Instead of just downloading files, you can build automated pipelines that process data on the fly.
+Fetchez is designed to be highly extendable. Using **hooks** and **presets**, you can build automated pipelines that process fetched or local data on the fly.
 
 ## Processing Hooks
 
-Fetchez includes a powerful **Hook System** that allows you to chain actions together. Hooks run in a pipeline, meaning the output of one hook (e.g., unzipping a file) becomes the input for the next (e.g., streaming and processing it).
+Fetchez includes a **Hook System** that allows you to chain actions together. Hooks run in a pipeline, meaning the output of one hook (e.g., unzipping a file) becomes the input for the next (e.g., streaming and processing it). Hooks can also manipulate or aggregate the fetched data's metadata, trigger outside software or just pass the data in a new direction or make attached artifacts.
 
 There are four stages in the Hook lifecycle:
 1. **PRE/MANIFEST Stage:** (`pre` stage) Runs before any data is downloaded (e.g., filtering URLs, masking regions).
@@ -19,6 +19,9 @@ Each hook defines it's default `stage`, which can be changed at any time (though
 * `pipe`: Prints the final absolute path to stdout (useful for piping to GDAL/PDAL).
 * `audit`: Generates a JSON manifest of everything downloaded and processed.
 * `exec`: Run a shell command on a file (uses "{file}" formatter).
+* `stream-init`: Initialize a data stream and attach to the data entry.
+* `copy-artifact`: Copy a data entry artifact from one location to another.
+* `focus`: Focus the pipeline on a specific artifact.
 
 ### Example (CLI):
 ```bash
@@ -36,7 +39,7 @@ gdalbuildvrt cop_merged.vrt $(fetchez run -R -105/-104/39/40 copernicus --pipe)
 
 ## Pipeline Presets (Macros)
 
-Tired of typing the same chain of hooks every time? Presets allow you to define reusable workflow macros.
+Presets allow you to define reusable hook macros in declarative YAML files.
 
 Instead of running this long command:
 
@@ -47,11 +50,11 @@ fetchez run copernicus --hook checksum:algo=sha256 --hook enrich --hook audit:fi
 You can define a preset and simply run:
 
 ```bash
-fetchez run copernicus --audit-full
+fetchez run copernicus --hook --audit-full
 ```
 
 ### How to create a Preset:
-Presets are simply YAML files that live in your ~/.fetchez/presets/ directory or are provided as an extension or by the community. `fetchez` automatically scans this folder and the PresetRegistry and turns any valid YAML file into a valid hook.
+Presets are simply YAML files that live in your ~/.fetchez/hooks/presets/ directory or are provided as an extension or by the community. Fetchez automatically scans this folder and the `PresetRegistry` and turns any valid YAML file into a valid hook.
 
 1. Create a file: ~/.fetchez/hooks/presets/audit_full.yaml
 2. Define your workflow:
@@ -69,16 +72,31 @@ hooks:
       file: audit_full.json
 ```
 
-**Run it:** Your new preset automatically appears in `fetchez` as a valid hook!
+**Run it:** Your new preset automatically appears in the `fetchez` `PresetRegistry` as a valid hook!
 
 ```bash
 fetchez run charts --hook audit-full
 ```
 
-### Extending Hooks and Presets (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool and want to create your own processing hooks and presets, you can register your own hooks and presets either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.HookRegistry` and `fetchez.registry.PresetRegistry`
+**Add it:** You can also use the new preset in `recipes` or referenced by other `presets` and change hook arguments.
 
-In your project, make a directory called 'hooks' and/or 'hooks/presets'; add any python hooks and YAML presets to the appropriate directory and register them with `fetchez` in your `pyproject.toml`:
+```yaml
+modules:
+  - module: charts
+    args:
+      - outdir: "%tile_dir%"
+global_hooks:
+  - preset: audit-full
+    args:
+      - name: audit
+        args:
+          file: charts_audit_full.json
+```
+
+### Extending Hooks and Presets (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool and want to create your own processing hooks and presets, you can register your own hooks and presets either in your project or in the `.fetchez` configuration directory and they will be discoverable with the `fetchez.registry.HookRegistry` and `fetchez.registry.PresetRegistry`
+
+In your project, make a directory called 'hooks' and/or 'hooks/presets'; add any python hooks and YAML presets to the appropriate directory and register them with Fetchez in your `pyproject.toml`:
 
 ```toml
 [project.entry-points."fetchez.hooks"]
