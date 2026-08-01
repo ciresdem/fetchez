@@ -40,7 +40,8 @@ class TransferLog(FetchHook):
 
         for _mod, entry in entries:
             # Status 0 indicates success in fetchez
-            if entry.get("status") == 0:
+            # Some modules don't return a status.
+            if entry.get("status", 0) == 0:
                 successes.append(entry)
             else:
                 failures.append(entry)

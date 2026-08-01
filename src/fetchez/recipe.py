@@ -16,12 +16,12 @@ import os
 import copy
 import json
 
-# import yaml
+import yaml
 import inspect
 import logging
 
 from .core import run_fetchez
-from .spatial import yield_parsed_regions
+from .spatial import yield_parsed_regions, Region
 from .registry import (
     ModuleRegistry,
     HookRegistry,
@@ -675,7 +675,7 @@ class Recipe:
         threads = run_opts.get("threads", 1)
         raw_region = self.config.get("region")
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
-        # recipe_name = self.config.get("project", {}).get("name", "Unnamed")
+        recipe_name = self.config.get("project", {}).get("name", "Unnamed")
 
         original_cwd = os.getcwd()
         if outdir is None:
@@ -816,7 +816,7 @@ class Recipe:
                 try:
                     modules_to_run = self._init_modules(
                         iteration_config["modules"],
-                        target_region=target_region,
+                        target_region=Region(*iteration_config.get("region")),
                         global_region_srs=global_region_srs,
                     )
                 except Exception as e:
@@ -826,20 +826,21 @@ class Recipe:
                 if not modules_to_run:
                     continue
 
-                # # Dump the localized recipe for debugging and reproducibility
-                # batch_dir = os.path.dirname(os.path.abspath(batch_config_fn))
-                # if batch_dir:
-                #     os.makedirs(batch_dir, exist_ok=True)
+                # Dump the localized recipe for debugging and reproducibility
+                batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
 
-                # batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
-                # with open(batch_config_fn, "w") as f:
-                #     yaml.dump(
-                #         iteration_config,
-                #         f,
-                #         sort_keys=False,
-                #         default_flow_style=False,
-                #     )
-                # logger.debug(f"Saved localized recipe to {batch_config_fn}")
+                batch_dir = os.path.dirname(os.path.abspath(batch_config_fn))
+                if batch_dir:
+                    os.makedirs(batch_dir, exist_ok=True)
+
+                with open(batch_config_fn, "w") as f:
+                    yaml.dump(
+                        iteration_config,
+                        f,
+                        sort_keys=False,
+                        default_flow_style=False,
+                    )
+                logger.debug(f"Saved localized recipe to {batch_config_fn}")
 
                 self._generate_receipt(iteration_config, batch_name)
 
