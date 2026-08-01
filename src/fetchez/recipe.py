@@ -848,23 +848,36 @@ class Recipe:
                     if ignore_failures:
                         logger.error(f"[{mod.name}] Module execution failed: {e}")
                         logger.warning(
-                            f"[{mod.name}] '--ignore-failures' is SET. "
+                            f"[{mod.name}] 'ignore-failures' is SET. "
                             "Pipeline will continue, but your final output may be incomplete!"
                         )
                     else:
                         # Default behavior: Fail and abort
                         logger.critical(
                             f"[{mod.name}] Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
-                            "Use '--ignore-failures' if you wish to bypass this."
+                            "Set 'ignore_failures' if you wish to bypass this."
                         )
                         raise
 
-                run_fetchez(
-                    modules_to_run,
-                    threads=threads,
-                    global_hooks=global_hooks,
-                    ignore_failures=ignore_failures,
-                )
+                try:
+                    run_fetchez(
+                        modules_to_run,
+                        threads=threads,
+                        global_hooks=global_hooks,
+                        ignore_failures=ignore_failures,
+                    )
+                except Exception as e:
+                    if ignore_failures:
+                        logger.error(f"fetchez execution failed: {e}")
+                        logger.warning(
+                            f"[{mod.name}] 'ignore-failures' is SET. "
+                            "Pipeline will continue, but your final output may be incomplete!"
+                        )
+                    logger.critical(
+                        "Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
+                        "Set 'ignore_failures' if you wish to bypass this."
+                    )
+                    raise
 
                 # Update State
                 if batch_name:
