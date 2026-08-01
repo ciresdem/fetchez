@@ -251,9 +251,10 @@ def get(
     final_results = run_fetchez(
         [mod_instance], threads=threads, ignore_failures=ignore_failures
     )
+
     downloaded_files = []
     for _mod, entry in final_results:  # mod_instance.results:
-        if entry.get("status") == 0:
+        if entry.get("status", 0) == 0:
             fn = entry.get("dst_fn")
             if fn and os.path.exists(fn):
                 downloaded_files.append(os.path.abspath(fn))
