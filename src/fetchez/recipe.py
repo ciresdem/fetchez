@@ -765,6 +765,7 @@ class Recipe:
                     iteration_config_modified = modifier.apply(
                         iteration_config_modified
                     )
+                iteration_config = copy.deepcopy(iteration_config_modified)
 
                 # Inject outdir for shared caching
                 for mod in iteration_config.get("modules", []):
@@ -791,7 +792,7 @@ class Recipe:
                 for schema in schemas:
                     logger.info(f"Validating recipe with {schema.name} schema")
                     iteration_valid, iteration_errors = schema.validate(
-                        iteration_config_modified
+                        iteration_config
                     )
                     if not iteration_valid:
                         errors.extend(iteration_errors)
@@ -800,8 +801,8 @@ class Recipe:
                     logger.warning(
                         f"The recipe is invalid based on defined schemas: {errors}"
                     )
-                else:
-                    iteration_config = copy.deepcopy(iteration_config_modified)
+                # else:
+                #     iteration_config = copy.deepcopy(iteration_config_modified)
 
                 # Initialize Hooks and Modules ( to python classes )
                 try:

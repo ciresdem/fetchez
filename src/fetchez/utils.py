@@ -165,8 +165,8 @@ class FetchezMainGroup(click.Group):
 class FetchezMainCommand(click.Command):
     """Custom command to colorize the main CLI commands."""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
 
     def format_usage(self, ctx, formatter):
         usage_pieces = self.collect_usage_pieces(ctx)
