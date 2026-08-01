@@ -320,7 +320,9 @@ class DAV(FetchModule):
                         f"Could not parse year for DAV dataset {fid}. Allowing through filter."
                     )
 
-            if self.survey_id and (int(self.survey_id.strip()) != int(fid.strip())):
+            if self.survey_id and (
+                int(utils.str_or(self.survey_id, "").strip()) != int(fid.strip())
+            ):
                 continue
 
             if self.title_filter and self.title_filter.lower() not in name.lower():
