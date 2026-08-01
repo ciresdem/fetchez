@@ -33,7 +33,7 @@ def cache_group():
 
 
 @cache_group.command("info", cls=FetchezMainCommand)
-@click.option("-D", "--dir", default=".", help="Target directory to inspect.")
+@click.option("-D", "--dir", required=True, help="Target directory to inspect.")
 def cache_info(dir):
     """Display information about local cache usage."""
 
@@ -67,7 +67,9 @@ def cache_info(dir):
 
 
 @cache_group.command("clear", cls=FetchezMainCommand)
-@click.option("-D", "--dir", default=".", help="Target directory to clear.")
+@click.option(
+    "-D", "--dir", default=".", required=True, help="Target directory to clear."
+)
 def cache_clear(dir):
     """Safely delete the local Fetchez cache."""
 
