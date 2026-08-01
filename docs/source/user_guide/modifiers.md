@@ -1,12 +1,8 @@
 # 🛠️ Domain Modifiers
 
-While standard Recipes are great for chaining commands, sometimes you need to inject on-the-fly runtime changes to a recipe across an entire project.
-
-Fetchez includes a **Modifier Engine** that can automatically mutate your YAML recipes as they are loaded, allowing for complete control of the pipeline.
+Fetchez includes a **Modifier Engine** in its `ModifierRegistry` that can automatically mutate your YAML recipes as they are loaded, allowing for complete runtime control of the pipeline.
 
 ## Using a Modifier
-
-We'll take a usage example from `globato` here to show how to use modifiers.
 
 Add a `modifiers` argument to the top of your YAML recipe:
 
@@ -15,16 +11,21 @@ Add a `modifiers` argument to the top of your YAML recipe:
 project:
   name: "My_Project"
 
-modifier: "cudem" # Loads the CUDEM modifier
-region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
+modifiers:
+  - name: exclude_module
+    args:
+      modules: margrav/charts
+region: [-120.0, -119.75, 33.0, 33.25]
+modules:
+  - bundle: my-bathymetry-bundle
 ```
 
 *What happens under the hood?*
 
-By specifying modifier: "cudem", the engine intercepts your recipe. It automatically calculates that a CUDEM delivery tile requires a 6-cell overlap at 1/9th arc-second resolution. It expands your fetching bounding box, injects the correct EPSG codes into your gridding hooks, and appends a final `raster_crop` hook to snap the finished DEM back to your requested tile extents.
+By specifying the modifier: `exclude_module`, the engine intercepts your recipe and removes the named `margrav` and `charts` modules from the module Bundle `my-bathymetry-bundle`. Modifiers take an input recipe config and do something to or with it and return the possibly mutated bundle, right before sending to the core Fetchez engine for processing.
 
 ## Extending Modifiers (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own modifiers in Python. Make a directory called 'my_project/recipes/modifiers' and put all your modifier python files within it:
+Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own recipe modifiers in Python. Make a directory called 'my_project/recipes/modifiers' and put all your modifier python files within it:
 
 ```python
 from fetchez.recipes.modifiers import BaseModifier
@@ -36,7 +37,6 @@ class WeatherModifier(BaseModifier):
     def apply(cls, config):
         config["region"] = [-180, 180, -90, 90] # Force global fetch
         return config
-
 ```
 
 Then register your project with fetchez in your `pyproject.toml`:

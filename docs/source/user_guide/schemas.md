@@ -1,24 +1,23 @@
 # 🏛️ Domain Schemas
 
-While standard Recipes are great for chaining commands, sometimes you need to enforce rigorous geospatial standards across an entire project—like exact arc-second resolutions, cell overlaps, and grid-node vs. pixel-node registration.
-
-Fetchez includes a **Schema Engine** that can automatically scan your YAML recipes to enforce these rules.
+Fetchez includes a **Schema Engine** in its `SchemaRegistry` that automatically scans your YAML recipes to enforce rules or otherwise validate the recipe structure or purpose.
 
 ## Using a Schema
 
-Add a `schemas` argument to the top of your YAML recipe, in this example we'll use a theoretical `schema` that would make sure the `region` parameter is a strit 1/4 degree tile:
+Add a `schemas` argument to the top of your YAML recipe, in this example we'll use a theoretical `schema` that would make sure the `region` parameter is a strict 1/4 degree tile:
 
 ```yaml
 project:
   name: "My_Strict_Project"
 
-schemas: "cudem-tile" # Loads the CUDEM-tile ruleset
+schemas:
+  - name: "quarter-degree-tile"
 region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
 ```
 
 *What happens under the hood?*
 
-By specifying schema: "cudem", the engine intercepts your recipe and checks your region to make sure it snaps directly to a quarter degree tile in WGS84. It will return the validity of the recipe based on that schema along with any errors it found.
+By specifying schema: `quarter-degree-tile`, the engine intercepts your recipe and checks your region to make sure it snaps directly to a quarter degree tile in WGS84. It will return the validity of the recipe based on that schema along with any errors it found.
 
 ## Extending Schemas (Plugins and Extensions)
 Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own schemas in Python. Make a directory called 'my_project/recipes/schemas' and put all your schema python files within it:
