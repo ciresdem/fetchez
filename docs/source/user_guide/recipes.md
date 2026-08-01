@@ -86,6 +86,26 @@ global_hooks:
       file: "miami_data_audit.json"
 ```
 
+#### Understanding Hooks and the Lifecycle
+Hooks are the specialized tools that intercept and process your data. It is critical to understand when they run. `fetchez` processes hooks in three distinct stages:
+
+* **PRE/MANIFEST Stage:** Runs before downloads begin.
+  *Use case:* Filtering the list of URLs based on regex, limiting the maximum number of files to download, or authenticating tokens.
+
+* **FILE Stage:** Runs during the download loop on each individual file.
+  *Use case:* Unzipping archives immediately as they arrive, verifying checksums, or piping the file path to standard output.
+
+* **STREAM Stage:** Runs after the FILE Stage having invoked the `stream-init` hook.
+
+* **POST/COLLECTION Stage:** Runs after all files have been downloaded and processed.
+  *Use case:* Generating a JSON audit log, zipping the final output directory into a clean tarball, or sending a Slack notification that the job is done.
+
+#### Global vs. Module Hooks
+
+* **Module Hooks** (`modules.hooks`): Only execute on the files fetched by that specific module. For example, you might only want to run the unzip hook on USGS data, but leave Copernicus files as tarballs.
+
+* **Global Hooks** (`global_hooks`): Execute on the entire, aggregated dataset from all modules simultaneously.
+
 ## Runtime Context Placeholders
 Fetchez automatically injects runtime variables into your YAML configuration using `%placeholder%` syntax.
 
@@ -114,26 +134,6 @@ global_hooks:
     args:
       output: "%name%_%batch_name%_stack.tif"
 ```
-
-## Understanding Hooks and the Lifecycle
-Hooks are the specialized tools that intercept and process your data. It is critical to understand when they run. `fetchez` processes hooks in three distinct stages:
-
-* **PRE/MANIFEST Stage:** Runs before downloads begin.
-  *Use case:* Filtering the list of URLs based on regex, limiting the maximum number of files to download, or authenticating tokens.
-
-* **FILE Stage:** Runs during the download loop on each individual file.
-  *Use case:* Unzipping archives immediately as they arrive, verifying checksums, or piping the file path to standard output.
-
-* **STREAM Stage:** Runs after the FILE Stage having invoked the `stream-init` hook.
-
-* **POST/COLLECTION Stage:** Runs after all files have been downloaded and processed.
-  *Use case:* Generating a JSON audit log, zipping the final output directory into a clean tarball, or sending a Slack notification that the job is done.
-
-### Global vs. Module Hooks
-
-* **Module Hooks** (`modules.hooks`): Only execute on the files fetched by that specific module. For example, you might only want to run the unzip hook on USGS data, but leave Copernicus files as tarballs.
-
-* **Global Hooks** (`global_hooks`): Execute on the entire, aggregated dataset from all modules simultaneously.
 
 ## Advanced Execution: Modifiers and Schemas
 
