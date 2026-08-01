@@ -4,7 +4,7 @@ Fetchez is designed to be highly extendable. Using **hooks** and **presets**, yo
 
 ## Processing Hooks
 
-Fetchez includes a **Hook System** that allows you to chain actions together. Hooks run in a pipeline, meaning the output of one hook (e.g., unzipping a file) becomes the input for the next (e.g., streaming and processing it). Hooks can also manipulate or aggregate the fetched data's metadata, trigger outside software or just pass the data in a new direction or make attached artifacts.
+Fetchez includes a **Hook System** in its `HookRegistry` that allows you to chain actions together. Hooks run in a pipeline, meaning the output of one hook (e.g., unzipping a file) becomes the input for the next (e.g., streaming and processing it). Hooks can also manipulate or aggregate the fetched data's metadata, trigger outside software or just pass the data in a new direction or make attached artifacts.
 
 There are four stages in the Hook lifecycle:
 1. **PRE/MANIFEST Stage:** (`pre` stage) Runs before any data is downloaded (e.g., filtering URLs, masking regions).
@@ -37,9 +37,10 @@ fetchez run -R loc:denver copernicus --pipe | xargs gdalwarp -t_srs EPSG:3857
 gdalbuildvrt cop_merged.vrt $(fetchez run -R -105/-104/39/40 copernicus --pipe)
 ```
 
-## Pipeline Presets (Macros)
+## Hook Presets (Macros)
 
-Presets allow you to define reusable hook macros in declarative YAML files.
+Presets are YAML configuration files that define a preset group of hooks. Giving you the ability to make complex hook macros.
+You can make your own, or use a pre-configured Preset from fetchez or it's extensions.
 
 Instead of running this long command:
 
