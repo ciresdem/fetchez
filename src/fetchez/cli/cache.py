@@ -39,6 +39,12 @@ def cache_info(dir):
 
     from math import floor
 
+    # TODO: Add lock option to info and remove .lock files.
+    # lock = True
+    # if lock:
+    #     files = list(Path(dir).glob("**/*.lock"))
+    #     cache_parents = {Path(*f.parts[: -1]) for f in files}
+    # else:
     files = list(Path(dir).glob("**/.fetchez_cache/**/*.json"))
     cache_parents = {Path(*f.parts[: f.parts.index(".fetchez_cache")]) for f in files}
 

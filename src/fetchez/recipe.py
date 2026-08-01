@@ -806,6 +806,8 @@ class Recipe:
                 # else:
                 #     iteration_config = copy.deepcopy(iteration_config_modified)
 
+                iteration_region = iteration_config.get("region", [])
+
                 # Initialize Hooks and Modules ( to python classes )
                 try:
                     global_hooks = self._init_hooks(iteration_config["global_hooks"])
@@ -816,7 +818,7 @@ class Recipe:
                 try:
                     modules_to_run = self._init_modules(
                         iteration_config["modules"],
-                        target_region=Region(*iteration_config.get("region")),
+                        target_region=Region.from_list(iteration_region or []),
                         global_region_srs=global_region_srs,
                     )
                 except Exception as e:
