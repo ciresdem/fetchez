@@ -1,15 +1,17 @@
 # 🐄 Plugins & Extensions
 
-Need to fetch data from a specialized local server? Or maybe run a custom script immediately after every download? You don't need to fork the repo!
+Fetchez is designed to be highly extendable. Fetchez can extended by adding Modules, Bundles, Hooks, Presets, Recipes, Modifiers and Schemas. Using the fetchez registry system, its simple to create custom personal plugins or widely distributed Fetchez extensions.
 
-There are two ways to extend `fetchez`: **Local Plugins** (for quick, personal scripts) and **Full Extensions** (for distributable Python packages).
+There are two ways to extend `fetchez`: **Local Plugins** (for quick, personal scripts and plugins) and **Full Extensions** (for distributable Python packages).
 
 ##  Local Plugins (Quick & Easy)
 
-Local plugins are standalone Python scripts that you drop into your local `fetchez` configuration folders. `fetchez` automatically scans these folders at runtime and registers any valid classes it finds.
+Local plugins are standalone Python scripts or YAML configuration files that you drop into your local `~/.fetchez` configuration folders. Fetchez automatically scans these folders and endpoints at runtime and registers any valid plugins it finds.
 
-### Data Modules (`~/.fetchez/modules/`)
-Data Modules tell `fetchez` how to talk to a specific API or data source.
+### Data Modules and Bundles
+Located in: `~/.fetchez/modules/` and `~/.fetchez/modules/bundles`
+
+Data Modules tell Fetchez how to talk to a specific API or how to find a particular data source.
 
 To build one, create a Python script containing a class that inherits from `fetchez.modules.FetchModule`.
 
@@ -36,10 +38,12 @@ class MyCustomServer(FetchModule):
 
 You can now run this instantly from the CLI: `fetchez run my_server`
 
-### Processing Hooks (`~/.fetchez/hooks/`)
-Hooks intercept data before, during, or after the fetch process.
+### Processing Hooks and Presets
+Located in: `~/.fetchez/hooks/` and `~/.fetchez/hooks/presets`
 
-A hook should have a run method that accepts and retuns the data `entries`, possibly doing something to/with those entries along the way.
+Hooks intercept data before, during, or after the fetch process and do things to or with their attached module or to the global pool of data.
+
+A hook should have a `run` method that accepts and retuns the data `entries`, possibly doing something to/with those entries along the way.
 
 To build one, create a class that inherits from `fetchez.hooks.FetchHook`.
 

@@ -4,20 +4,22 @@ Fetchez comes builtin with [70+ different modules](https://fetchez.readthedocs.i
 
 ## Data Modules
 
-Fetchez includes a powerful **Module System** that allows you to access various geospatial data sources locally or from around the world.
+Fetchez includes a **Module System** in its `ModuleRegistry` that allows you to access various geospatial data sources locally or from around the world.
 
-Modules come with their own arguments to set different data types, modify outputs, set credentials, etc. Hooks can be used to modify modules before, during or after fetching; allowing for full ETL processing workflows.
+Modules come with their own arguments to set different data types, modify outputs, set credentials, etc. Hooks can be used to modify or manage modules before, during or after fetching; allowing for full ETL processing workflows using disparate sets of data modules.
+
+Modules define a specific dataset, either a full data collection from a government API, a simple REST service that distributes daily tides or a single file located on your hard-drive.
 
 ## Module Bundles
 
-Bundles are YAML configuration files that define a group of Modules and their arguments and hooks.
-You can make your own, or use a pre-configured Bundle from fetchez or it's extensions.
+Bundles are YAML configuration files that define a group of Modules, possibly with preset arguments and hooks and can be used in the same ways as standard modules.
+You can make your own, or use a pre-configured Bundle from Fetchez or it's extensions.
 
 ### Example
 
 **Define your bundle**
 
-Put this in your `~/.fetchez/bundles/` plugin folder
+Put this in your `~/.fetchez/modules/bundles/` plugin folder
 
 ```yaml
 name: grav_and_bath
@@ -50,18 +52,21 @@ modules:
           data_type: "charts_000"
 ```
 
-**Use the bundle in a recipe**
+* **Run it:** Your new `grav_and_bath` bundle is now registrered in the `BundleRegistry` and available in the fetchez cli:
 
-Add the bundle to your recipe!
+```bash
+fetchez run -R loc:"portland, me" grav_and_bath
+```
+
+* **Add it:** You can also use the bundle as a module in `recipes` or can be referenced by other Bundles.
 
 ```yaml
 project:
   name: "my_harbor"
-  region: [-120.5, -120.0, 34.0, 34.5]
+  region: loc:"portland, me"
   modules:
   - bundle: grav_and_bath
     args: {weight: 1.0}
-    """
 ```
 
 ### Extending Bunldes (Plugins and Extensions)
@@ -70,6 +75,6 @@ Fetchez is generic. If you are building a custom tool and want to bundle your ow
 To create an extension where your bundles can be installed and used by `fetchez`, make a directory called 'bundles' in your project; add any YAML module bundles to that directory and register them with `fetchez` in your `pyproject.toml`:
 
 ```toml
-[project.entry-points."fetchez.bundles"]
-my_project_bundles = "my_project.bundles"
+[project.entry-points."fetchez.modules.bundles"]
+my_project_bundles = "my_project.hooks.bundles"
 ```
