@@ -269,24 +269,27 @@ class FetchModule:
                         return Region(d["w"], d["e"], d["s"], d["n"], srs=d.get("srs"))
                     return d
 
+                cached_results = []
                 with open(cache_file, "r") as f:
                     cached_results = json.load(f, object_hook=_json_object_hook)
 
+                # Empty cache_results are useful, not sure if we should re-generate...
+                # if cached_results:
                 # Rehydrate relative paths to absolute paths for the current environment
                 for entry in cached_results:
                     dst_fn = entry.get("dst_fn")
                     if dst_fn:
                         dst_fn = Path(dst_fn)
                         if not dst_fn.is_absolute():
-                            entry["dst_fn"] = str(
-                                Path(Path(self._outdir) / dst_fn).resolve()
-                            )
+                            dst_fn = Path(Path(self._outdir) / dst_fn)
+                        entry["dst_fn"] = str(dst_fn.resolve())
 
                 self.results = cached_results
                 logger.debug(
                     f"[{self.name}] Loaded {len(self.results)} results from cache."
                 )
                 return
+            # logger.info(f"[{self.name}] Cached results are empty, creating a new one.")
             except Exception as e:
                 logger.warning(f"[{self.name}] Cache corrupted, ignoring: {e}")
 

@@ -399,13 +399,18 @@ def remove_glob2(*args: str) -> int:
         try:
             # Match top-level paths based on the provided glob pattern
             # Uses Path(".") as the base directory anchor for the pattern
-            for path in Path(".").glob(glob_pattern):
-                if path.is_dir() and not path.is_symlink():
-                    shutil.rmtree(path)
-                else:
-                    path.unlink(missing_ok=True)
+            if Path(glob_pattern).is_absolute():
+                shutil.rmtree(Path(glob_pattern))
+            else:
+                for path in Path(".").glob(glob_pattern):
+                    if not path.exists():
+                        continue
+                    if path.is_dir() and not path.is_symlink():
+                        shutil.rmtree(path)
+                    else:
+                        path.unlink(missing_ok=True)
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Could not remove path with glob pattern {glob_pattern}: {e}")
             return -1
     return 0
 
