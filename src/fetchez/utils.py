@@ -296,17 +296,21 @@ def format_dataset_id(dataset_id):
 
     from urllib.parse import urlparse
 
-    if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
-        parsed = urlparse(dataset_id)
-        # context = parsed.netloc.split('.')[0]
-        context = parsed.netloc
-        basename = os.path.basename(parsed.path)
-    else:
-        basename = os.path.basename(dataset_id)
-        context = os.path.basename(os.path.dirname(dataset_id))
+    dataset_id = str_or(dataset_id)
+    if dataset_id:
+        if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
+            parsed = urlparse(dataset_id)
+            # context = parsed.netloc.split('.')[0]
+            context = parsed.netloc
+            basename = Path(parsed.path).name
+        else:
+            basename = Path(dataset_id).name
+            context = Path(dataset_id).parent.name
 
-    if not context:
-        return basename
+        if not context:
+            return basename
+    else:
+        return dataset_id
 
     return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
 
@@ -346,18 +350,33 @@ def str2inc(inc_str):
     if inc_str is None or str(inc_str).lower() == "none" or len(str(inc_str)) == 0:
         return None
 
-    inc_str = str(inc_str)
+    inc_str = str_or(inc_str)
+    if not inc_str:
+        return None
+
     units = inc_str[-1]
+    if float_or(units):
+        return float_or(inc_str)
+
+    inc_val = float_or(inc_str[:-1])
+    if not inc_val:
+        return None
 
     try:
-        if units == "c" or units == "s":
-            return float(inc_str[:-1]) / 3600.0
-        elif units == "m":
-            return float(inc_str[:-1]) / 360.0
-        elif units == "t":
-            return float(inc_str[:-1]) / 111320.0  # Approx meters at equator
+        if units:
+            if units == "c" or units == "s":
+                return inc_val / 3600.0
+            elif units == "m":
+                return inc_val / 360.0
+            elif units == "t":
+                return inc_val / 111320.0  # Approx meters at equator
+            else:
+                logger.warning(
+                    f"Unknown unit string: {units}, returning raw parsed value."
+                )
+                return float_or(inc_val)
         else:
-            return float(inc_str)
+            return float_or(inc_str)
     except ValueError as e:
         logger.error(f"Could not parse increment {inc_str}: {e}")
         return None
@@ -860,6 +879,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
 
     extracted_paths = []
     ext = os.path.splitext(src_file)[1].lower()
+    outdir = Path(outdir)
 
     if ext == ".zip":
         with zipfile.ZipFile(src_file, "r") as z:
@@ -871,11 +891,10 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         if member.endswith("/"):  # Skip directories
                             continue
 
-                        dest_fn = os.path.join(outdir, member.replace("\\", "/"))
+                        dest_fn = outdir / member.replace("\\", "/")
+                        dest_fn.parent.mkdir(parents=True, exist_ok=True)
                         if tmp_fn:
                             dest_fn = make_temp_fn(member, temp_dir=outdir)
-                        elif not os.path.exists(os.path.dirname(dest_fn)):
-                            os.makedirs(os.path.dirname(dest_fn))
 
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
@@ -885,7 +904,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
     else:
         # Fallback if the file isn't a zip
         for pattern in fns:
-            if pattern == os.path.basename(src_file):
+            if pattern == Path(src_file).parent:
                 extracted_paths.append(src_file)
                 break
     return extracted_paths

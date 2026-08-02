@@ -14,9 +14,9 @@ that lack a public API but provide file lists (e.g., NCEI Thredds, USACE).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import logging
+from pathlib import Path
 from typing import List, Dict, Optional, Any, Tuple
 
 from . import utils
@@ -28,8 +28,8 @@ from shapely.geometry import shape
 logger = logging.getLogger(__name__)
 
 # Directory where FRED index files are stored
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-FETCH_DATA_DIR = os.path.join(THIS_DIR, "data")
+THIS_DIR = Path(__file__).resolve().parent
+FETCH_DATA_DIR = Path(THIS_DIR / "data")
 
 
 class FRED:
@@ -65,12 +65,12 @@ class FRED:
         # Default to local directory if not found in data dir
         if local:
             self.path = self.filename
-        elif os.path.exists(os.path.join(FETCH_DATA_DIR, self.filename)):
-            self.path = os.path.join(FETCH_DATA_DIR, self.filename)
-        elif os.path.exists(os.path.join(config.CONFIG_PATH, "indices", self.filename)):
-            self.path = os.path.join(config.CONFIG_PATH, "indices", self.filename)
+        elif Path(FETCH_DATA_DIR / self.filename).exists():
+            self.path = Path(FETCH_DATA_DIR / self.filename)
+        elif Path(config.CONFIG_PATH / "indices" / self.filename).exists():
+            self.path = Path(config.CONFIG_PATH / "indices" / self.filename)
         else:
-            self.path = self.filename
+            self.path = Path(self.filename)
 
         self.features: List[Any] = []
         self._load()
@@ -78,7 +78,7 @@ class FRED:
     def _load(self):
         """Load the GeoJSON file into memory."""
 
-        if os.path.exists(self.path):
+        if self.path.exists():
             try:
                 with open(self.path, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -111,9 +111,9 @@ class FRED:
         }
 
         # Ensure directory exists
-        out_dir = os.path.dirname(self.path)
-        if out_dir and not os.path.exists(out_dir):
-            os.makedirs(out_dir)
+        out_dir = self.path.parent
+        if out_dir and not out_dir.exists():
+            out_dir.mkdir(parents=True, exist_ok=True)
 
         try:
             with open(self.path, "w", encoding="utf-8") as f:
@@ -252,7 +252,7 @@ class FRED:
 
         import csv
 
-        if not os.path.exists(source_file):
+        if not Path(source_file).exists():
             logger.error(f"Source file not found: {source_file}")
             return
 
@@ -313,7 +313,7 @@ class FRED:
 
             link = props.get("DataLink")
             if link and not link.startswith("http") and not link.startswith("ftp"):
-                abs_path = os.path.abspath(link)
+                abs_path = Path(link).resolve()
                 props["DataLink"] = f"file://{abs_path}"
 
             w, e, s, n = self._detect_spatial_fields(item)

@@ -1,6 +1,7 @@
 # test_recipe.py
 
 import json
+import pytest
 from unittest.mock import patch
 from fetchez.recipe import Recipe
 
@@ -13,6 +14,14 @@ def test_recipe_initialization():
 
     assert recipe.name == "Test Project"
     assert recipe.config["project"]["description"] == "A test recipe"
+
+    with pytest.raises(FileNotFoundError):
+        recipe = Recipe("/tmp/test.yaml")
+
+    with pytest.raises(FileNotFoundError):
+        recipe = Recipe.from_file("/tmp/test.yaml")
+
+    assert Recipe.from_file == Recipe.from_dict
 
 
 def test_get_module_signature():

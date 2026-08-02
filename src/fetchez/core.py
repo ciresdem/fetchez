@@ -22,6 +22,7 @@ import netrc
 import io
 import logging
 import collections
+from pathlib import Path
 from tqdm import tqdm
 import urllib.parse
 from urllib.error import HTTPError
@@ -815,10 +816,10 @@ class Fetch:
         status = 0
         logger.info(f"Fetching remote ftp file: {self.url}...")
 
-        dest_dir = os.path.dirname(dst_fn)
-        if dest_dir and not os.path.exists(dest_dir):
+        dest_dir = Path(dst_fn).parent
+        if dest_dir and not Path(dest_dir).exists():
             try:
-                os.makedirs(dest_dir)
+                Path(dest_dir).mkdir(parents=True, exist_ok=True)
             except OSError:
                 pass
 
@@ -844,7 +845,7 @@ class Fetch:
                     total=total_size,
                     unit="B",
                     unit_scale=True,
-                    desc=os.path.basename(dst_fn),
+                    desc=Path(dst_fn).name,
                     leave=True,
                 ) as pbar:
 
@@ -855,7 +856,7 @@ class Fetch:
                     ftp.retrbinary(f"RETR {path}", callback)
 
             ftp.quit()
-            logger.info(f"Fetched remote ftp file: {os.path.basename(self.url)}.")
+            logger.info(f"Fetched remote ftp file: {Path(self.url).name}.")
 
         except Exception as e:
             logger.error(f"FTP Error: {e}")

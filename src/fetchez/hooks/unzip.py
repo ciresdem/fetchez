@@ -17,6 +17,7 @@ import tarfile
 import gzip
 import shutil
 import logging
+from pathlib import Path
 
 from fetchez.hooks import FetchHook
 
@@ -46,18 +47,16 @@ class Unzip(FetchHook):
     def run(self, entries):
         out_entries = []
         for mod, entry in entries:
-            file_path = entry.get("dst_fn")
+            file_path = Path(entry.get("dst_fn"))
             status = entry.get("status")
 
             if status != 0 or not file_path:
                 out_entries.append((mod, entry))
                 continue
 
-            lower_path = file_path.lower()
-
             # --- .ZIP ARCHIVES ---
-            if lower_path.endswith(".zip"):
-                extract_dir = os.path.dirname(file_path)
+            if file_path.suffix.lower() == ".zip":
+                extract_dir = file_path.parent
                 try:
                     with zipfile.ZipFile(file_path, "r") as z:
                         files_to_extract = [
@@ -66,11 +65,10 @@ class Unzip(FetchHook):
 
                         if not self.overwrite:
                             if all(
-                                os.path.exists(os.path.join(extract_dir, f))
-                                for f in files_to_extract
+                                Path(extract_dir / f).exists() for f in files_to_extract
                             ):
                                 logger.debug(
-                                    f"Skipping unzip (files exist): {os.path.basename(file_path)}"
+                                    f"Skipping unzip (files exist): {file_path.name}"
                                 )
                                 out_entries.extend(
                                     [
@@ -78,7 +76,7 @@ class Unzip(FetchHook):
                                             mod,
                                             {
                                                 **entry,
-                                                "dst_fn": os.path.join(extract_dir, f),
+                                                "dst_fn": Path(extract_dir / f),
                                                 "status": 0,
                                             },
                                         )
@@ -89,7 +87,7 @@ class Unzip(FetchHook):
 
                         z.extractall(extract_dir)
                         for fname in files_to_extract:
-                            full_path = os.path.join(extract_dir, fname)
+                            full_path = Path(extract_dir / fname)
                             out_entries.append(
                                 (
                                     mod,
@@ -113,8 +111,8 @@ class Unzip(FetchHook):
                     out_entries.append((mod, entry))
 
             # --- .TAR / .TAR.GZ / .TGZ ARCHIVES ---
-            elif lower_path.endswith((".tar", ".tar.gz", ".tgz")):
-                extract_dir = os.path.dirname(file_path)
+            elif file_path.suffix.lower() in [".tar", "tar.gz", "tgz"]:
+                extract_dir = file_path.parent
                 try:
                     # 'r:*' automatically detects compression (gzip, bzip2, etc.)
                     with tarfile.open(file_path, "r:*") as tar:
@@ -124,11 +122,10 @@ class Unzip(FetchHook):
 
                         if not self.overwrite:
                             if all(
-                                os.path.exists(os.path.join(extract_dir, f))
-                                for f in files_to_extract
+                                Path(extract_dir / f).exists() for f in files_to_extract
                             ):
                                 logger.debug(
-                                    f"Skipping untar (files exist): {os.path.basename(file_path)}"
+                                    f"Skipping untar (files exist): {file_path.name}"
                                 )
                                 out_entries.extend(
                                     [
@@ -136,7 +133,7 @@ class Unzip(FetchHook):
                                             mod,
                                             {
                                                 **entry,
-                                                "dst_fn": os.path.join(extract_dir, f),
+                                                "dst_fn": Path(extract_dir / f),
                                                 "status": 0,
                                             },
                                         )
@@ -151,7 +148,7 @@ class Unzip(FetchHook):
                             tar.extractall(path=extract_dir)
 
                         for fname in files_to_extract:
-                            full_path = os.path.join(extract_dir, fname)
+                            full_path = Path(extract_dir / fname)
                             out_entries.append(
                                 (
                                     mod,
@@ -175,11 +172,11 @@ class Unzip(FetchHook):
                     out_entries.append((mod, entry))
 
             # --- .GZ DECOMPRESSION (Single File) ---
-            elif lower_path.endswith(".gz"):
-                extracted_path = file_path[:-3]
-                if not self.overwrite and os.path.exists(extracted_path):
+            elif file_path.suffix.lower() == ".gz":
+                extracted_path = file_path.with_suffix("")
+                if not self.overwrite and extracted_path.exists():
                     logger.debug(
-                        f"Skipping gunzip (file exists): {os.path.basename(extracted_path)}"
+                        f"Skipping gunzip (file exists): {extracted_path.name}"
                     )
                     out_entries.append(
                         (mod, {**entry, "dst_fn": extracted_path, "status": 0})

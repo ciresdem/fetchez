@@ -4,7 +4,9 @@ import os
 import ast
 import pytest
 
-MODULES_DIR = os.path.join(os.path.dirname(__file__), "..", "src", "fetchez", "modules")
+from pathlib import Path
+
+MODULES_DIR = Path(__file__).parent / ".." / "src" / "fetchez" / "modules"
 
 
 def get_module_files():

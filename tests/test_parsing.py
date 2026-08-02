@@ -71,9 +71,9 @@ def test_parse_source_local_file_detection(tmp_path):
     # Test File Detection
     res_file = parse_source_string(str(dummy_file))
     assert res_file["module"] == "file"
-    assert res_file["args"]["paths"] == str(dummy_file.absolute())
+    assert res_file["args"]["paths"] == dummy_file.absolute()
 
     # Test Directory Detection
     res_dir = parse_source_string(str(tmp_path))
     assert res_dir["module"] == "local_fs"
-    assert res_dir["args"]["path"] == str(tmp_path.absolute())
+    assert res_dir["args"]["path"] == tmp_path.absolute()

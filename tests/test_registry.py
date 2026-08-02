@@ -83,8 +83,8 @@ def test_optional_dependencies_are_protected():
         "copernicusmarine",
     }
 
-    mod_dir = os.path.dirname(fetchez.modules.__file__)
-    hook_dir = os.path.dirname(fetchez.hooks.__file__)
+    mod_dir = Path(fetchez.modules.__file__).parent
+    hook_dir = Path(fetchez.hooks.__file__).parent
 
     unprotected_imports = []
 

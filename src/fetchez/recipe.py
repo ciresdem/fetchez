@@ -19,6 +19,7 @@ import json
 import yaml
 import inspect
 import logging
+from pathlib import Path
 
 from .core import run_fetchez
 from .spatial import yield_parsed_regions, Region
@@ -84,7 +85,12 @@ class Recipe:
         self.config = config
         self.base_dir = base_dir or os.getcwd()
         self.recipe_dir = self.base_dir
-        self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
+        self.name = "Unnamed_Recipe"
+        if isinstance(self.config, dict):
+            self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
+        else:
+            self.from_file(self.config)
+
         setup_logging(True)
 
     @classmethod
@@ -96,11 +102,13 @@ class Recipe:
         if isinstance(config_source, dict):
             return cls(config_source)
 
-        if not os.path.exists(config_source):
+        config_path = Path(config_source)
+
+        if not config_path.exists():
             raise FileNotFoundError(f"Recipe not found: {config_source}")
 
-        base_dir = os.path.dirname(os.path.abspath(config_source))
-        ext = os.path.splitext(config_source)[1].lower()
+        base_dir = config_path.resolve().parent
+        ext = config_path.suffix.lower()
 
         with open(config_source, "r") as f:
             if ext in [".yaml", ".yml"]:
@@ -831,9 +839,9 @@ class Recipe:
                 # Dump the localized recipe for debugging and reproducibility
                 batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
 
-                batch_dir = os.path.dirname(os.path.abspath(batch_config_fn))
+                batch_dir = Path(batch_config_fn).resolve().parent
                 if batch_dir:
-                    os.makedirs(batch_dir, exist_ok=True)
+                    batch_dir.mkdir(parents=True, exist_ok=True)
 
                 with open(batch_config_fn, "w") as f:
                     yaml.dump(
