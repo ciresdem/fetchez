@@ -49,7 +49,7 @@ class Unzip(FetchHook):
             file_path = Path(entry.get("dst_fn"))
             status = entry.get("status")
 
-            if status != 0 or not file_path:
+            if (status is not None and status != 0) or not file_path:
                 out_entries.append((mod, entry))
                 continue
 
