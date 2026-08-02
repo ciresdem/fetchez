@@ -334,7 +334,8 @@ class FetchModule:
             if cache_file.exists():
                 try:
                     cache_file.unlink()
-                except Exception:
+                except Exception as e:
+                    logger.debug(f"Unable to remove cache_file: {cache_file}: {e}")
                     pass
 
     def fetch_entry(self, entry, check_size=True, retries=5, verbose=True):
@@ -356,6 +357,8 @@ class FetchModule:
                     tries=retries,
                     verbose=verbose,
                 )
+            entry["status"] = status
+
         except Exception as e:
             logger.debug(f"Fetch failed for {entry['url']}: {e}")
             status = -1
