@@ -148,7 +148,7 @@ ignore_missing_imports = true
 extend-select = [  # Extend the default ruleset:
     "B",
     "F",
-    # x"S",
+    # "S",
     # "G", # logging
     #"PTH100",  # os.path.abspath
     "PTH102",  # os.mkdir

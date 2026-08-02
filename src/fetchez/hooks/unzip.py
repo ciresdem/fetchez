@@ -11,7 +11,6 @@ Extract/Decompress files (.zip, .tar, .tar.gz, .tgz, .gz).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import zipfile
 import tarfile
 import gzip
@@ -95,14 +94,14 @@ class Unzip(FetchHook):
                                         **entry,
                                         "dst_fn": str(full_path),
                                         "status": 0,
-                                        "src_fn": file_path,
+                                        "src_fn": str(file_path),
                                     },
                                 )
                             )
 
                     if self.remove:
                         try:
-                            os.remove(file_path)
+                            Path(file_path).unlink()
                         except OSError:
                             pass
 
@@ -156,14 +155,14 @@ class Unzip(FetchHook):
                                         **entry,
                                         "dst_fn": str(full_path),
                                         "status": 0,
-                                        "src_fn": file_path,
+                                        "src_fn": str(file_path),
                                     },
                                 )
                             )
 
                     if self.remove:
                         try:
-                            os.remove(file_path)
+                            file_path.unlink()
                         except OSError:
                             pass
 
@@ -195,14 +194,14 @@ class Unzip(FetchHook):
                                 **entry,
                                 "dst_fn": str(extracted_path),
                                 "status": 0,
-                                "src_fn": file_path,
+                                "src_fn": str(file_path),
                             },
                         )
                     )
 
                     if self.remove:
                         try:
-                            os.remove(file_path)
+                            file_path.unlink()
                         except OSError:
                             pass
 
