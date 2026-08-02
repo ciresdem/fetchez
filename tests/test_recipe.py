@@ -1,6 +1,7 @@
 # test_recipe.py
 
 import json
+from pathlib import Path
 import pytest
 from unittest.mock import patch
 from fetchez.recipe import Recipe
@@ -121,3 +122,8 @@ def test_to_json_translation():
 
     assert parsed["project"]["name"] == "JSON Test"
     assert parsed["modules"][0] == "tnm"
+
+
+def test_recipe_utils():
+    resolved_path = Recipe({})._resolve_path("./test")
+    assert Path(resolved_path) == Path.cwd() / "test"

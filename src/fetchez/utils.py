@@ -638,7 +638,7 @@ def parse_hook_string(hook_str, default_name=None):
     return hook
 
 
-def parse_source_string(source_str, default_hooks=None):
+def parse_source_string(source_str: str, default_hooks: Optional[List] = None) -> Dict:
     """Parses a source string into a Fetchez module dictionary.
 
     Supports local file auto-detection and chaining hooks via '+'.
@@ -695,7 +695,7 @@ def compile_sources(sources):
                 logger.debug(
                     f"Imported {len(partial_recipe['modules'])} modules from {src}"
                 )
-        elif str(src).lower().endswith((".yaml", ".yml")) and os.path.exists(src):
+        elif str(src).lower().endswith((".yaml", ".yml")) and Path(src).exists():
             try:
                 with open(src, "r") as f:
                     partial_recipe = yaml.safe_load(f)
@@ -846,8 +846,8 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
     Returns:
         List of paths to the extracted files.
     """
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    if not Path(outdir).exists():
+        Path(outdir).mkdir(parents=True, exist_ok=True)
 
     extracted_files = []
 

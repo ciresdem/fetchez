@@ -12,9 +12,9 @@ of Hawaii Sea Level Center (UHSLC).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import logging
+from pathlib import Path
 from typing import Optional
 
 from fetchez import core
@@ -79,13 +79,13 @@ class UHSLC(FetchModule):
 
         logger.debug(f"Fetching UHSLC master metadata from {UHSLC_META_URL}...")
 
-        if not os.path.exists(self._outdir):
-            os.makedirs(self._outdir)
+        if not Path(self._outdir).exists():
+            Path(self._outdir).mkdir(parents=True, exist_ok=True)
 
-        local_meta = os.path.join(self._outdir, "uhslc_meta.geojson")
+        local_meta = Path(Path(self._outdir) / "uhslc_meta.geojson")
 
         # Download the master station index
-        if core.Fetch(UHSLC_META_URL).fetch_file(local_meta, verbose=False) != 0:
+        if core.Fetch(UHSLC_META_URL).fetch_file(str(local_meta), verbose=False) != 0:
             logger.error("Failed to download the UHSLC metadata list.")
             return self
 
@@ -150,8 +150,8 @@ class UHSLC(FetchModule):
         except Exception as e:
             logger.error(f"Error parsing UHSLC metadata: {e}")
         finally:
-            if os.path.exists(local_meta):
-                os.remove(local_meta)
+            if local_meta.exists():
+                local_meta.unlink(mising_ok=True)
 
         logger.info(
             f"Found {found_count} UHSLC stations in the requested bounding box."

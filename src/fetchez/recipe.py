@@ -35,6 +35,8 @@ from .registry import (
 from .utils import TqdmLoggingHandler, colorize, CYAN
 from . import __version__ as fetchez_version
 
+from typing import Any, Optional
+
 logger = logging.getLogger(__name__)
 
 
@@ -201,16 +203,18 @@ class Recipe:
                 )
                 raise RuntimeError("Fetchez version incompatibility.")
 
-    def _resolve_path(self, path, base=None):
+    def _resolve_path(
+        self, path: str, base: Optional[str] = None
+    ) -> Optional[str | Any]:
         """Resolves output paths relative to the recipe file."""
 
         if not isinstance(path, str):
             return path
         if path.startswith(("http", "s3://", "gs://", "ftp://")):
             return path
-        if os.path.isabs(path):
+        if Path(path).is_absolute():
             return path
-        return os.path.abspath(os.path.join(base or self.base_dir, path))
+        return str(Path(Path(base or self.base_dir) / path).resolve())
 
     def _init_modules(
         self, module_defs, target_region=None, global_region_srs="EPSG:4326"
@@ -694,7 +698,7 @@ class Recipe:
         # State Tracking
         state_file = os.path.join(original_cwd, ".fetchez_batch_state.json")
         completed_tiles = []
-        if os.path.exists(state_file) and not overwrite:
+        if Path(state_file).exists() and not overwrite:
             try:
                 with open(state_file, "r") as f:
                     completed_tiles = json.load(f)

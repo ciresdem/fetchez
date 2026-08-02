@@ -22,6 +22,7 @@ import importlib.metadata
 import importlib.resources
 import inspect
 import logging
+from pathlib import Path
 from typing import Dict, Any, Type, Optional
 
 from fetchez.modules import FetchModule
@@ -90,7 +91,7 @@ class PluginRegistry:
         ]
 
         for p_dir in search_dirs:
-            if not os.path.exists(p_dir):
+            if not Path(p_dir).exists():
                 continue
 
             for f in os.listdir(p_dir):
@@ -163,7 +164,7 @@ class PluginRegistry:
             return
 
         cache_path = cls._get_cache_path()
-        if os.path.exists(cache_path):
+        if Path(cache_path).exists():
             try:
                 with open(cache_path, "r") as f:
                     registry.update(json.load(f))
@@ -211,7 +212,7 @@ class PluginRegistry:
         """Deletes the JSON cache file for this specific registry."""
 
         cache_path = cls._get_cache_path()
-        if os.path.exists(cache_path):
+        if Path(cache_path).exists():
             try:
                 os.remove(cache_path)
                 logger.debug(f"Deleted cache file: {cache_path}")
@@ -245,7 +246,7 @@ class PluginRegistry:
             if cls.user_folder
             else None
         )
-        if user_folder and os.path.exists(user_folder):
+        if user_folder and Path(user_folder).exists():
             mtimes = [os.path.getmtime(user_folder)]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
@@ -292,7 +293,7 @@ class PluginRegistry:
 
         # User Plugins
         user_folder = os.path.expanduser(cls.user_folder) if cls.user_folder else None
-        if user_folder and os.path.exists(user_folder):
+        if user_folder and Path(user_folder).exists():
             mtimes = [os.path.getmtime(user_folder)]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
@@ -381,7 +382,7 @@ class PluginRegistry:
             except ModuleNotFoundError:
                 # Fallback for dynamic local user plugins
                 file_path = meta.get("file_path")
-                if file_path and os.path.exists(file_path):
+                if file_path and Path(file_path).exists():
                     spec = importlib.util.spec_from_file_location(mod_path, file_path)
                     if spec and spec.loader:
                         module = importlib.util.module_from_spec(spec)
@@ -468,7 +469,7 @@ class YamlRegistry:
         home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
         builtin_path.append(home_dir)
         for fdir in builtin_path:
-            if os.path.exists(fdir):
+            if Path(fdir).exists():
                 for fn in os.listdir(fdir):
                     if fn.endswith((".yaml", ".yml")):
                         try:
@@ -757,7 +758,7 @@ class _RecipeRegistry:
                 logger.warning(f"Failed to load recipes from package {pkg_name}: {e}")
 
         home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
-        if os.path.exists(home_dir):
+        if Path(home_dir).exists():
             for fn in os.listdir(home_dir):
                 if fn.endswith((".yaml", ".yml")):
                     try:
@@ -841,7 +842,7 @@ class _PresetRegistry:
         home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
         builtin_path.append(home_dir)
         for fdir in builtin_path:
-            if os.path.exists(fdir):
+            if Path(fdir).exists():
                 for fn in os.listdir(fdir):
                     if fn.endswith((".yaml", ".yml")):
                         try:
@@ -853,7 +854,7 @@ class _PresetRegistry:
                             logger.warning(f"Failed to load preset {fn}: {e}")
 
         legacy_file = os.path.expanduser("~/.fetchez/presets.yaml")
-        if os.path.exists(legacy_file):
+        if Path(legacy_file).exists():
             try:
                 with open(legacy_file, "r", encoding="utf-8") as f:
                     cls._register_yaml(f.read(), legacy_file, is_legacy=True)
