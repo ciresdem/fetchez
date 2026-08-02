@@ -11,12 +11,12 @@ This holds the FetchModule super class
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import time
 import logging
 import urllib.parse
 import json
 import hashlib
+from pathlib import Path
 from math import floor
 from typing import List, Dict, Any
 
@@ -123,9 +123,9 @@ class FetchModule:
         )
 
         if self.outdir is None:
-            self._outdir = os.path.join(os.getcwd(), self.name)
+            self._outdir = str(Path(Path.cwd(), self.name))
         else:
-            self._outdir = os.path.join(self.outdir, self.name)
+            self._outdir = str(Path(self.outdir) / self.name)
 
         self.stream_kwargs = {
             k: v for k, v in kwargs.items() if k not in ["datatype", "data_type"]
@@ -245,17 +245,17 @@ class FetchModule:
         if not self.use_cache:
             return self._original_run()
 
-        cache_dir = os.path.join(self._outdir, ".fetchez_cache")
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
+        cache_dir = Path(self._outdir) / ".fetchez_cache"
+        if not cache_dir.exists():
+            cache_dir.mkdir(parents=True, exist_ok=True)
 
         cache_key = self._generate_cache_key()
-        cache_file = os.path.join(cache_dir, f"{self.name}_{cache_key}.json")
+        cache_file = Path(cache_dir) / f"{self.name}_{cache_key}.json"
 
-        if os.path.exists(cache_file):
+        if cache_file.exists():
             try:
                 file_age_days = floor(
-                    (time.time() - os.path.getmtime(cache_file)) / 86400
+                    (time.time() - cache_file.stat().st_mtime) / 86400
                 )
                 logger.info(
                     f"[{self.name}] Using cached API response from {file_age_days} days ago."
@@ -274,10 +274,12 @@ class FetchModule:
 
                 # Rehydrate relative paths to absolute paths for the current environment
                 for entry in cached_results:
-                    if "dst_fn" in entry and entry["dst_fn"]:
-                        if not os.path.isabs(entry["dst_fn"]):
-                            entry["dst_fn"] = os.path.abspath(
-                                os.path.join(self._outdir, entry["dst_fn"])
+                    dst_fn = entry.get("dst_fn")
+                    if dst_fn:
+                        dst_fn = Path(dst_fn)
+                        if not dst_fn.is_absolute():
+                            entry["dst_fn"] = str(
+                                Path(Path(self._outdir) / dst_fn).resolve()
                             )
 
                 self.results = cached_results
@@ -315,9 +317,9 @@ class FetchModule:
                 if "dst_fn" in portable_entry and portable_entry["dst_fn"]:
                     try:
                         # Strip the absolute prefix to make it portable relative to outdir
-                        portable_entry["dst_fn"] = os.path.relpath(
-                            portable_entry["dst_fn"], self._outdir
-                        )
+                        portable_entry["dst_fn"] = Path(
+                            portable_entry["dst_fn"]
+                        ).relative_to(Path(self._outdir))
                     except ValueError:
                         # Fallback for cross-drive path issues on Windows
                         pass
@@ -329,9 +331,9 @@ class FetchModule:
             logger.debug(f"[{self.name}] Saved API results to cache.")
         except Exception as e:
             logger.warning(f"[{self.name}] Failed to save cache: {e}")
-            if os.path.exists(cache_file):
+            if cache_file.exists():
                 try:
-                    os.remove(cache_file)
+                    cache_file.unlink()
                 except Exception:
                     pass
 
@@ -360,19 +362,19 @@ class FetchModule:
 
         return status
 
-    def add_entry_to_results(self, url, dst_fn, data_type, **kwargs):
+    def add_entry_to_results(self, url: str, dst_fn: str, data_type: Any, **kwargs):
         """Add fetch entries to `results`.
 
         At minimum, `url`, `dst_fn` and `data_type` are required.
         Any additional keyword arguments will be added to the entry dictionary.
         """
 
-        if utils.str_or(dst_fn) is not None:
+        if utils.str_or(dst_fn):
             # Only join with outdir if dst_fn isn't already an absolute path
-            if not os.path.isabs(dst_fn):
-                dst_fn = os.path.join(self._outdir, dst_fn)
+            if not Path(dst_fn).is_absolute():
+                dst_fn = str(Path(self._outdir) / dst_fn)
 
-        entry = {"url": url, "dst_fn": dst_fn, "data_type": data_type}
+        entry = {"url": str(url), "dst_fn": str(dst_fn), "data_type": data_type}
 
         if hasattr(self, "stream_kwargs"):
             entry.update(self.stream_kwargs)
@@ -399,7 +401,7 @@ class HttpDataset(FetchModule):
 
     def run(self):
         if self.url:
-            self.add_entry_to_results(self.url, os.path.basename(self.url), "https")
+            self.add_entry_to_results(self.url, Path(self.url).name, "https")
 
 
 class Scratch(FetchModule):
