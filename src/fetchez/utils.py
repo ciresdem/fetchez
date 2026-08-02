@@ -873,7 +873,7 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
     return extracted_files
 
 
-def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
+def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False) -> List[str]:
     """Unzip specific files from src_file based on matches in `fns`."""
 
     if fns is None:

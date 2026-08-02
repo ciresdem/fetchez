@@ -64,7 +64,7 @@ class FRED:
 
         # Default to local directory if not found in data dir
         if local:
-            self.path = self.filename
+            self.path = Path(self.filename)
         elif Path(FETCH_DATA_DIR / self.filename).exists():
             self.path = Path(FETCH_DATA_DIR / self.filename)
         elif Path(config.CONFIG_PATH / "indices" / self.filename).exists():
