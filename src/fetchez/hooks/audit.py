@@ -14,6 +14,7 @@ Post-fetchez audit (summary of all operations, etc)
 import json
 import csv
 import logging
+from pathlib import Path
 
 from fetchez.hooks import FetchHook
 
@@ -66,6 +67,12 @@ class Audit(FetchHook):
 
                     else:
                         for result in entry_results:
+                            status = result.get("status")
+                            if not status:
+                                result["status"] = (
+                                    0 if Path(result["dst_fn"]).exists() else -1
+                                )
+
                             status = "OK" if result.get("status") == 0 else "FAIL"
                             f.write(
                                 f"[{status}] {result.get('dst_fn')} < {result.get('url')}\n"
