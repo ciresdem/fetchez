@@ -400,7 +400,7 @@ def remove_glob2(*args: str) -> int:
             # Match top-level paths based on the provided glob pattern
             # Uses Path(".") as the base directory anchor for the pattern
             if Path(glob_pattern).is_absolute():
-                shutil.rmtree(Path(glob_pattern))
+                Path(glob_pattern).unlink(missing_ok=True)
             else:
                 for path in Path(".").glob(glob_pattern):
                     if not path.exists():
