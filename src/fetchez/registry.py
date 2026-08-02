@@ -46,10 +46,10 @@ class PluginRegistry:
     user_folder: str = ""
 
     @classmethod
-    def get_registry(cls) -> Dict[str, Any]:
+    def get_registry(cls, clear_registry: bool = False) -> Dict[str, Any]:
         """Initialization of the class-level registry dictionary."""
 
-        if not hasattr(cls, "_registry"):
+        if not hasattr(cls, "_registry") or clear_registry:
             cls._registry = {}
 
         return cls._registry
@@ -58,7 +58,7 @@ class PluginRegistry:
     def load_builtins(cls):
         """Recursively scan and load all built-in plugins."""
 
-        registry = cls.get_registry()
+        registry = cls.get_registry(clear_registry=True)
         if registry:
             return
 

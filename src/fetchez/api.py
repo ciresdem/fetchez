@@ -32,6 +32,7 @@ from .core import run_fetchez
 from .spatial import parse_region
 from .registry import (
     ModuleRegistry,
+    BundleRegistry,
     HookRegistry,
     RecipeRegistry,
     SchemaRegistry,
@@ -78,6 +79,14 @@ def list_modules() -> Dict[str, Any]:
 
 def search_modules(term) -> Dict[str, Any]:
     return _search_registry(ModuleRegistry, term)
+
+
+def list_bundles() -> Dict[str, Any]:
+    return _search_registry(BundleRegistry)
+
+
+def search_bundles(term) -> Dict[str, Any]:
+    return _search_registry(BundleRegistry, term)
 
 
 def list_hooks() -> Dict[str, Any]:
@@ -132,6 +141,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
     """Search across ALL Fetchez registries simultaneously."""
     return {
         "modules": _search_registry(ModuleRegistry, term),
+        "bundles": _search_registry(BundleRegistry, term),
         "hooks": _search_registry(HookRegistry, term),
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
