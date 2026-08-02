@@ -256,7 +256,7 @@ class Recipe:
                     )
                     modules_to_run.append(instance)
                 except Exception as e:
-                    logger.error(f"Failed to load {mod_key}: {e}")
+                    logger.exception(f"Failed to load {mod_key}: {e}")
 
         return modules_to_run
 

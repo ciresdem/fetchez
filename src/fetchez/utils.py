@@ -284,6 +284,8 @@ def str2bool(v):
 def str_truncate_middle(s, n=80):
     """Truncate the middle of the input string, replace with `...`"""
 
+    s = str_or(s, "")
+
     if len(s) <= n:
         return s
 
@@ -545,8 +547,8 @@ def parse_arg_to_dict(val, cast_type=str):
 
                 parsed = json.loads(val)
                 return {str(k).strip(): cast_type(v) for k, v in parsed.items()}
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to parse {val} as json: {e}")
 
         # String
         pairs = val.split("/")
@@ -648,10 +650,10 @@ def parse_source_string(source_str, default_hooks=None):
     mod_path = Path(mod_name)
     if mod_path.exists():
         if mod_path.is_file():
-            args["paths"] = mod_path.resolve()
+            args["paths"] = str(mod_path.resolve())
             mod_name = "file"
         elif mod_path.is_dir():
-            args["path"] = mod_path.resolve()
+            args["path"] = str(mod_path.resolve())
             mod_name = "local_fs"
 
     mod_dict = {"module": mod_name, "hooks": default_hooks or []}
@@ -731,8 +733,8 @@ def parse_hook_string_(h_str):
                         v = float(v)
                     else:
                         v = int(v)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Unable to parse hook string: {h_str}: {e}")
             kwargs[k] = v
         else:
             kwargs[p] = True
@@ -899,7 +901,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
-                        extracted_paths.append(dest_fn)
+                        extracted_paths.append(str(dest_fn))
                         logger.debug(f"Extracted: {member} to {dest_fn}")
     else:
         # Fallback if the file isn't a zip

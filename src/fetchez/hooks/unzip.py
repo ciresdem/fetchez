@@ -76,7 +76,7 @@ class Unzip(FetchHook):
                                             mod,
                                             {
                                                 **entry,
-                                                "dst_fn": Path(extract_dir / f),
+                                                "dst_fn": str(Path(extract_dir / f)),
                                                 "status": 0,
                                             },
                                         )
@@ -93,7 +93,7 @@ class Unzip(FetchHook):
                                     mod,
                                     {
                                         **entry,
-                                        "dst_fn": full_path,
+                                        "dst_fn": str(full_path),
                                         "status": 0,
                                         "src_fn": file_path,
                                     },
@@ -133,7 +133,7 @@ class Unzip(FetchHook):
                                             mod,
                                             {
                                                 **entry,
-                                                "dst_fn": Path(extract_dir / f),
+                                                "dst_fn": str(Path(extract_dir / f)),
                                                 "status": 0,
                                             },
                                         )
@@ -154,7 +154,7 @@ class Unzip(FetchHook):
                                     mod,
                                     {
                                         **entry,
-                                        "dst_fn": full_path,
+                                        "dst_fn": str(full_path),
                                         "status": 0,
                                         "src_fn": file_path,
                                     },
@@ -179,7 +179,7 @@ class Unzip(FetchHook):
                         f"Skipping gunzip (file exists): {extracted_path.name}"
                     )
                     out_entries.append(
-                        (mod, {**entry, "dst_fn": extracted_path, "status": 0})
+                        (mod, {**entry, "dst_fn": str(extracted_path), "status": 0})
                     )
                     continue
 
@@ -193,7 +193,7 @@ class Unzip(FetchHook):
                             mod,
                             {
                                 **entry,
-                                "dst_fn": extracted_path,
+                                "dst_fn": str(extracted_path),
                                 "status": 0,
                                 "src_fn": file_path,
                             },
