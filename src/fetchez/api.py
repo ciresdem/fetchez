@@ -23,8 +23,8 @@ Usage::
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from .utils import parse_hook_string
@@ -266,8 +266,8 @@ def get(
     for _mod, entry in final_results:  # mod_instance.results:
         if entry.get("status", 0) == 0:
             fn = entry.get("dst_fn")
-            if fn and os.path.exists(fn):
-                downloaded_files.append(os.path.abspath(fn))
+            if fn and Path(fn).exists():
+                downloaded_files.append(str(Path(fn).resolve()))
 
     return downloaded_files
 
@@ -291,7 +291,7 @@ def run_recipe(
     RecipeRegistry.load_all()
     base_config = None
 
-    if os.path.exists(target):
+    if Path(target).exists():
         with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:

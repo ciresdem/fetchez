@@ -866,10 +866,11 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
                 if file_info.is_dir():
                     continue
 
-                _, f_ext = os.path.splitext(file_info.filename)
+                file_path = Path(file_info.filename)
+                f_ext = file_path.suffix
                 if f_ext.lower() in want_exts:
-                    filename = os.path.basename(file_info.filename)
-                    target_path = os.path.join(outdir, filename)
+                    filename = file_path.name
+                    target_path = Path(outdir) / filename
 
                     if verbose:
                         logger.info(f"Extracting {filename}...")
@@ -877,7 +878,7 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
                     with z.open(file_info) as source, open(target_path, "wb") as target:
                         shutil.copyfileobj(source, target)
 
-                    extracted_files.append(target_path)
+                    extracted_files.append(str(target_path))
 
     except zipfile.BadZipFile:
         logger.error(f"Bad Zip File: {src_fn}")
@@ -894,7 +895,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False) -> List[str]:
         fns = []
 
     extracted_paths = []
-    ext = os.path.splitext(src_file)[1].lower()
+    ext = Path(src_file).suffix.lower()
     outdir = Path(outdir)
 
     if ext == ".zip":
@@ -903,7 +904,7 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False) -> List[str]:
             for pattern in fns:
                 for member in namelist:
                     # Match pattern in the base filename
-                    if pattern in os.path.basename(member):
+                    if pattern in Path(member).name:
                         if member.endswith("/"):  # Skip directories
                             continue
 

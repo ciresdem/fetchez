@@ -11,10 +11,10 @@ Pipe the dst_fn to stdout.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import sys
 import logging
 import threading
+from pathlib import Path
 
 from fetchez.hooks import FetchHook
 
@@ -34,7 +34,9 @@ class PipeOutput(FetchHook):
 
         for _mod, entry in entries:
             if entry.get("status") == 0:
-                with PRINT_LOCK:
-                    sys.stdout.write(os.path.abspath(entry.get("dst_fn")) + "\n")
-                    sys.stdout.flush()
+                dst_fn = entry.get("dst_fn")
+                if dst_fn:
+                    with PRINT_LOCK:
+                        sys.stdout.write(str(Path(dst_fn).resolve()) + "\n")
+                        sys.stdout.flush()
         return entries

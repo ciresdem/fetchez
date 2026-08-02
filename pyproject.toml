@@ -150,7 +150,7 @@ extend-select = [  # Extend the default ruleset:
     "F",
     # "S",
     # "G", # logging
-    #"PTH100",  # os.path.abspath
+    "PTH100",  # os.path.abspath
     "PTH102",  # os.mkdir
     # "PTH110",  # os.path.exists
     # "PTH103",  # os.mkdirs

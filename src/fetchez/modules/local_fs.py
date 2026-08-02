@@ -11,10 +11,11 @@ Recursively crawl local directories, spatially filter files using .inf sidecars.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import glob
 import logging
+from pathlib import Path
+from typing import Optional, Any
 
 from fetchez.modules import FetchModule
 from fetchez.spatial import Region, regions_intersect_p
@@ -40,9 +41,15 @@ class LocalFS(FetchModule):
 
     """Local data path Datalists."""
 
-    def __init__(self, path=".", ext=".tif", datatype=None, **kwargs):
+    def __init__(
+        self,
+        path: str = ".",
+        ext: str = ".tif",
+        datatype: Optional[Any] = None,
+        **kwargs,
+    ):
         super().__init__(name="local_fs", **kwargs)
-        self.path = os.path.abspath(path)
+        self.path = Path(path).resolve()
         self.ext = ext if ext.startswith(".") else f".{ext}"
         self.datatype = datatype
 
@@ -61,27 +68,27 @@ class LocalFS(FetchModule):
         return None
 
     def run(self):
-        if not os.path.exists(self.path):
+        if not self.path.exists():
             logger.error(f"LocalFS path does not exist: {self.path}")
             return self
 
-        search_pattern = os.path.join(self.path, f"**/*{self.ext}")
+        search_pattern = self.path / f"**/*{self.ext}"
         matched_files = 0
 
         logger.debug(f"Crawling {self.path} for '{self.ext}' files...")
 
-        for filepath in glob.iglob(search_pattern, recursive=True):
+        for filepath in glob.iglob(str(search_pattern), recursive=True):
             file_region = None
-            inf_path = filepath + ".inf"
+            inf_path = Path(filepath) / ".inf"
 
-            if os.path.exists(inf_path):
+            if inf_path.exists():
                 file_region = self._read_inf(inf_path)
 
             if file_region:
                 if regions_intersect_p(self.wgs_region, file_region):
                     self.add_entry_to_results(
-                        url=f"file://{filepath}",
-                        dst_fn=filepath,
+                        url=f"file://{str(filepath)}",
+                        dst_fn=str(filepath),
                         data_type=self.datatype,
                         status=0,
                     )
@@ -89,8 +96,8 @@ class LocalFS(FetchModule):
 
             else:
                 self.add_entry_to_results(
-                    url=f"file://{filepath}",
-                    dst_fn=filepath,
+                    url=f"file://{str(filepath)}",
+                    dst_fn=str(filepath),
                     data_type=self.datatype,
                     status=0,
                 )

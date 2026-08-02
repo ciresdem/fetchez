@@ -560,14 +560,13 @@ class Fetch:
 
     def fetch_file(
         self,
-        dst_fn: str,
-        method="GET",
-        params=None,
-        datatype=None,
-        overwrite=False,
-        timeout=30,
-        read_timeout=120,
-        tries=5,
+        dst_fn: str | Path,
+        method: str = "GET",
+        params: Optional[Dict] = None,
+        overwrite: bool = False,
+        timeout: int = 30,
+        read_timeout: int = 120,
+        tries: int = 5,
         check_size=True,
         verbose=True,
     ) -> int:
@@ -576,17 +575,15 @@ class Fetch:
         # check if input `url` is a file path. Either check if it exists and move on or
         # copy it to the destination directory.
         if self.url and self.url.startswith("file://"):
-            src_path = self.url[7:]  # Strip 'file://'
+            src_path = Path(self.url[7:])  # Strip 'file://'
 
-            if not os.path.isabs(src_path):
-                src_path = os.path.join(
-                    os.path.dirname(os.path.abspath(dst_fn)), src_path
-                )
+            if not src_path.is_absolute():
+                src_path = Path(dst_fn).resolve().parent / src_path
 
             # Source == Destination
             # Just index/verify the file, not move it.
-            if os.path.abspath(src_path) == os.path.abspath(dst_fn):
-                if os.path.exists(src_path):
+            if src_path.is_absolute() == Path(dst_fn).resolve():
+                if src_path.exists():
                     if verbose:
                         logger.debug(f"Verified local: {src_path}")
                     return 0
@@ -599,8 +596,8 @@ class Fetch:
                 try:
                     import shutil
 
-                    if not os.path.exists(os.path.dirname(dst_fn)):
-                        os.makedirs(os.path.dirname(dst_fn))
+                    if not Path(dst_fn).parent.exists():
+                        Path(dst_fn).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(src_path, dst_fn)
                     return 0
                 except Exception as e:
@@ -608,28 +605,25 @@ class Fetch:
                     return -1
 
         # Regular file fetching here-on-out
-        dst_dir = os.path.abspath(os.path.dirname(dst_fn))
-        if not os.path.exists(dst_dir):
-            try:
-                os.makedirs(dst_dir)
-            except OSError:
-                pass
+        dst_fn = Path(dst_fn)
+        dst_dir = Path(dst_fn).parent.resolve()
+        dst_dir.mkdir(parents=True, exist_ok=True)
 
         part_fn = f"{dst_fn}.part"
         lock_fn = f"{dst_fn}.lock"
 
-        if not overwrite and os.path.exists(dst_fn):
-            if not check_size or os.path.getsize(dst_fn) > 0:
+        if not overwrite and dst_fn.exists():
+            if not check_size or dst_fn.stat().st_size > 0:
                 return 0  # Exists
 
         lock = filelock.FileLock(lock_fn, timeout=3600)
 
         try:
             with lock:
-                if not overwrite and os.path.exists(dst_fn):
-                    if not check_size or os.path.getsize(dst_fn) > 0:
+                if not overwrite and dst_fn.exists():
+                    if not check_size or dst_fn.stat().st_size > 0:
                         logger.debug(
-                            f"File {os.path.basename(dst_fn)} was downloaded by another process. Skipping."
+                            f"File {dst_fn.name} was downloaded by another process. Skipping."
                         )
                         return 0
 
@@ -638,8 +632,8 @@ class Fetch:
                     mode = "wb"
 
                     # Resume if partial file exists
-                    if os.path.exists(part_fn):
-                        resume_byte_pos = os.path.getsize(part_fn)
+                    if Path(part_fn).exists():
+                        resume_byte_pos = Path(part_fn).stat().st_size
                         if resume_byte_pos > 0:
                             self.headers["Range"] = f"bytes={resume_byte_pos}-"
                             mode = "ab"
@@ -685,7 +679,7 @@ class Fetch:
                             # Remove the Range header if the server doesn't support resume
                             if resume_byte_pos > 0 and req.status_code == 200:
                                 logger.warning(
-                                    f"Server ignored resume request for {os.path.basename(dst_fn)}. "
+                                    f"Server ignored resume request for {dst_fn.name}. "
                                     "Restarting download from scratch."
                                 )
                                 mode = "wb"
@@ -698,9 +692,9 @@ class Fetch:
                                 # Range No Good: Local file is likely corrupt.
                                 # Delete .part and retry from scratch (next loop iteration)
                                 logger.debug(
-                                    f"Invalid Range for {os.path.basename(dst_fn)}. Restarting..."
+                                    f"Invalid Range for {dst_fn.name}. Restarting..."
                                 )
-                                if os.path.exists(part_fn):
+                                if Path(part_fn).exists():
                                     os.remove(part_fn)
                                 if "Range" in self.headers:
                                     del self.headers["Range"]
@@ -757,7 +751,7 @@ class Fetch:
 
                             # If we got here without exception, check size, if wanted
                             if check_size and total_size > 0:
-                                final_size = os.path.getsize(part_fn)
+                                final_size = Path(part_fn).stat().st_size
                                 if final_size < total_size:
                                     # If smaller, the connection was most likely cut.
                                     raise IOError(
@@ -800,7 +794,7 @@ class Fetch:
             )
             return -1
         finally:
-            if os.path.exists(lock_fn):
+            if Path(lock_fn).exists():
                 try:
                     os.remove(lock_fn)
                 except OSError:
