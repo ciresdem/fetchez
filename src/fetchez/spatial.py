@@ -711,7 +711,8 @@ def yield_parsed_regions(region_str):
     try:
         raw_regions = parse_region(region_str)
     except Exception as e:
-        raise ValueError(f"Error parsing region '{region_str}': {e}")
+        logger.error(f"Error parsing region '{region_str}': {e}")
+        raise
 
     is_batch = len(raw_regions) > 1
     for _i, r in enumerate(raw_regions):
