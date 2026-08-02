@@ -29,7 +29,6 @@ def load_user_config(config_name):
 
     for ext in exts:
         config_file = CONFIG_PATH / Path(config_name + ext)
-        # config_file = os.path.join(CONFIG_PATH, config_name + ext)
         if config_file.exists():
             try:
                 with open(config_file, "r") as f:

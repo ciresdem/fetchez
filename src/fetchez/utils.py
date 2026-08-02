@@ -199,35 +199,38 @@ def this_date():
     return datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-def today_str():
+def today_str() -> str:
     # "YYYY-MM-DD"
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
 
-def get_username():
+def get_username() -> str:
     username = ""
     while not username:
         username = input("username: ")
     return username.strip()
 
 
-def get_password():
+def get_password() -> str:
     password = ""
     while not password:
         password = getpass.getpass("password: ")
     return password.strip()
 
 
-def int_or(val, or_val=None):
+def int_or(val: Any, or_val: Optional[int] = None) -> Optional[int]:
     """Return val if val is an integer, else return or_val"""
 
     try:
-        return int(float_or(val))
+        int_val = float_or(val)
+        if int_val:
+            return int(int_val)
+        return or_val
     except Exception:
         return or_val
 
 
-def float_or(val, or_val=None):
+def float_or(val: Any, or_val: Optional[float] = None) -> Optional[float]:
     """Return val if val is a float, else return or_val"""
 
     try:
@@ -236,7 +239,9 @@ def float_or(val, or_val=None):
         return or_val
 
 
-def str_or(instr, or_val=None, replace_quote=True):
+def str_or(
+    instr: Any, or_val: Optional[str] = None, replace_quote: bool = True
+) -> Optional[str]:
     """Return val if val is a string, else return or_val"""
 
     if instr is None:
@@ -248,7 +253,7 @@ def str_or(instr, or_val=None, replace_quote=True):
         return or_val
 
 
-def str2bool(v):
+def str2bool(v: Any) -> Optional[bool]:
     """Convert a string (or other type) to a boolean.
 
     Accepts:
@@ -281,19 +286,20 @@ def str2bool(v):
         return None
 
 
-def str_truncate_middle(s, n=80):
+def str_truncate_middle(s: Optional[str], n: Optional[int] = 80) -> str:
     """Truncate the middle of the input string, replace with `...`"""
 
     s = str_or(s, "")
+    n = int_or(n, 80)
+    if s and n:
+        if len(s) <= n:
+            return s
+        n_2 = n // 2 - 2
+        return f"{s[:n_2]}...{s[-n_2:]}"
+    return str(s)
 
-    if len(s) <= n:
-        return s
 
-    n_2 = int(n) // 2 - 2
-    return f"{s[:n_2]}...{s[-n_2:]}"
-
-
-def format_dataset_id(dataset_id):
+def format_dataset_id(dataset_id: Optional[str]) -> str:
     """Extracts Context + Basename for logging."""
 
     from urllib.parse import urlparse
@@ -311,13 +317,14 @@ def format_dataset_id(dataset_id):
 
         if not context:
             return basename
+
+        return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
+
     else:
-        return dataset_id
-
-    return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
+        return str(dataset_id)
 
 
-def fn_url_p(fn):
+def fn_url_p(fn: str) -> bool:
     """Check if fn is a URL."""
 
     url_sw = ["http://", "https://", "ftp://", "ftps://", "/vsicurl"]
@@ -326,12 +333,13 @@ def fn_url_p(fn):
             for u in url_sw:
                 if fn.startswith(u):
                     return True
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Could not parse url {fn}: {e}")
             return False
     return False
 
 
-def inc2str(inc):
+def inc2str(inc: float) -> str:
     """Convert a WGS84 geographic increment to a string identifier."""
 
     import fractions
@@ -341,7 +349,7 @@ def inc2str(inc):
     )
 
 
-def str2inc(inc_str):
+def str2inc(inc_str: Optional[str]) -> Optional[float]:
     """Convert a GMT-style inc_str (e.g. 6s) to geographic units.
 
     c/s - arc-seconds
@@ -423,17 +431,18 @@ def _parse_value_string(val_str: str) -> Any:
         return val_str.strip('"')
 
 
-def make_temp_fn(basename, temp_dir=None):
+def make_temp_fn(basename: str, temp_dir: Optional[str] = None) -> str:
     """Generate a temporary filename."""
 
-    prefix = os.path.splitext(basename)[0]
-    suffix = os.path.splitext(basename)[1]
+    basename_path = Path(basename)
+    prefix = basename_path.stem
+    suffix = basename_path.suffix
     fd, path = tempfile.mkstemp(suffix=suffix, prefix=f"{prefix}_", dir=temp_dir)
     os.close(fd)
     return path
 
 
-def x360(x):
+def x360(x: float) -> float:
     if x == 0:
         return -180
     elif x == 360:

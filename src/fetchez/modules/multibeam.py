@@ -59,15 +59,19 @@ def _parse_mbsystem_inf_bounds(
         parts = line.split()
         if len(parts) > 1 and parts[0] == "Minimum":
             try:
-                if parts[1] == "Longitude:":
-                    minmax[0] = utils.float_or(parts[2])  # xmin
-                    minmax[1] = utils.float_or(parts[5])  # xmax
-                    found = True
-                elif parts[1] == "Latitude:":
-                    minmax[2] = utils.float_or(parts[2])  # ymin
-                    minmax[3] = utils.float_or(parts[5])  # ymax
-                    found = True
+                min_val = utils.float_or(parts[2])
+                max_val = utils.float_or(parts[5])
+                if min_val and max_val:
+                    if parts[1] == "Longitude:":
+                        minmax[0] = min_val  # xmin
+                        minmax[1] = max_val  # xmax
+                        found = True
+                    elif parts[1] == "Latitude:":
+                        minmax[2] = min_val  # ymin
+                        minmax[3] = max_val  # ymax
+                        found = True
             except (IndexError, ValueError):
+                logger.debug("Could not parse multibeam inf bounds")
                 continue
 
     return cast(tuple[float, float, float, float], minmax) if found else None
@@ -274,9 +278,11 @@ class Multibeam(FetchModule):
             url, dst, fmt = entry
 
             # Determine INF url
-            base = utils.str_or(url).replace(".gz", "")
-            base = utils.str_or(url).replace(".fbt", "")
-            inf_url = f"{base}.inf" if not url.endswith(".inf") else url
+            base_url = utils.str_or(url)
+            if base_url:
+                base = base_url.replace(".gz", "")
+                base = base_url.replace(".fbt", "")
+                inf_url = f"{base}.inf" if not url.endswith(".inf") else url
 
             # Add Data File
             self.add_entry_to_results(
@@ -335,17 +341,19 @@ class MBDB(FetchModule):
         """Fetch remote .inf file and parse its region."""
 
         # Try finding the inf file
-        src_mb = mb_url
-        inf_url = f"{utils.str_or(src_mb).replace('.gz', '')}.inf"
+        src_mb = utils.str_or(mb_url)
+        if src_mb:
+            inf_url = f"{src_mb.replace('.gz', '')}.inf"
 
-        req = core.Fetch(inf_url).fetch_req()
+            req = core.Fetch(inf_url).fetch_req()
 
-        inf_region = None
-        if req is not None and req.status_code == 200:
-            with StringIO(req.text) as f:
-                inf_region = _parse_mbsystem_inf_bounds(f)
+            inf_region = None
+            if req is not None and req.status_code == 200:
+                with StringIO(req.text) as f:
+                    inf_region = _parse_mbsystem_inf_bounds(f)
 
-        return inf_url, inf_region
+            return inf_url, inf_region
+        return "", None
 
     def check_for_generated_data(self, base_url: str) -> bool:
         """Check if a 'generated' directory exists for processed data."""
