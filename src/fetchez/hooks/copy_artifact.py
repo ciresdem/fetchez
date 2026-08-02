@@ -11,9 +11,10 @@ Copy a registrered entry artifact to a new location.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import shutil
 import logging
+from pathlib import Path
+
 from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class CopyArtifactHook(FetchHook):
 
     def __init__(self, target_dir="../_collate", match=None, **kwargs):
         super().__init__(**kwargs)
-        self.target_dir = os.path.abspath(target_dir)
+        self.target_dir = Path(target_dir).resolve()
 
         if isinstance(match, str):
             self.matches = [m.strip() for m in match.split("/")]
@@ -48,7 +49,8 @@ class CopyArtifactHook(FetchHook):
             self.matches = []
 
     def run(self, entries):
-        os.makedirs(self.target_dir, exist_ok=True)
+        target_path = Path(self.target_dir)
+        target_path.mkdir(parents=True, exist_ok=True)
 
         for _mod, entry in entries:
             artifacts = entry.get("artifacts", {})
@@ -56,23 +58,26 @@ class CopyArtifactHook(FetchHook):
 
             if self.matches:
                 for _key, path in artifacts.items():
-                    if any(m in path for m in self.matches) and os.path.exists(path):
+                    matched_path = Path(path)
+                    if any(m in path for m in self.matches) and matched_path.exists():
                         files_to_copy.append(path)
             else:
-                dst_fn = entry.get("dst_fn")
-                if dst_fn and os.path.exists(dst_fn):
+                # Fallback to entries dst_fn
+                dst_fn = Path(entry.get("dst_fn"))
+                if dst_fn and dst_fn.exists():
                     files_to_copy.append(dst_fn)
 
             files_to_copy = list(set(files_to_copy))
             for fpath in files_to_copy:
-                dest_path = os.path.join(self.target_dir, os.path.basename(fpath))
-                logger.info(
-                    f"[{self.name}] Collating {os.path.basename(fpath)} -> {self.target_dir}"
-                )
+                path_to_copy = Path(fpath)
+                destination_path = target_path / path_to_copy.name
 
                 try:
-                    shutil.copy2(fpath, dest_path)
+                    shutil.copy2(fpath, destination_path)
+                    logger.info(
+                        f"[{self.name}] Collating {path_to_copy.name} -> {destination_path}"
+                    )
                 except Exception as e:
-                    logger.error(f"[{self.name}] Failed to copy {fpath}: {e}")
+                    logger.error(f"[{self.name}] Failed to copy {path_to_copy}: {e}")
 
         return entries

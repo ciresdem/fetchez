@@ -15,6 +15,8 @@ import os
 import sys
 import yaml
 import click
+from pathlib import Path
+
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand, parse_hook_string
@@ -37,7 +39,8 @@ RECIPE_COMMANDS = [
 
 def _load_yaml(target):
     base_config = None
-    if os.path.exists(target) and not os.path.isdir(target):
+    target_path = Path(target)
+    if target_path.exists() and not target_path.is_dir():
         with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:

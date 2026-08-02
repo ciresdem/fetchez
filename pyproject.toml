@@ -149,6 +149,8 @@ extend-select = [  # Extend the default ruleset:
     "B0",
     "F401",
     "F841",
+    # "PTH100",
+    "PTH112",
     # "SIM102",
     "T20",  # flake8-print <https://docs.astral.sh/ruff/rules/#flake8-print-t20>
 ]

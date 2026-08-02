@@ -1,7 +1,11 @@
 # test_registry.py
+
 import logging
 import os
 import ast
+
+from pathlib import Path
+
 import fetchez.modules
 import fetchez.hooks
 from fetchez.registry import ModuleRegistry, HookRegistry
@@ -123,7 +127,7 @@ def test_optional_dependencies_are_protected():
                     if imported_module:
                         if node.lineno not in safe_lines:
                             # We found an unprotected import!
-                            rel_path = os.path.relpath(filepath, start=os.getcwd())
+                            rel_path = os.path.relpath(filepath, start=Path.cwd())
                             unprotected_imports.append(
                                 f"  - {rel_path}:{node.lineno} (imported '{imported_module}')"
                             )

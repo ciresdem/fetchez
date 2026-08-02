@@ -24,6 +24,7 @@ import tqdm
 import re
 import inspect
 import click
+from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
@@ -362,38 +363,25 @@ def str2inc(inc_str):
         return None
 
 
-def remove_glob(pathname: str):
-    """Safely remove files matching a glob pattern."""
+def remove_glob2(*args: str) -> int:
+    """Glob paths and recursively delete matching files and directories."""
 
-    import glob
-
-    for p in glob.glob(pathname):
-        if os.path.exists(p):
-            try:
-                os.remove(p)
-            except OSError as e:
-                logger.error(f"Could not remove {p}: {e}")
-
-
-def remove_glob2(*args):
-    """Glob `glob_str` and os.remove results."""
-
-    import glob
-
-    for glob_str in args:
+    for glob_pattern in args:
         try:
-            globs = glob.glob(glob_str)
-            for g in globs:
-                if os.path.isdir(g):
-                    remove_glob(f"{g}/*")
-                    remove_glob(f"{g}/.*")
-                    os.removedirs(g)
+            # Match top-level paths based on the provided glob pattern
+            # Uses Path(".") as the base directory anchor for the pattern
+            for path in Path(".").glob(glob_pattern):
+                if path.is_dir() and not path.is_symlink():
+                    shutil.rmtree(path)
                 else:
-                    os.remove(g)
+                    path.unlink(missing_ok=True)
         except Exception as e:
             logger.error(e)
             return -1
     return 0
+
+
+remove_glob = remove_glob2
 
 
 def _parse_value_string(val_str: str) -> Any:
@@ -638,12 +626,13 @@ def parse_source_string(source_str, default_hooks=None):
     args = mod_parsed.get("args", {})
 
     # Auto-detect local files and directories
-    if os.path.exists(mod_name):
-        if os.path.isfile(mod_name):
-            args["paths"] = os.path.abspath(mod_name)
+    mod_path = Path(mod_name)
+    if mod_path.exists():
+        if mod_path.is_file():
+            args["paths"] = mod_path.resolve()
             mod_name = "file"
-        elif os.path.isdir(mod_name):
-            args["path"] = os.path.abspath(mod_name)
+        elif mod_path.is_dir():
+            args["path"] = mod_path.resolve()
             mod_name = "local_fs"
 
     mod_dict = {"module": mod_name, "hooks": default_hooks or []}
