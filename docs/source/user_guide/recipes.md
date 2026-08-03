@@ -140,22 +140,85 @@ global_hooks:
 ```
 
 ### Modifiers
-Modifiers dynamically mutate your recipe configuration before execution begins. This is useful for temporarily excluding large modules, or injecting arguments during a specific run. Modifiers can be invoked via the CLI:
+Fetchez includes a **Modifier Engine** in its `ModifierRegistry` that can automatically mutate your YAML recipes as they are loaded, allowing for complete runtime control of the pipeline.
+
+#### Using a Modifier
+
+Add a `modifiers` argument to the top of your YAML recipe:
+
+```yaml
+---
+project:
+  name: "My_Project"
+
+modifiers:
+  - name: exclude_module
+    args:
+      modules: margrav/charts
+region: [-120.0, -119.75, 33.0, 33.25]
+modules:
+  - bundle: my-bathymetry-bundle
+```
+
+*What happens under the hood?*
+
+By specifying the modifier: `exclude_module`, the engine intercepts your recipe and removes the named `margrav` and `charts` modules from the module Bundle `my-bathymetry-bundle`. Modifiers take an input recipe config and do something to or with it and return the possibly mutated bundle, right before sending to the core Fetchez engine for processing.
+
+
+**Use the modifier in the cli**
 
 ```bash
-# Injecting a new cache_dir argument into the stream_reproject module at runtime
-fetchez recipes run my_recipe.yaml --modifier inject_args:match=stream_reproject,cache_dir=socal_data
+fetchez recipes run my_project.yaml --modifier exclude_module:modules=margrav/charts
 ```
 
 ### Schemas
-Schemas act as quality control for your pipelines. They enforce strict validation rules to ensure a recipe is formatted correctly and contains all required fields before `fetchez` attempts to run it. If a recipe fails schema validation, the engine will warn you before any downloads begin, preventing partial or failed executions.
+Fetchez includes a **Schema Engine** in its `SchemaRegistry` that automatically scans your YAML recipes to enforce rules or otherwise validate the recipe structure or purpose.
+
+#### Using a Schema
+
+Add a `schemas` argument to the top of your YAML recipe, in this example we'll use a theoretical `schema` that would make sure the `region` parameter is a strict 1/4 degree tile:
+
+```yaml
+project:
+  name: "My_Strict_Project"
+
+schemas:
+  - name: "quarter-degree-tile"
+region: [-120.0, -119.75, 33.0, 33.25] # Your exact delivery tile
+```
+
+*What happens under the hood?*
+
+By specifying schema: `quarter-degree-tile`, the engine intercepts your recipe and checks your region to make sure it snaps directly to a quarter degree tile in WGS84. It will return the validity of the recipe based on that schema along with any errors it found.
+
+**Use the schema in the CLI**
+
+```bash
+fetchez recipes run -R -120/-119.75/33/33.25 --schema quarter-degree-tile my_strict_project.yaml
+```
 
 ## Extending Recipes (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own recipes either in your project or in the .fetchez configuration directory and they will be discoverable with the `fetchez.registry.RecipeRegistry`
+Fetchez is generic. If you are building a custom tool (like a specialized DEM engine), you can register your own recipes, modifiers and schems either in your project or in the `~/.fetchez` configuration directory and they will be discoverable with the `fetchez.registry`
 
-In your project, make a directory called 'recipes'; add any YAML recipes to that directory and register them with `fetchez` in your `pyproject.toml`:
+In your project, make a directory called 'recipes'; add any YAML recipes to that directory, add any python source files in 'recipes/modifiers' or 'recipe/schemas' and register them with `fetchez` in your `pyproject.toml`:
+
+**Recipes**
 
 ```toml
 [project.entry-points."fetchez.recipes"]
 my_project_recipes = "my_project.recipes"
+```
+
+**Modifiers**
+
+```toml
+[project.entry-points."fetchez.recipes.modifiers"]
+my_project_modifiers = "my_project.recipes.modifiers"
+```
+
+**Schemas**
+
+```toml
+[project.entry-points."fetchez.recipes.schemas"]
+my_project_schemas = "my_project.recipes.schemas"
 ```

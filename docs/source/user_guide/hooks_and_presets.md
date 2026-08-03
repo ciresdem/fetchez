@@ -1,4 +1,4 @@
-# 🪝 Hooks and Presets
+# 🪝 Hooks
 
 Fetchez is designed to be highly extendable. Using **hooks** and **presets**, you can build automated pipelines that process fetched or local data on the fly.
 
@@ -94,15 +94,19 @@ global_hooks:
           file: charts_audit_full.json
 ```
 
-### Extending Hooks and Presets (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool and want to create your own processing hooks and presets, you can register your own hooks and presets either in your project or in the `.fetchez` configuration directory and they will be discoverable with the `fetchez.registry.HookRegistry` and `fetchez.registry.PresetRegistry`
+## Extending Hooks and Presets (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool and want to create your own processing hooks and presets, you can register your own hooks and presets either in your project or in the `.fetchez` configuration directory and they will be discoverable with the `fetchez.registry`
 
-In your project, make a directory called 'hooks' and/or 'hooks/presets'; add any python hooks and YAML presets to the appropriate directory and register them with Fetchez in your `pyproject.toml`:
+In your project, make a directory called 'hooks' and/or 'hooks/presets'; add any python source hooks and YAML presets to the appropriate directory and register them with Fetchez in your `pyproject.toml`:
+
+**Hooks**
 
 ```toml
 [project.entry-points."fetchez.hooks"]
 my_project_hooks = "my_project.hooks"
 ```
+
+**Presets**
 
 ```toml
 [project.entry-points."fetchez.hooks.presets"]

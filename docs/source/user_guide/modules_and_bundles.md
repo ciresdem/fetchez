@@ -1,4 +1,4 @@
-# 🌎 Modules and Bundles
+# 🌎 Modules
 
 Fetchez comes builtin with [70+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) to access geospatial data from various remote apis and local file-systems.
 
@@ -69,12 +69,21 @@ project:
     args: {weight: 1.0}
 ```
 
-### Extending Bunldes (Plugins and Extensions)
-Fetchez is generic. If you are building a custom tool and want to bundle your own modules, you can register your own bundles either in your project or in the `.fetchez` configuration directory and they will be discoverable with the `fetchez.registry.BundleRegistry`
+## Extending Bunldes (Plugins and Extensions)
+Fetchez is generic. If you are building a custom tool and want to create a custom module or bundle your own custom set of modules, you can register them  either in your project or in the `~.fetchez` configuration directory and they will be discoverable with the `fetchez.registry`
 
-To create an extension where your bundles can be installed and used by `fetchez`, make a directory called 'bundles' in your project; add any YAML module bundles to that directory and register them with `fetchez` in your `pyproject.toml`:
+To create an extension where your bundles can be installed and used by `fetchez`, make a directory called 'modules' in your project; add any python source files defining the module there or make a directory called `modules/bundles` add any YAML bundle definitions there and register them with `fetchez` in your `pyproject.toml`:
+
+**Modules**
+
+```toml
+[project.entry-points."fetchez.modules"]
+my_project_modules = "my_project.modules"
+```
+
+**Bundles**
 
 ```toml
 [project.entry-points."fetchez.modules.bundles"]
-my_project_bundles = "my_project.hooks.bundles"
+my_project_bundles = "my_project.modules.bundles"
 ```
