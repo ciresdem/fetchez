@@ -695,7 +695,7 @@ class Fetch:
                                     f"Invalid Range for {dst_fn.name}. Restarting..."
                                 )
                                 if Path(part_fn).exists():
-                                    os.remove(part_fn)
+                                    Path(part_fn).unlink()
                                 if "Range" in self.headers:
                                     del self.headers["Range"]
                                 continue
@@ -796,26 +796,25 @@ class Fetch:
         finally:
             if Path(lock_fn).exists():
                 try:
-                    os.remove(lock_fn)
+                    Path(lock_fn).unlink()
                 except OSError:
                     pass
 
         return -1
 
-    def fetch_ftp_file(self, dst_fn, params=None, datatype=None, overwrite=False):
+    def fetch_ftp_file(
+        self, dst_fn: str | Path, params: Optional[Dict] = None, overwrite: bool = False
+    ):
         """Fetch an ftp file via ftplib with a progress bar."""
 
         import ftplib
 
+        dst_fn = Path(dst_fn)
         status = 0
         logger.info(f"Fetching remote ftp file: {self.url}...")
 
-        dest_dir = Path(dst_fn).parent
-        if dest_dir and not Path(dest_dir).exists():
-            try:
-                Path(dest_dir).mkdir(parents=True, exist_ok=True)
-            except OSError:
-                pass
+        dest_dir = dst_fn.parent
+        dest_dir.mkdir(parents=True, exist_ok=True)
 
         try:
             parsed = urllib.parse.urlparse(self.url)
@@ -824,7 +823,7 @@ class Fetch:
             username = parsed.username or "anonymous"
             password = parsed.password or "anonymous@"
 
-            ftp = ftplib.FTP(host)
+            ftp = ftplib.FTP(str(host))
             ftp.login(user=username, passwd=password)
 
             ftp.voidcmd("TYPE I")
@@ -856,11 +855,8 @@ class Fetch:
             logger.error(f"FTP Error: {e}")
             status = -1
 
-            if os.path.exists(dst_fn):
-                try:
-                    os.remove(dst_fn)
-                except OSError:
-                    pass
+            if dst_fn.exists():
+                dst_fn.unlink()
 
         return status
 
@@ -989,7 +985,7 @@ def run_fetchez(
                         raise KeyboardInterrupt("Pipeline aborted by user.")
 
                     mod, original_entry = futures[future]
-                    file_name = os.path.basename(original_entry.get("dst_fn", "item"))
+                    file_name = Path(original_entry.get("dst_fn", "item")).name
                     short_name = (
                         file_name[:30] + "..." if len(file_name) > 30 else file_name
                     )
@@ -1132,11 +1128,11 @@ def run_fetchez(
                         ):
                             try:
                                 logger.debug(
-                                    f"Exhausting stream for {os.path.basename(item.get('dst_fn', ''))}..."
+                                    f"Exhausting stream for {Path(item.get('dst_fn', '')).name}..."
                                 )
                                 collections.deque(stream, maxlen=0)
                             except Exception as e:
-                                err_msg = f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
+                                err_msg = f"Stream processing error in {Path(item.get('dst_fn', '')).name}: {e}"
                                 if not ignore_failures:
                                     logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
                                     STOP_EVENT.set()
@@ -1147,7 +1143,7 @@ def run_fetchez(
                                 item["status"] = "failed"
                                 item["error_message"] = str(e)
                                 # logger.exception(
-                                #     f"Stream processing error in {os.path.basename(item.get('dst_fn', ''))}: {e}"
+                                #     f"Stream processing error in {Path(item.get('dst_fn', '')).name}: {e}"
                                 # )
 
                         processed_entries.append((owner, item))

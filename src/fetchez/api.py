@@ -155,7 +155,7 @@ def get(
     module: str,
     region: Optional[List[float] | str] = None,
     region_srs: Optional[str] = "EPSG:4326",
-    outdir: Optional[str] = None,
+    outdir: Optional[str | Path] = None,
     threads: int = 4,
     hooks: Optional[List[str]] = None,
     dry_run: bool = False,
@@ -226,7 +226,7 @@ def get(
 
     try:
         mod_instance = ModCls(
-            src_region=src_region, hook=active_hooks, outdir=outdir, **kwargs
+            src_region=src_region, hook=active_hooks, outdir=str(outdir), **kwargs
         )
     except Exception as e:
         logger.error(f"Failed to initialize {module}: {e}")

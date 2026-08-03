@@ -9,8 +9,8 @@ Fetch Sentinel-2 Imagery via sentinelsat.
 Includes Smart-Fallback bridging for Legacy SciHub and Modern CDSE endpoints.
 """
 
-import os
 import logging
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
 from fetchez import core
@@ -140,9 +140,9 @@ class Sentinel2(FetchModule):
 
         logger.info(f"Found {len(products)} scenes. Downloading via sentinelsat...")
 
-        out_dir = getattr(self, "_outdir", os.getcwd())
-        if out_dir and not os.path.exists(out_dir):
-            os.makedirs(out_dir)
+        out_dir = getattr(self, "_outdir", Path.cwd())
+        if out_dir and not Path(out_dir).exists():
+            Path(out_dir).mkdir(parents=True, exist_ok=True)
 
         try:
             downloaded, triggered, failed = api.download_all(

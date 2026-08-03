@@ -11,7 +11,6 @@ Discoverability and documentation for fetchez recipes.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import sys
 import yaml
 import click
@@ -176,13 +175,13 @@ def copy_recipe(name):
         sys.exit(1)
 
     # Use the registry's built-in user folder mapping!
-    user_dir = os.path.expanduser(f"~/.fetchez/{RecipeRegistry.user_folder}")
-    os.makedirs(user_dir, exist_ok=True)
+    user_dir = Path(f"~/.fetchez/{RecipeRegistry.user_folder}").expanduser()
+    user_dir.mkdir(parents=True, exist_ok=True)
 
-    out_path = os.path.join(user_dir, f"{name}.yaml")
+    out_path = user_dir / f"{name}.yaml"
 
-    if os.path.exists(out_path):
-        click.secho(f"⚠️  File already exists: {out_path}", fg="yellow")
+    if out_path.exists():
+        click.secho(f"⚠️ File already exists: {out_path}", fg="yellow")
         click.confirm("Do you want to overwrite it?", abort=True)
 
     with open(out_path, "w", encoding="utf-8") as f:
@@ -333,7 +332,7 @@ def run_recipe(
     click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
 
     base_config = None
-    if os.path.exists(name):
+    if Path(name).exists():
         base_config = _load_yaml(name)
 
     if not base_config:

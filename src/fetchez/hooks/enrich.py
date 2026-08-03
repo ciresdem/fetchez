@@ -11,9 +11,9 @@ Enrich the entry with some metadata
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
 import mimetypes
+from pathlib import Path
 from datetime import datetime
 
 from fetchez.hooks import FetchHook
@@ -36,11 +36,11 @@ class MetadataEnrich(FetchHook):
         for _mod, entry in entries:
             filepath = entry.get("dst_fn")
 
-            if entry.get("status") != 0 or not os.path.exists(filepath):
+            if entry.get("status") != 0 or not Path(filepath).exists():
                 continue
 
             try:
-                stat = os.stat(filepath)
+                stat = Path(filepath).stat()
                 entry["created_at"] = datetime.fromtimestamp(stat.st_ctime).isoformat()
                 entry["modified_at"] = datetime.fromtimestamp(stat.st_mtime).isoformat()
 

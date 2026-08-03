@@ -11,12 +11,11 @@ Fetch FABDEM (Forest And Buildings removed Copernicus DEM) data.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import logging
-from fetchez import core
+from pathlib import Path
+from fetchez import core, cli
 from fetchez.modules import FetchModule
-from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +89,8 @@ class FABDEM(FetchModule):
         if self.wgs_region is None:
             return []
 
-        idx_filename = os.path.basename(FABDEM_FOOTPRINTS_URL)
-        local_json = os.path.join(self._outdir, idx_filename)
+        idx_filename = Path(FABDEM_FOOTPRINTS_URL).name
+        local_json = Path(self._outdir) / idx_filename
 
         logger.info("Fetching FABDEM tile index...")
         if (
@@ -127,7 +126,7 @@ class FABDEM(FetchModule):
 
                         self.add_entry_to_results(
                             url=url,
-                            dst_fn=zip_name,
+                            dst_fn=str(zip_name),
                             data_type="zip",
                             agency="University of Bristol",
                             title=f"FABDEM Tile {zip_name}",
@@ -142,7 +141,6 @@ class FABDEM(FetchModule):
         except Exception as e:
             logger.error(f"Error processing FABDEM index: {e}")
 
-        if os.path.exists(local_json):
-            os.remove(local_json)
+        local_json.unlink(missing_ok=True)
 
         return self

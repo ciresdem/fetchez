@@ -12,8 +12,8 @@ Fetch ArcticDEM high-resolution digital surface models.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
+from pathlib import Path
 from typing import Optional
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -100,8 +100,8 @@ class ArcticDEM(FetchModule):
         if self.wgs_region is None:
             return self
 
-        idx_zip_name = os.path.basename(ARCTIC_DEM_INDEX_URL)
-        local_zip = os.path.join(self._outdir, idx_zip_name)
+        idx_zip_name = Path(ARCTIC_DEM_INDEX_URL).name
+        local_zip = Path(self._outdir) / idx_zip_name
 
         if core.Fetch(ARCTIC_DEM_INDEX_URL).fetch_file(local_zip, verbose=True) != 0:
             logger.error("Failed to download ArcticDEM Index.")
@@ -137,9 +137,10 @@ class ArcticDEM(FetchModule):
                     if not tile_url:
                         continue
 
+                    _dst_fn = Path(str(tile_url)).name
                     self.add_entry_to_results(
                         url=str(tile_url),
-                        dst_fn=os.path.basename(str(tile_url)),
+                        dst_fn=_dst_fn,
                         data_type="arcticdem",
                         agency="PGC",
                         title="ArcticDEM Tile",
@@ -152,7 +153,6 @@ class ArcticDEM(FetchModule):
             logger.error(f"Error processing index: {e}")
 
         for f in unzipped:
-            if os.path.exists(f):
-                os.remove(f)
+            Path(f).unlink(missing_ok=True)
 
         return self

@@ -12,12 +12,12 @@ the copernincusmarine api.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
 import filelock
+from pathlib import Path
 from fetchez.modules import FetchModule
-from fetchez import cli
 from fetchez.core import get_raw_credentials
+from fetchez import cli
 
 try:
     import copernicusmarine
@@ -80,11 +80,11 @@ class CopernicusMarineSDB(FetchModule):
             # os.makedirs(output_folder, exist_ok=True)
 
             out_fn = f"{self.dataset_id}_{self.wgs_region.xmin}_{self.wgs_region.ymin}_{self.wgs_region.xmax}_{self.wgs_region.ymax}.nc"
-            out_path = os.path.join(self._outdir, out_fn)
+            out_path = Path(self._outdir) / out_fn
             lock_fn = f"{out_path}.lock"
 
             with filelock.FileLock(lock_fn, timeout=3600):
-                if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+                if out_path.exists() and out_path.stat().st_size > 0:
                     pass  # Skip the download, the file is already there and valid
 
                 else:
@@ -102,10 +102,10 @@ class CopernicusMarineSDB(FetchModule):
                         skip_existing=True,
                     )
 
-            if os.path.exists(out_path):
+            if out_path.exists():
                 self.add_entry_to_results(
                     url=f"file://{out_fn}",
-                    dst_fn=out_fn,
+                    dst_fn=str(out_fn),
                     data_type="copernicus_sdb",
                 )
 

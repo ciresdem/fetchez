@@ -11,9 +11,9 @@ Fetch global Mean Sea Level data from the Permanent Service for Mean Sea Level (
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import csv
 import logging
+from pathlib import Path
 from typing import Optional
 
 from fetchez import core
@@ -67,10 +67,8 @@ class PSMSL(FetchModule):
 
         logger.debug(f"Fetching PSMSL station master list from {STATION_LIST_URL}...")
 
-        if not os.path.exists(self._outdir):
-            os.makedirs(self._outdir)
-
-        local_list = os.path.join(self._outdir, "psmsl_filelist.txt")
+        Path(self._outdir).mkdir(parents=True, exist_ok=True)
+        local_list = Path(self._outdir) / "psmsl_filelist.txt"
 
         # Download the index
         if core.Fetch(STATION_LIST_URL).fetch_file(local_list, verbose=False) != 0:
@@ -109,8 +107,8 @@ class PSMSL(FetchModule):
                         dst_name = f"psmsl_{station_id}_{self.datatype}.csv"
 
                         self.add_entry_to_results(
-                            url=data_url,
-                            dst_fn=dst_name,
+                            url=str(data_url),
+                            dst_fn=str(dst_name),
                             data_type=self.datatype,
                             agency="PSMSL",
                             title=f"Station {station_id}: {station_name}",
@@ -121,8 +119,7 @@ class PSMSL(FetchModule):
         except Exception as e:
             logger.error(f"Error parsing PSMSL list: {e}")
         finally:
-            if os.path.exists(local_list):
-                os.remove(local_list)
+            local_list.unlink(missing_ok=True)
 
         logger.info(
             f"Found {found_count} PSMSL stations in the requested bounding box."

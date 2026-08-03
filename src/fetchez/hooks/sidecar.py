@@ -11,9 +11,9 @@ Generates a 'sidecar' metadata file for each entry
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import logging
+from pathlib import Path
 from datetime import datetime
 
 from fetchez.hooks import FetchHook
@@ -38,7 +38,7 @@ class Sidecar(FetchHook):
                 continue
 
             filepath = entry.get("dst_fn")
-            if not filepath or not os.path.exists(filepath):
+            if not filepath or not Path(filepath).exists():
                 continue
 
             meta_fn = filepath + ".meta.json"
@@ -46,7 +46,7 @@ class Sidecar(FetchHook):
                 "source_module": mod.name,
                 "source_url": entry.get("url"),
                 "download_date": datetime.now().isoformat(),
-                "original_filename": os.path.basename(filepath),
+                "original_filename": Path(filepath).name,
                 "tags": getattr(mod, "tags", []),
                 "extra": {
                     key: val
