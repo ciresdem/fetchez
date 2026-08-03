@@ -40,7 +40,6 @@ class TransferLog(FetchHook):
 
         for _mod, entry in entries:
             # Status 0 indicates success in fetchez
-            # Some modules don't return a status.
             if entry.get("status", 0) == 0:
                 successes.append(entry)
             else:
@@ -61,6 +60,10 @@ class TransferLog(FetchHook):
                     for entry in failures:
                         f.write(f"  [FAIL] {entry.get('url', 'Unknown URL')}\n")
                         f.write(f"         Target: {entry.get('dst_fn', 'Unknown')}\n")
+                        f.write(f"         Module: {entry.get('name', 'Unknown')}\n")
+                        f.write(
+                            f"         Error: {entry.get('error_message', 'Unknown')}\n"
+                        )
 
                 f.write("\n" + "=" * 80 + "\n")
                 f.write(f"SUCCESSFUL DOWNLOADS ({len(successes)}):\n")
