@@ -153,9 +153,9 @@ extend-select = [  # Extend the default ruleset:
     "PTH100",  # os.path.abspath
     "PTH102",  # os.mkdir
     "PTH110",  # os.path.exists
-    # "PTH103",  # os.mkdirs
+    "PTH103",  # os.mkdirs
     "PTH112",  # os.path.isdir
-    # "PTH120",  # os.path.dirname
+    "PTH120",  # os.path.dirname
     # "SIM102",
     "T20",  # flake8-print <https://docs.astral.sh/ruff/rules/#flake8-print-t20>
 ]

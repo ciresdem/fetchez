@@ -83,11 +83,11 @@ class PluginRegistry:
     def load_user_plugins(cls):
         """Scan local directories for user-provided plugins."""
 
-        home = os.path.expanduser("~")
+        home = Path.home()
 
         search_dirs = [
-            os.path.join(home, ".fetchez", cls.user_folder),
-            os.path.join(os.getcwd(), ".fetchez", cls.user_folder),
+            str(home / ".fetchez" / cls.user_folder),
+            str(Path.cwd() / ".fetchez" / cls.user_folder),
         ]
 
         for p_dir in search_dirs:
@@ -96,12 +96,12 @@ class PluginRegistry:
 
             for f in os.listdir(p_dir):
                 if f.endswith(".py") and not f.startswith("_"):
-                    filepath = os.path.join(p_dir, f)
+                    filepath = Path(p_dir) / f
                     mod_name = f"fetchez_user_{cls.user_folder}_{f[:-3]}"
 
                     try:
                         spec = importlib.util.spec_from_file_location(
-                            mod_name, filepath
+                            mod_name, str(filepath)
                         )
                         if spec and spec.loader:
                             mod = importlib.util.module_from_spec(spec)
@@ -149,9 +149,10 @@ class PluginRegistry:
     def _get_cache_path(cls):
         """Path to the JSON registry cache."""
 
-        cache_dir = os.path.expanduser("~/.fetchez")
-        os.makedirs(cache_dir, exist_ok=True)
-        return os.path.join(cache_dir, f"{cls.__name__}_cache.json")
+        cache_dir = Path("~/.fetchez").expanduser()
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        out_cache = cache_dir / f"{cls.__name__}_cache.json"
+        return out_cache
 
     @classmethod
     def load_fast(cls):
@@ -242,15 +243,13 @@ class PluginRegistry:
 
         # Local User Plugins
         user_folder = (
-            os.path.join(os.path.expanduser("~/.fetchez"), cls.user_folder)
-            if cls.user_folder
-            else None
+            Path.home() / ".fetchez" / cls.user_folder if cls.user_folder else None
         )
         if user_folder and Path(user_folder).exists():
             mtimes = [os.path.getmtime(user_folder)]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
-                    mtimes.append(os.path.getmtime(os.path.join(user_folder, f)))
+                    mtimes.append(os.path.getmtime(Path(user_folder) / f))
             meta["user_mtime"] = max(mtimes)
 
         # External Packages
@@ -292,12 +291,12 @@ class PluginRegistry:
             pass
 
         # User Plugins
-        user_folder = os.path.expanduser(cls.user_folder) if cls.user_folder else None
+        user_folder = Path(cls.user_folder).expanduser() if cls.user_folder else None
         if user_folder and Path(user_folder).exists():
             mtimes = [os.path.getmtime(user_folder)]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
-                    mtimes.append(os.path.getmtime(os.path.join(user_folder, f)))
+                    mtimes.append(os.path.getmtime(Path(user_folder) / f))
             if meta.get("user_mtime") != max(mtimes):
                 return False
 
@@ -466,17 +465,16 @@ class YamlRegistry:
 
         builtin_module = importlib.import_module(cls.builtin_pkg)
         builtin_path = builtin_module.__path__
-        home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
+        home_dir = Path.home() / ".fetchez" / cls.user_folder
         builtin_path.append(home_dir)
         for fdir in builtin_path:
             if Path(fdir).exists():
                 for fn in os.listdir(fdir):
                     if fn.endswith((".yaml", ".yml")):
                         try:
-                            with open(
-                                os.path.join(fdir, fn), "r", encoding="utf-8"
-                            ) as f:
-                                cls._register_yaml(f.read(), os.path.join(fdir, fn))
+                            f_dir = Path(fdir) / fn
+                            with open(f_dir, "r", encoding="utf-8") as f:
+                                cls._register_yaml(f.read(), f_dir)
                         except Exception as e:
                             logger.warning(f"Failed to load yaml {fn}: {e}")
 
@@ -612,7 +610,7 @@ class RecipeRegistry(YamlRegistry):
 
             # Use the project name from the YAML, fallback to the filename
             name = config["project"].get(
-                "name", os.path.basename(file_path).replace(".yaml", "")
+                "name", Path(file_path).name.replace(".yaml", "")
             )
             desc = config["project"].get("description", "No description available.")
 
@@ -757,15 +755,14 @@ class _RecipeRegistry:
             except Exception as e:
                 logger.warning(f"Failed to load recipes from package {pkg_name}: {e}")
 
-        home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
-        if Path(home_dir).exists():
+        home_dir = Path(f"~/.fetchez/{cls.user_folder}").expanduser()
+        if home_dir.exists():
             for fn in os.listdir(home_dir):
                 if fn.endswith((".yaml", ".yml")):
                     try:
-                        with open(
-                            os.path.join(home_dir, fn), "r", encoding="utf-8"
-                        ) as f:
-                            cls._register_yaml(f.read(), os.path.join(home_dir, fn))
+                        home_fn = home_dir / fn
+                        with open(home_fn, "r", encoding="utf-8") as f:
+                            cls._register_yaml(f.read(), home_fn)
                     except Exception as e:
                         logger.warning(f"Failed to load local recipe {fn}: {e}")
 
@@ -782,7 +779,7 @@ class _RecipeRegistry:
 
             # Use the project name from the YAML, fallback to the filename
             name = config["project"].get(
-                "name", os.path.basename(file_path).replace(".yaml", "")
+                "name", Path(file_path).name.replace(".yaml", "")
             )
             desc = config["project"].get("description", "No description available.")
 
@@ -839,22 +836,21 @@ class _PresetRegistry:
 
         builtin_module = importlib.import_module(cls.builtin_pkg)
         builtin_path = builtin_module.__path__
-        home_dir = os.path.expanduser(f"~/.fetchez/{cls.user_folder}")
+        home_dir = Path(f"~/.fetchez/{cls.user_folder}").expanduser()
         builtin_path.append(home_dir)
         for fdir in builtin_path:
             if Path(fdir).exists():
                 for fn in os.listdir(fdir):
                     if fn.endswith((".yaml", ".yml")):
                         try:
-                            with open(
-                                os.path.join(fdir, fn), "r", encoding="utf-8"
-                            ) as f:
-                                cls._register_yaml(f.read(), os.path.join(fdir, fn))
+                            f_fn = Path(fdir) / fn
+                            with open(f_fn, "r", encoding="utf-8") as f:
+                                cls._register_yaml(f.read(), f_fn)
                         except Exception as e:
                             logger.warning(f"Failed to load preset {fn}: {e}")
 
-        legacy_file = os.path.expanduser("~/.fetchez/presets.yaml")
-        if Path(legacy_file).exists():
+        legacy_file = Path("~/.fetchez/presets.yaml").expanduser()
+        if legacy_file.exists():
             try:
                 with open(legacy_file, "r", encoding="utf-8") as f:
                     cls._register_yaml(f.read(), legacy_file, is_legacy=True)
