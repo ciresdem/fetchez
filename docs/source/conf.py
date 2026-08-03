@@ -9,8 +9,8 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, Path("../..").resolve())
-sys.path.insert(0, Path("../_ext").resolve())
+sys.path.insert(0, str(Path("../..").resolve()))
+sys.path.insert(0, str(Path("../_ext").resolve()))
 
 project = "Fetchez"
 copyright = "2026, The Continuous-DEMs Development Team."
