@@ -309,9 +309,9 @@ Bounding box (W/E/S/N)
     "--refresh", is_flag=True, help="Force fresh API fetch, bypassing local cache."
 )
 @click.option(
-    "--ignore-failures",
+    "--fail-fast",
     is_flag=True,
-    help="Continue processing through failures (Warning: may result in incomplete data or products).",
+    help="Raise an exception on the first failure, otherwise continue processing through failures.",
 )
 @click.argument("name")
 def run_recipe(
@@ -323,7 +323,7 @@ def run_recipe(
     modifier,
     schema,
     refresh,
-    ignore_failures,
+    fail_fast,
 ):
     """Execute a YAML recipe by registry name or file path."""
 
@@ -376,7 +376,7 @@ def run_recipe(
             outdir=outdir,
             shared_cache=shared_cache,
             refresh=refresh,
-            ignore_failures=ignore_failures,
+            ignore_failures=not fail_fast,
         )
 
         click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
