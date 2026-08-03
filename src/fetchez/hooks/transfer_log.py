@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class TransferLog(FetchHook):
-    """Write a clear summary of failed and successful downloads."""
+    """Write a summary of failed and successful downloads."""
 
     name = "transfer-log"
-    meta_desc = "Generates a clear report of download successes and failures."
+    meta_desc = "Generates a report of download successes and failures."
     meta_stage = "collection"  # post
     meta_category = "metadata"
     meta_aliases = ["transfer_log"]
