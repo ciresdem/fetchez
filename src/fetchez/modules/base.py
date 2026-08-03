@@ -386,6 +386,25 @@ class FetchModule:
         if hasattr(self, "stream_kwargs"):
             entry.update(self.stream_kwargs)
 
+        # Intercept standard spatial metadata fields for compliance
+        standard_metadata = {
+            "name": self.name,  # Module name (e.g., 'tnm', 'copernicus')
+            "title": kwargs.pop("title", "Unknown"),
+            "source": getattr(self, "meta_agency", "Unknown"),
+            "date": kwargs.pop("date", "Unknown"),
+            "data_type": data_type,
+            "resolution": kwargs.pop(
+                "resolution", getattr(self, "meta_resolution", "Unknown")
+            ),
+            "hdatum": kwargs.pop("hdatum", "Unknown"),
+            "vdatum": kwargs.pop("vdatum", "Unknown"),
+            "url": str(url),
+        }
+
+        entry_metadata = kwargs.pop("metadata", {})
+        standard_metadata.update(entry_metadata)
+        entry["metadata"] = standard_metadata
+
         entry.update(kwargs)
         self.results.append(entry)
 
