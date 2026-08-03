@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update the use of paths in modules.base so that we use relative paths
 - Update modules.base cached_run to use relative paths in cache instead of absolute paths
 - Upgrade Exception handling for 'fail-fast' defaults
+- Update most code to use pathlib, ongoing...
 
 ### BUGFIX
  - keyboard interrupt wouldn't correctly get passed to the concurrent threads and got looped into the logging library; moving the try/except to inside the with concurrent and adding a logging.debug in the keyboardinterrupt solves this and now is responsive and acting as expected.

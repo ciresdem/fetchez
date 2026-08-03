@@ -246,10 +246,10 @@ class PluginRegistry:
             Path.home() / ".fetchez" / cls.user_folder if cls.user_folder else None
         )
         if user_folder and Path(user_folder).exists():
-            mtimes = [os.path.getmtime(user_folder)]
+            mtimes = [Path(user_folder).stat().mtime]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
-                    mtimes.append(os.path.getmtime(Path(user_folder) / f))
+                    mtimes.append(Path(Path(user_folder) / f).stat().mtime)
             meta["user_mtime"] = max(mtimes)
 
         # External Packages
@@ -293,10 +293,10 @@ class PluginRegistry:
         # User Plugins
         user_folder = Path(cls.user_folder).expanduser() if cls.user_folder else None
         if user_folder and Path(user_folder).exists():
-            mtimes = [os.path.getmtime(user_folder)]
+            mtimes = [Path(user_folder).stat().mtime]
             for f in os.listdir(user_folder):
                 if f.endswith(".py"):
-                    mtimes.append(os.path.getmtime(Path(user_folder) / f))
+                    mtimes.append(Path(Path(user_folder) / f).stat().mtime)
             if meta.get("user_mtime") != max(mtimes):
                 return False
 
