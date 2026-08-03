@@ -199,9 +199,9 @@ Bounding box (W/E/S/N)
     "--refresh", is_flag=True, help="Force fresh API fetch, bypassing local cache."
 )
 @click.option(
-    "--ignore-failures",
+    "--fail-fast",
     is_flag=True,
-    help="Continue processing through failures (Warning: may result in incomplete data or products).",
+    help="Raise an exception on the first failure, otherwise continue processing through failures.",
 )
 @click.pass_context
 # """Initializes the context before the chained subcommands run."""
@@ -216,7 +216,7 @@ def pipeline_group(
     threads,
     shared_cache,
     refresh,
-    ignore_failures,
+    fail_fast,
 ):
     """Fetch/download data and execute processing pipelines.
 
@@ -269,7 +269,7 @@ def process_pipeline(
     threads,
     shared_cache,
     refresh,
-    ignore_failures,
+    fail_fast,
 ):
     """Executes after all chained commands have returned their dictionaries."""
 
@@ -324,5 +324,5 @@ def process_pipeline(
     else:
         click.secho("Executing dynamic pipeline...", fg="cyan", bold=True, err=True)
         Recipe.from_dict(config).run(
-            shared_cache=shared_cache, refresh=refresh, ignore_failures=ignore_failures
+            shared_cache=shared_cache, refresh=refresh, ignore_failures=not fail_fast
         )

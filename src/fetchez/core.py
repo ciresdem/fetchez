@@ -722,7 +722,7 @@ class Fetch:
                                     if extras:
                                         status_msg += f" ({extras})"
                                 except Exception:
-                                    pass
+                                    req.raise_for_status()
                                 raise ConnectionError(status_msg)
 
                             with open(part_fn, mode) as f:
@@ -784,9 +784,9 @@ class Fetch:
                             )
                             time.sleep(wait_time)
                         else:
-                            logger.warning(f"Failed to download {self.url}: {e}")
-                            # return -1
-                            req.raise_for_status()
+                            logger.debug(f"Failed to download {self.url}: {e}")
+                            return -1
+                            # req.raise_for_status()
 
         except filelock.Timeout:
             logger.error(
@@ -878,7 +878,7 @@ def run_fetchez(
     modules: List[Any],
     threads: int = 3,
     global_hooks: Optional[List[Any]] = None,
-    ignore_failures: bool = False,
+    ignore_failures: bool = True,
 ):
     """Run Fetchez in parallel with hooks.
 

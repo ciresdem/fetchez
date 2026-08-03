@@ -365,6 +365,7 @@ class FetchModule:
         except Exception as e:
             logger.error(f"Fetch failed for {entry['url']}: {e}")
             status = -1
+            entry["status"] = status
 
         return status
 
