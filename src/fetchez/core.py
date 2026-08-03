@@ -596,9 +596,9 @@ class Fetch:
                 try:
                     import shutil
 
-                    if not Path(dst_fn).parent.exists():
-                        Path(dst_fn).parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(src_path, dst_fn)
+                    Path(dst_fn).parent.mkdir(parents=True, exist_ok=True)
+                    if not Path(src_path) == Path(dst_fn):
+                        shutil.copy2(src_path, dst_fn)
                     return 0
                 except Exception as e:
                     logger.error(f"Local copy failed: {e}")

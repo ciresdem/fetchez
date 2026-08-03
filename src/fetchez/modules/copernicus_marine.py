@@ -107,6 +107,7 @@ class CopernicusMarineSDB(FetchModule):
                     url=f"file://{out_fn}",
                     dst_fn=str(out_fn),
                     data_type="copernicus_sdb",
+                    status=0,
                 )
 
         except Exception as e:
