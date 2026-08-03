@@ -12,7 +12,7 @@ Useful for injecting local data into the processing pipeline (dlim).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
+from pathlib import Path
 from fetchez.modules import FetchModule
 from fetchez import cli
 
@@ -52,12 +52,12 @@ class LocalDataset(FetchModule):
                 self.file_list.extend(paths)
             else:
                 for this_path in paths.split(","):
-                    if os.path.isfile(this_path):
+                    if Path(this_path).is_file():
                         self.file_list.append(this_path)
 
         if path:
             for this_path in path.split(","):
-                if os.path.isfile(this_path):
+                if Path(this_path).is_file():
                     self.file_list.append(this_path)
 
         # Register each file
@@ -73,10 +73,10 @@ class LocalDataset(FetchModule):
         # Handle file:// schema if present
         if p.startswith("file://"):
             clean_path = p.replace("file://", "")
-            abs_path = os.path.abspath(clean_path)
+            abs_path = Path(clean_path).resolve()
             url = f"file://{abs_path}"
         else:
-            abs_path = os.path.abspath(p)
+            abs_path = Path(p).resolve()
             url = f"file://{abs_path}"
 
         # Determine a "destination filename" (just the basename)
@@ -87,7 +87,7 @@ class LocalDataset(FetchModule):
         # and proceeds immediately to the hooks.
         self.add_entry_to_results(
             url=url,
-            dst_fn=abs_path,  # Point directly to the absolute local path
+            dst_fn=str(abs_path),  # Point directly to the absolute local path
             data_type="local",
             status=0,
         )

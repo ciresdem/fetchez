@@ -1,7 +1,11 @@
 # test_registry.py
+
 import logging
 import os
 import ast
+
+from pathlib import Path
+
 import fetchez.modules
 import fetchez.hooks
 from fetchez.registry import ModuleRegistry, HookRegistry
@@ -79,8 +83,8 @@ def test_optional_dependencies_are_protected():
         "copernicusmarine",
     }
 
-    mod_dir = os.path.dirname(fetchez.modules.__file__)
-    hook_dir = os.path.dirname(fetchez.hooks.__file__)
+    mod_dir = Path(fetchez.modules.__file__).parent
+    hook_dir = Path(fetchez.hooks.__file__).parent
 
     unprotected_imports = []
 
@@ -90,12 +94,12 @@ def test_optional_dependencies_are_protected():
                 if not file.endswith(".py") or file.startswith("_"):
                     continue
 
-                filepath = os.path.join(root, file)
+                filepath = Path(root) / file
                 with open(filepath, "r", encoding="utf-8") as f:
                     source = f.read()
 
                 try:
-                    tree = ast.parse(source, filename=filepath)
+                    tree = ast.parse(source, filename=str(filepath))
                 except SyntaxError:
                     continue
 
@@ -123,7 +127,7 @@ def test_optional_dependencies_are_protected():
                     if imported_module:
                         if node.lineno not in safe_lines:
                             # We found an unprotected import!
-                            rel_path = os.path.relpath(filepath, start=os.getcwd())
+                            rel_path = Path(filepath).relative_to(Path.cwd())
                             unprotected_imports.append(
                                 f"  - {rel_path}:{node.lineno} (imported '{imported_module}')"
                             )

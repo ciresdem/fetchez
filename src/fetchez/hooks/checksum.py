@@ -11,9 +11,9 @@ Calculate the checksum of each result entry.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
 import hashlib
+from pathlib import Path
 
 from fetchez.hooks import FetchHook
 
@@ -45,7 +45,7 @@ class Checksum(FetchHook):
         for _mod, entry in entries:
             filepath = entry.get("dst_fn")
 
-            if entry.get("status") != 0 or not os.path.exists(filepath):
+            if entry.get("status") != 0 or not Path(filepath).exists():
                 entry[f"{self.algo}_hash"] = None
                 entry["local_size"] = 0
                 continue

@@ -12,8 +12,8 @@ Data Access Viewer (DAV) API.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
+from pathlib import Path
 from urllib.parse import urljoin
 from typing import List, Dict, Optional, Any
 import requests
@@ -149,7 +149,7 @@ class DAV(FetchModule):
             if not urllist_link.startswith("http"):
                 urllist_link = urljoin(bulk_url, urllist_link)
 
-            local_urllist = os.path.join(self._outdir, os.path.basename(urllist_link))
+            local_urllist = Path(self._outdir) / Path(urllist_link).name
             if core.Fetch(urllist_link).fetch_file(local_urllist, verbose=False) == 0:
                 try:
                     with open(local_urllist, "r") as f:
@@ -160,8 +160,7 @@ class DAV(FetchModule):
                 except Exception:
                     pass
                 finally:
-                    if os.path.exists(local_urllist):
-                        os.remove(local_urllist)
+                    local_urllist.unlink(missing_ok=True)
 
         if not index_zip_url:
             zip_links = page.xpath('//a[contains(@href, ".zip")]/@href')
@@ -191,7 +190,7 @@ class DAV(FetchModule):
         target_crs = None
 
         try:
-            if os.path.exists(prj_path):
+            if Path(prj_path).exists():
                 with open(prj_path, "r") as f:
                     wkt_text = f.read()
                 target_crs = CRS.from_wkt(wkt_text)
@@ -249,15 +248,16 @@ class DAV(FetchModule):
                         if tile_url.endswith("/"):
                             tile_url += str(tile_name)
                         elif not tile_url.lower().endswith(
-                            os.path.basename(str(tile_name)).lower()
+                            Path(str(tile_name)).name.lower()
                         ):
-                            tile_url = f"{tile_url.rstrip('/')}/{os.path.basename(str(tile_name))}"
+                            tile_url = (
+                                f"{tile_url.rstrip('/')}/{Path(str(tile_name)).name}"
+                            )
 
+                    _dst_fn = Path(str(dataset_id)) / Path(tile_url).name
                     self.add_entry_to_results(
                         url=tile_url,
-                        dst_fn=os.path.join(
-                            str(dataset_id), os.path.basename(tile_url)
-                        ),
+                        dst_fn=str(_dst_fn),
                         data_type=data_type,
                         agency="NOAA Digital Coast",
                         title=f"Dataset {dataset_id}",
@@ -378,20 +378,20 @@ class DAV(FetchModule):
                 continue
 
             if self.want_footprints:
+                _dst_fn = Path(str(fid)) / Path(index_zip_url).name
                 self.add_entry_to_results(
                     url=index_zip_url,
-                    dst_fn=os.path.join(str(fid), os.path.basename(index_zip_url)),
+                    dst_fn=str(_dst_fn),
                     data_type="footprint",
                     title=f"Footprint {name}",
                 )
                 continue
 
             surv_name = f"dav_{fid}"
-            local_zip = os.path.join(self._outdir, f"tileindex_{surv_name}.zip")
+            local_zip = Path(self._outdir) / f"tileindex_{surv_name}.zip"
 
             try:
-                if not os.path.exists(self._outdir):
-                    os.makedirs(self._outdir)
+                Path(self._outdir).mkdir(parents=True, exist_ok=True)
 
                 if core.Fetch(index_zip_url).fetch_file(local_zip, verbose=False) == 0:
                     unzipped = utils.p_unzip(
@@ -405,8 +405,7 @@ class DAV(FetchModule):
                     if not self.keep_footprints:
                         utils.remove_glob(local_zip)
                         for f in unzipped:
-                            if os.path.exists(f):
-                                os.remove(f)
+                            Path(f).unlink(missing_ok=True)
                 else:
                     logger.warning(f"Failed to download index: {index_zip_url}")
 

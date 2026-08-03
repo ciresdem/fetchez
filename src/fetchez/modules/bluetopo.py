@@ -14,8 +14,8 @@ created as part of the Office of Coast Survey's National Bathymetric Source proj
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
+from pathlib import Path
 from typing import Optional
 
 try:
@@ -29,9 +29,8 @@ except ImportError:
 
 from pyogrio.raw import read
 
-from fetchez import core
+from fetchez import core, cli
 from fetchez.modules import FetchModule
-from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
@@ -114,15 +113,12 @@ class BlueTopo(FetchModule):
             logger.error("Could not locate BlueTopo tile index.")
             return self
 
-        self._bluetopo_index_fn = os.path.join(
-            self._outdir, os.path.basename(self._bluetopo_index_url)
+        self._bluetopo_index_fn = (
+            Path(self._outdir) / Path(self._bluetopo_index_url).name
         )
-
         try:
-            if not os.path.exists(self._bluetopo_index_fn):
-                logger.info(
-                    f"Downloading index: {os.path.basename(self._bluetopo_index_fn)}..."
-                )
+            if not self._bluetopo_index_fn.exists():
+                logger.info(f"Downloading index: {self._bluetopo_index_fn.name}...")
                 status = core.Fetch(self._bluetopo_index_url).fetch_file(
                     self._bluetopo_index_fn
                 )
@@ -163,7 +159,7 @@ class BlueTopo(FetchModule):
                                     data_link = f"https://{BLUETOPO_BUCKET}.s3.amazonaws.com/{key}"
                                     self.add_entry_to_results(
                                         url=data_link,
-                                        dst_fn=os.path.basename(key),
+                                        dst_fn=Path(key).name,
                                         data_type="bluetopo_tiff",
                                         agency="NOAA OCS",
                                         title=tile_name,
@@ -182,10 +178,6 @@ class BlueTopo(FetchModule):
 
         finally:
             if not self.keep_index and self._bluetopo_index_fn:
-                if os.path.exists(self._bluetopo_index_fn):
-                    try:
-                        os.remove(self._bluetopo_index_fn)
-                    except OSError:
-                        pass
+                self._bluetopo_index_fn.unlink(missing_ok=True)
 
         return self

@@ -14,6 +14,7 @@ Localize fetchez cache into a specific directory.
 import os
 import shutil
 import logging
+from pathlib import Path
 from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
@@ -32,31 +33,31 @@ class LocalizeCacheHook(FetchHook):
     meta_desc = "Copies or symlinks entry results into a specific local directory."
     meta_aliases = ["localize_cache"]
 
-    def __init__(self, target_dir=".", symlink=False, **kwargs):
+    def __init__(self, target_dir: str = ".", symlink: bool = False, **kwargs):
         super().__init__(**kwargs)
-        self.target_dir = os.path.abspath(target_dir)
+        self.target_dir = Path(target_dir).resolve()
         self.symlink = str(symlink).lower() in ["true", "1", "t", "yes"]
 
     def run(self, entries):
-        os.makedirs(self.target_dir, exist_ok=True)
+        self.target_dir.mkdir(parents=True, exist_ok=True)
 
         for _mod, entry in entries:
-            current_path = entry.get("dst_fn") or entry.get("src_fn")
+            current_path = Path(entry.get("dst_fn") or entry.get("src_fn"))
 
-            if not current_path or not os.path.exists(current_path):
+            if not current_path or not current_path.exists():
                 continue
 
-            filename = os.path.basename(current_path)
-            local_path = os.path.join(self.target_dir, filename)
+            filename = current_path.name
+            local_path = self.target_dir / filename
 
-            if os.path.abspath(current_path) == local_path:
+            if local_path.is_absolute() == local_path:
                 continue
 
             try:
                 if self.symlink:
-                    if os.path.lexists(local_path):
-                        os.remove(local_path)
-                    os.symlink(os.path.abspath(current_path), local_path)
+                    if local_path.lexists():
+                        local_path.unlink()
+                    os.symlink(current_path.resolve(), local_path)
                     logger.info(
                         f"[{self.name}] Symlinked {filename} to {self.target_dir}"
                     )
@@ -64,7 +65,7 @@ class LocalizeCacheHook(FetchHook):
                     shutil.copy2(current_path, local_path)
                     logger.info(f"[{self.name}] Copied {filename} to {self.target_dir}")
 
-                entry["dst_fn"] = local_path
+                entry["dst_fn"] = str(local_path)
 
             except Exception as e:
                 logger.error(f"[{self.name}] Failed to localize {filename}: {e}")

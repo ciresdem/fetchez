@@ -11,10 +11,11 @@ Discoverability and documentation for processing macros (presets).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import sys
 import yaml
 import click
+from pathlib import Path
+
 from fetchez.registry import PresetRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 from fetchez.recipe import Recipe
@@ -125,12 +126,12 @@ def copy_preset(name):
         sys.exit(1)
 
     # Use the registry's built-in user folder mapping!
-    user_dir = os.path.expanduser(f"~/.fetchez/{PresetRegistry.user_folder}")
-    os.makedirs(user_dir, exist_ok=True)
+    user_dir = Path(f"~/.fetchez/{PresetRegistry.user_folder}").expanduer()
+    user_dir.mkdir(parents=True, exist_ok=True)
 
-    out_path = os.path.join(user_dir, f"{name}.yaml")
+    out_path = user_dir / f"{name}.yaml"
 
-    if os.path.exists(out_path):
+    if out_path.exists():
         click.secho(f"⚠️  File already exists: {out_path}", fg="yellow")
         click.confirm("Do you want to overwrite it?", abort=True)
 

@@ -23,6 +23,7 @@ import argparse
 import gzip
 import shutil
 import logging
+from pathlib import Path
 
 try:
     from osgeo import ogr, osr
@@ -50,9 +51,8 @@ class BingProcessor:
         self.keep_raw = keep_raw
 
         # Determine cache dir
-        self.cache_dir = os.path.join(os.getcwd(), "bing_cache")
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
+        self.cache_dir = Path(Path.cwd() / "bing_cache")
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     def fetch(self):
         """Use fetchez to discover and download data."""
@@ -69,10 +69,8 @@ class BingProcessor:
 
         # Initialize and Run the Module
         # We pass the cache directory so files land there
-        fetcher = BingModule(
-            src_region=self.region, outdir=os.path.dirname(self.cache_dir)
-        )
-        self.cache_dir = os.path.join(self.cache_dir, fetcher._outdir)
+        fetcher = BingModule(src_region=self.region, outdir=Path(self.cache_dir).parent)
+        self.cache_dir = Path(self.cache_dir / fetcher._outdir)
 
         logger.info("Querying Microsoft API for tiles...")
         fetcher.run()
@@ -97,7 +95,7 @@ class BingProcessor:
 
         # Create the Output Layer (GPKG)
         driver = ogr.GetDriverByName("GPKG")
-        if os.path.exists(self.out_fn):
+        if Path(self.out_fn).exists():
             driver.DeleteDataSource(self.out_fn)
 
         ds_out = driver.CreateDataSource(self.out_fn)
@@ -115,7 +113,7 @@ class BingProcessor:
             # local_path = os.path.join(self.cache_dir, entry['dst_fn'])
             local_path = entry["dst_fn"]
 
-            if not os.path.exists(local_path):
+            if not Path(local_path).exists():
                 logger.warning(f"File missing: {local_path}")
                 continue
 
@@ -176,9 +174,9 @@ class BingProcessor:
 
             # Cleanup
             if not self.keep_raw:
-                if os.path.exists(json_path):
+                if Path(json_path).exists():
                     os.remove(json_path)
-                if os.path.exists(local_path):
+                if Path(local_path).exists():
                     os.remove(local_path)
 
         logger.info(f"Finished. Wrote {total_feats} buildings to {self.out_fn}")

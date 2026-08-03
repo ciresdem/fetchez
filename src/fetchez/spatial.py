@@ -12,11 +12,11 @@ standard bounding boxes. Adaptded from CUDEM.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import math
 import logging
 import warnings
+from pathlib import Path
 from typing import Union, List, Tuple, Optional
 
 from shapely.geometry import shape, box
@@ -525,7 +525,7 @@ class Region:
 def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Region]]:
     """Parse the bounding box of any OGR-supported vector file using pygorio."""
 
-    if not os.path.exists(fn):
+    if not Path(fn).exists():
         return None
 
     regions = []
@@ -566,7 +566,7 @@ def region_from_vector(fn: str, single_region: bool = False) -> Optional[List[Re
 def region_from_geojson(fn: str) -> Optional[List[Region]]:
     """Parse the bounding box(es) of a GeoJSON file."""
 
-    if not os.path.exists(fn):
+    if not Path(fn).exists():
         return None
 
     regions = []
@@ -711,7 +711,8 @@ def yield_parsed_regions(region_str):
     try:
         raw_regions = parse_region(region_str)
     except Exception as e:
-        raise ValueError(f"Error parsing region '{region_str}': {e}")
+        logger.error(f"Error parsing region '{region_str}': {e}")
+        raise
 
     is_batch = len(raw_regions) > 1
     for _i, r in enumerate(raw_regions):

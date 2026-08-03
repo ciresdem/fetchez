@@ -24,6 +24,7 @@ import tqdm
 import re
 import inspect
 import click
+from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
@@ -198,35 +199,38 @@ def this_date():
     return datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-def today_str():
+def today_str() -> str:
     # "YYYY-MM-DD"
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
 
-def get_username():
+def get_username() -> str:
     username = ""
     while not username:
         username = input("username: ")
     return username.strip()
 
 
-def get_password():
+def get_password() -> str:
     password = ""
     while not password:
         password = getpass.getpass("password: ")
     return password.strip()
 
 
-def int_or(val, or_val=None):
+def int_or(val: Any, or_val: Optional[int] = None) -> Optional[int]:
     """Return val if val is an integer, else return or_val"""
 
     try:
-        return int(float_or(val))
+        int_val = float_or(val)
+        if int_val:
+            return int(int_val)
+        return or_val
     except Exception:
         return or_val
 
 
-def float_or(val, or_val=None):
+def float_or(val: Any, or_val: Optional[float] = None) -> Optional[float]:
     """Return val if val is a float, else return or_val"""
 
     try:
@@ -235,7 +239,9 @@ def float_or(val, or_val=None):
         return or_val
 
 
-def str_or(instr, or_val=None, replace_quote=True):
+def str_or(
+    instr: Any, or_val: Optional[str] = None, replace_quote: bool = True
+) -> Optional[str]:
     """Return val if val is a string, else return or_val"""
 
     if instr is None:
@@ -247,7 +253,7 @@ def str_or(instr, or_val=None, replace_quote=True):
         return or_val
 
 
-def str2bool(v):
+def str2bool(v: Any) -> Optional[bool]:
     """Convert a string (or other type) to a boolean.
 
     Accepts:
@@ -280,37 +286,45 @@ def str2bool(v):
         return None
 
 
-def str_truncate_middle(s, n=80):
+def str_truncate_middle(s: Optional[str], n: Optional[int] = 80) -> str:
     """Truncate the middle of the input string, replace with `...`"""
 
-    if len(s) <= n:
-        return s
+    s = str_or(s, "")
+    n = int_or(n, 80)
+    if s and n:
+        if len(s) <= n:
+            return s
+        n_2 = n // 2 - 2
+        return f"{s[:n_2]}...{s[-n_2:]}"
+    return str(s)
 
-    n_2 = int(n) // 2 - 2
-    return f"{s[:n_2]}...{s[-n_2:]}"
 
-
-def format_dataset_id(dataset_id):
+def format_dataset_id(dataset_id: Optional[str]) -> str:
     """Extracts Context + Basename for logging."""
 
     from urllib.parse import urlparse
 
-    if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
-        parsed = urlparse(dataset_id)
-        # context = parsed.netloc.split('.')[0]
-        context = parsed.netloc
-        basename = os.path.basename(parsed.path)
+    dataset_id = str_or(dataset_id)
+    if dataset_id:
+        if dataset_id.startswith(("http://", "https://", "ftp://", "s3://")):
+            parsed = urlparse(dataset_id)
+            # context = parsed.netloc.split('.')[0]
+            context = parsed.netloc
+            basename = Path(parsed.path).name
+        else:
+            basename = Path(dataset_id).name
+            context = Path(dataset_id).parent.name
+
+        if not context:
+            return basename
+
+        return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
+
     else:
-        basename = os.path.basename(dataset_id)
-        context = os.path.basename(os.path.dirname(dataset_id))
-
-    if not context:
-        return basename
-
-    return f"[{colorize(context, MAGENTA)}] {colorize(basename, BLUE)}"
+        return str(dataset_id)
 
 
-def fn_url_p(fn):
+def fn_url_p(fn: str) -> bool:
     """Check if fn is a URL."""
 
     url_sw = ["http://", "https://", "ftp://", "ftps://", "/vsicurl"]
@@ -319,12 +333,13 @@ def fn_url_p(fn):
             for u in url_sw:
                 if fn.startswith(u):
                     return True
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Could not parse url {fn}: {e}")
             return False
     return False
 
 
-def inc2str(inc):
+def inc2str(inc: float) -> str:
     """Convert a WGS84 geographic increment to a string identifier."""
 
     import fractions
@@ -334,7 +349,7 @@ def inc2str(inc):
     )
 
 
-def str2inc(inc_str):
+def str2inc(inc_str: Optional[str]) -> Optional[float]:
     """Convert a GMT-style inc_str (e.g. 6s) to geographic units.
 
     c/s - arc-seconds
@@ -345,55 +360,62 @@ def str2inc(inc_str):
     if inc_str is None or str(inc_str).lower() == "none" or len(str(inc_str)) == 0:
         return None
 
-    inc_str = str(inc_str)
+    inc_str = str_or(inc_str)
+    if not inc_str:
+        return None
+
     units = inc_str[-1]
+    if float_or(units):
+        return float_or(inc_str)
+
+    inc_val = float_or(inc_str[:-1])
+    if not inc_val:
+        return None
 
     try:
-        if units == "c" or units == "s":
-            return float(inc_str[:-1]) / 3600.0
-        elif units == "m":
-            return float(inc_str[:-1]) / 360.0
-        elif units == "t":
-            return float(inc_str[:-1]) / 111320.0  # Approx meters at equator
+        if units:
+            if units == "c" or units == "s":
+                return inc_val / 3600.0
+            elif units == "m":
+                return inc_val / 360.0
+            elif units == "t":
+                return inc_val / 111320.0  # Approx meters at equator
+            else:
+                logger.warning(
+                    f"Unknown unit string: {units}, returning raw parsed value."
+                )
+                return float_or(inc_val)
         else:
-            return float(inc_str)
+            return float_or(inc_str)
     except ValueError as e:
         logger.error(f"Could not parse increment {inc_str}: {e}")
         return None
 
 
-def remove_glob(pathname: str):
-    """Safely remove files matching a glob pattern."""
+def remove_glob2(*args: str) -> int:
+    """Glob paths and recursively delete matching files and directories."""
 
-    import glob
-
-    for p in glob.glob(pathname):
-        if os.path.exists(p):
-            try:
-                os.remove(p)
-            except OSError as e:
-                logger.error(f"Could not remove {p}: {e}")
-
-
-def remove_glob2(*args):
-    """Glob `glob_str` and os.remove results."""
-
-    import glob
-
-    for glob_str in args:
+    for glob_pattern in args:
         try:
-            globs = glob.glob(glob_str)
-            for g in globs:
-                if os.path.isdir(g):
-                    remove_glob(f"{g}/*")
-                    remove_glob(f"{g}/.*")
-                    os.removedirs(g)
-                else:
-                    os.remove(g)
+            # Match top-level paths based on the provided glob pattern
+            # Uses Path(".") as the base directory anchor for the pattern
+            if Path(glob_pattern).is_absolute():
+                Path(glob_pattern).unlink(missing_ok=True)
+            else:
+                for path in Path(".").glob(glob_pattern):
+                    if not path.exists():
+                        continue
+                    if path.is_dir() and not path.is_symlink():
+                        shutil.rmtree(path)
+                    else:
+                        path.unlink(missing_ok=True)
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Could not remove path with glob pattern {glob_pattern}: {e}")
             return -1
     return 0
+
+
+remove_glob = remove_glob2
 
 
 def _parse_value_string(val_str: str) -> Any:
@@ -414,17 +436,18 @@ def _parse_value_string(val_str: str) -> Any:
         return val_str.strip('"')
 
 
-def make_temp_fn(basename, temp_dir=None):
+def make_temp_fn(basename: str, temp_dir: Optional[str] = None) -> str:
     """Generate a temporary filename."""
 
-    prefix = os.path.splitext(basename)[0]
-    suffix = os.path.splitext(basename)[1]
+    basename_path = Path(basename)
+    prefix = basename_path.stem
+    suffix = basename_path.suffix
     fd, path = tempfile.mkstemp(suffix=suffix, prefix=f"{prefix}_", dir=temp_dir)
     os.close(fd)
     return path
 
 
-def x360(x):
+def x360(x: float) -> float:
     if x == 0:
         return -180
     elif x == 360:
@@ -538,8 +561,8 @@ def parse_arg_to_dict(val, cast_type=str):
 
                 parsed = json.loads(val)
                 return {str(k).strip(): cast_type(v) for k, v in parsed.items()}
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to parse {val} as json: {e}")
 
         # String
         pairs = val.split("/")
@@ -620,7 +643,7 @@ def parse_hook_string(hook_str, default_name=None):
     return hook
 
 
-def parse_source_string(source_str, default_hooks=None):
+def parse_source_string(source_str: str, default_hooks: Optional[List] = None) -> Dict:
     """Parses a source string into a Fetchez module dictionary.
 
     Supports local file auto-detection and chaining hooks via '+'.
@@ -638,12 +661,13 @@ def parse_source_string(source_str, default_hooks=None):
     args = mod_parsed.get("args", {})
 
     # Auto-detect local files and directories
-    if os.path.exists(mod_name):
-        if os.path.isfile(mod_name):
-            args["paths"] = os.path.abspath(mod_name)
+    mod_path = Path(mod_name)
+    if mod_path.exists():
+        if mod_path.is_file():
+            args["paths"] = str(mod_path.resolve())
             mod_name = "file"
-        elif os.path.isdir(mod_name):
-            args["path"] = os.path.abspath(mod_name)
+        elif mod_path.is_dir():
+            args["path"] = str(mod_path.resolve())
             mod_name = "local_fs"
 
     mod_dict = {"module": mod_name, "hooks": default_hooks or []}
@@ -676,7 +700,7 @@ def compile_sources(sources):
                 logger.debug(
                     f"Imported {len(partial_recipe['modules'])} modules from {src}"
                 )
-        elif str(src).lower().endswith((".yaml", ".yml")) and os.path.exists(src):
+        elif str(src).lower().endswith((".yaml", ".yml")) and Path(src).exists():
             try:
                 with open(src, "r") as f:
                     partial_recipe = yaml.safe_load(f)
@@ -723,8 +747,8 @@ def parse_hook_string_(h_str):
                         v = float(v)
                     else:
                         v = int(v)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Unable to parse hook string: {h_str}: {e}")
             kwargs[k] = v
         else:
             kwargs[p] = True
@@ -827,8 +851,8 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
     Returns:
         List of paths to the extracted files.
     """
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    if not Path(outdir).exists():
+        Path(outdir).mkdir(parents=True, exist_ok=True)
 
     extracted_files = []
 
@@ -842,10 +866,11 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
                 if file_info.is_dir():
                     continue
 
-                _, f_ext = os.path.splitext(file_info.filename)
+                file_path = Path(file_info.filename)
+                f_ext = file_path.suffix
                 if f_ext.lower() in want_exts:
-                    filename = os.path.basename(file_info.filename)
-                    target_path = os.path.join(outdir, filename)
+                    filename = file_path.name
+                    target_path = Path(outdir) / filename
 
                     if verbose:
                         logger.info(f"Extracting {filename}...")
@@ -853,7 +878,7 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
                     with z.open(file_info) as source, open(target_path, "wb") as target:
                         shutil.copyfileobj(source, target)
 
-                    extracted_files.append(target_path)
+                    extracted_files.append(str(target_path))
 
     except zipfile.BadZipFile:
         logger.error(f"Bad Zip File: {src_fn}")
@@ -863,14 +888,15 @@ def p_unzip(src_fn: str, ext: list, outdir: str = ".", verbose: bool = False) ->
     return extracted_files
 
 
-def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
+def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False) -> List[str]:
     """Unzip specific files from src_file based on matches in `fns`."""
 
     if fns is None:
         fns = []
 
     extracted_paths = []
-    ext = os.path.splitext(src_file)[1].lower()
+    ext = Path(src_file).suffix.lower()
+    outdir = Path(outdir)
 
     if ext == ".zip":
         with zipfile.ZipFile(src_file, "r") as z:
@@ -878,25 +904,24 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False):
             for pattern in fns:
                 for member in namelist:
                     # Match pattern in the base filename
-                    if pattern in os.path.basename(member):
+                    if pattern in Path(member).name:
                         if member.endswith("/"):  # Skip directories
                             continue
 
-                        dest_fn = os.path.join(outdir, member.replace("\\", "/"))
+                        dest_fn = outdir / member.replace("\\", "/")
+                        dest_fn.parent.mkdir(parents=True, exist_ok=True)
                         if tmp_fn:
                             dest_fn = make_temp_fn(member, temp_dir=outdir)
-                        elif not os.path.exists(os.path.dirname(dest_fn)):
-                            os.makedirs(os.path.dirname(dest_fn))
 
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
-                        extracted_paths.append(dest_fn)
+                        extracted_paths.append(str(dest_fn))
                         logger.debug(f"Extracted: {member} to {dest_fn}")
     else:
         # Fallback if the file isn't a zip
         for pattern in fns:
-            if pattern == os.path.basename(src_file):
+            if pattern == Path(src_file).parent:
                 extracted_paths.append(src_file)
                 break
     return extracted_paths

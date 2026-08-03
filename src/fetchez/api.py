@@ -23,8 +23,8 @@ Usage::
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import logging
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from .utils import parse_hook_string
@@ -32,6 +32,7 @@ from .core import run_fetchez
 from .spatial import parse_region
 from .registry import (
     ModuleRegistry,
+    BundleRegistry,
     HookRegistry,
     RecipeRegistry,
     SchemaRegistry,
@@ -78,6 +79,14 @@ def list_modules() -> Dict[str, Any]:
 
 def search_modules(term) -> Dict[str, Any]:
     return _search_registry(ModuleRegistry, term)
+
+
+def list_bundles() -> Dict[str, Any]:
+    return _search_registry(BundleRegistry)
+
+
+def search_bundles(term) -> Dict[str, Any]:
+    return _search_registry(BundleRegistry, term)
 
 
 def list_hooks() -> Dict[str, Any]:
@@ -132,6 +141,7 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
     """Search across ALL Fetchez registries simultaneously."""
     return {
         "modules": _search_registry(ModuleRegistry, term),
+        "bundles": _search_registry(BundleRegistry, term),
         "hooks": _search_registry(HookRegistry, term),
         "recipes": _search_registry(RecipeRegistry, term),
         "schemas": _search_registry(SchemaRegistry, term),
@@ -145,7 +155,7 @@ def get(
     module: str,
     region: Optional[List[float] | str] = None,
     region_srs: Optional[str] = "EPSG:4326",
-    outdir: Optional[str] = None,
+    outdir: Optional[str | Path] = None,
     threads: int = 4,
     hooks: Optional[List[str]] = None,
     dry_run: bool = False,
@@ -216,7 +226,7 @@ def get(
 
     try:
         mod_instance = ModCls(
-            src_region=src_region, hook=active_hooks, outdir=outdir, **kwargs
+            src_region=src_region, hook=active_hooks, outdir=str(outdir), **kwargs
         )
     except Exception as e:
         logger.error(f"Failed to initialize {module}: {e}")
@@ -256,8 +266,8 @@ def get(
     for _mod, entry in final_results:  # mod_instance.results:
         if entry.get("status", 0) == 0:
             fn = entry.get("dst_fn")
-            if fn and os.path.exists(fn):
-                downloaded_files.append(os.path.abspath(fn))
+            if fn and Path(fn).exists():
+                downloaded_files.append(str(Path(fn).resolve()))
 
     return downloaded_files
 
@@ -281,7 +291,7 @@ def run_recipe(
     RecipeRegistry.load_all()
     base_config = None
 
-    if os.path.exists(target):
+    if Path(target).exists():
         with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:

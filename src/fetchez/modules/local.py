@@ -11,11 +11,10 @@ Generic module to query custom/local FRED indices.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
+from pathlib import Path
 from typing import Optional
 from fetchez.modules import FetchModule
-from fetchez import cli
-from fetchez import fred
+from fetchez import cli, fred
 
 
 @cli.cli_opts(
@@ -51,7 +50,7 @@ class Local(FetchModule):
             return []
 
         # We check if it's a path, otherwise look in standard storage
-        is_path = os.path.exists(self.index_name)
+        is_path = Path(self.index_name).exists()
         idx = fred.FRED(self.index_name, local=is_path)
 
         # fred.search handles the spatial logic
@@ -64,7 +63,7 @@ class Local(FetchModule):
             if self.mode == "reference" and url.startswith("file://"):
                 dst_fn = url[7:]
             else:
-                dst_fn = os.path.basename(url)
+                dst_fn = str(Path(url).name)
 
             self.add_entry_to_results(
                 url=url,

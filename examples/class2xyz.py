@@ -61,9 +61,9 @@ import hashlib
 import re
 import logging
 import math
-import os
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
+from pathlib import Path
 
 from fetchez.hooks import FetchHook
 
@@ -132,13 +132,13 @@ def _parse_classes(v) -> Optional[List[int]]:
 
 
 def _is_las(fn: str) -> bool:
-    ext = os.path.splitext(fn)[1].lower()
+    ext = Path(fn).suffix
     return ext in (".las", ".laz")
 
 
 def _safe_makedirs(d: str) -> None:
-    if d and not os.path.exists(d):
-        os.makedirs(d, exist_ok=True)
+    if d and not Path(d).exists():
+        Path(d).mkdir(parents=True, exist_ok=True)
 
 
 def _looks_geographic_bbox(xmin: float, xmax: float, ymin: float, ymax: float) -> bool:
@@ -250,13 +250,13 @@ class Class2XYZ(FetchHook):
         self._logged_enabled = False
 
     def _mk_out_xyz(self, src_las: str) -> str:
-        base = os.path.splitext(os.path.basename(src_las))[0]
+        base = Path(src_las).name.split(".")[0]
         tag = _class_tag(self.classes)  # <-- class tag in filename
         if self.unique:
             base = f"{base}_{hashlib.sha1(src_las.encode('utf-8', 'ignore')).hexdigest()[:8]}"
         _safe_makedirs(self.out_dir)
         # filename: <base>_<tag><suffix>.xyz
-        return os.path.join(self.out_dir, f"{base}_{tag}{self.suffix}.xyz")
+        return str(Path(self.out_dir) / f"{base}_{tag}{self.suffix}.xyz")
 
     def _log_enabled_once(
         self, xy_dp: int, z_dp: int, geo: bool, z_scale: Optional[float]
@@ -342,7 +342,7 @@ class Class2XYZ(FetchHook):
                 )
                 self._warned_laz_backend = True
             logger.warning(
-                f"class2xyz: failed to open {os.path.basename(las_path)} with laspy: {msg}"
+                f"class2xyz: failed to open {Path(las_path).name} with laspy: {msg}"
             )
             return False, 0
 
@@ -354,7 +354,7 @@ class Class2XYZ(FetchHook):
         yfmt_py = f"{{:.{xy_dp}f}}"
         zfmt_py = f"{{:.{z_dp}f}}"
 
-        if os.path.exists(out_xyz) and not self.overwrite:
+        if Path(out_xyz).exists() and not self.overwrite:
             return True, 0
 
         try:
@@ -416,10 +416,7 @@ class Class2XYZ(FetchHook):
             return False, 0
 
         if self.skip_empty and points_written == 0:
-            try:
-                os.remove(out_xyz)
-            except OSError:
-                pass
+            Path(out_xyz).unlink(missing_ok=True)
             return True, 0
 
         return True, points_written
@@ -445,7 +442,7 @@ class Class2XYZ(FetchHook):
 
             out_xyz = self._mk_out_xyz(dst_fn)
 
-            if os.path.exists(out_xyz) and not self.overwrite:
+            if Path(out_xyz).exists() and not self.overwrite:
                 self._c.skipped_existing += 1
                 entry["class2xyz_out"] = out_xyz
                 entry["class2xyz_classes"] = self.classes
@@ -458,8 +455,8 @@ class Class2XYZ(FetchHook):
                 self._c.failed += 1
                 continue
 
-            produced = os.path.exists(out_xyz) and (
-                not self.skip_empty or os.path.getsize(out_xyz) > 0
+            produced = Path(out_xyz).exists() and (
+                not self.skip_empty or Path(out_xyz).stat().st_size > 0
             )
             if produced:
                 self._c.produced_xyz += 1

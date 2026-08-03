@@ -18,9 +18,9 @@ Supports two modes:
 import os
 import logging
 import requests
-from fetchez import core
+from pathlib import Path
+from fetchez import core, cli
 from fetchez.modules import FetchModule
-from fetchez import cli
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ class HRDEM(FetchModule):
             logger.error("Legacy mode requires GDAL/OGR. Install via: pip install gdal")
             return
 
-        v_zip = os.path.join(self._outdir, "Datasets_Footprints.zip")
+        v_zip = Path(self._outdir) / "Datasets_Footprints.zip"
         logger.info("Downloading HRDEM footprints (Legacy)...")
 
         status = core.Fetch(HRDEM_FOOTPRINTS_URL).fetch_file(v_zip)
@@ -154,7 +154,7 @@ class HRDEM(FetchModule):
             for root, _dirs, files in os.walk(self._outdir):
                 for f in files:
                     if f.endswith(".shp") and "Footprint" in f:
-                        v_shp = os.path.join(root, f)
+                        v_shp = Path(root) / f
                         break
 
             if not v_shp:
@@ -202,8 +202,7 @@ class HRDEM(FetchModule):
 
         finally:
             # Cleanup zip
-            if os.path.exists(v_zip):
-                os.remove(v_zip)
+            v_zip.unlink(missing_ok=True)
 
     def run(self):
         if self.mode == "legacy":

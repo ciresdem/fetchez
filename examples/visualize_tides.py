@@ -8,10 +8,10 @@ visualize_tides.py
 Recipe: Fetch and Plot NOAA Tide Data.
 """
 
-import os
 import sys
 import argparse
 import logging
+from pathlib import Path
 
 # Dependencies
 try:
@@ -106,11 +106,10 @@ def main():
 
     args = parser.parse_args()
 
-    cache_dir = os.path.join(os.getcwd(), "tide_cache")
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
+    cache_dir = Path.cwd() / "tide_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
 
-    csv_file = fetch_tides(args.station, args.start, args.end, cache_dir)
+    csv_file = fetch_tides(args.station, args.start, args.end, str(cache_dir))
 
     if csv_file:
         plot_tides(csv_file, args.station, args.output)

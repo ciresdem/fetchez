@@ -11,12 +11,12 @@ This module contains the CLI for the Fetchez library.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import sys
 import logging
 import argparse
 import inspect
 import signal
+from pathlib import Path
 from typing import Dict, Optional, Any
 
 from . import utils
@@ -215,7 +215,7 @@ def get_module_cli_desc(m: Dict) -> str:
 class PrintModulesAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         print(f"""
-Supported fetchez modules (see {os.path.basename(sys.argv[0])} <module-name> --help for more info):
+Supported fetchez modules (see {Path(sys.argv[0]).name} <module-name> --help for more info):
 {get_module_cli_desc(ModuleRegistry.get_registry())}
 """)
         sys.exit(0)
@@ -414,14 +414,13 @@ def init_presets():
     from . import config
 
     config_dir = config.CONFIG_PATH
-    config_file = os.path.join(config_dir, "presets.yaml")
+    config_file = Path(config_dir) / "presets.yaml"
 
-    if os.path.exists(config_file):
+    if config_file.exists():
         logger.warning(f"Config file already exists at: {config_file}")
         return
 
-    if not os.path.exists(config_dir):
-        os.makedirs(config_dir, exist_ok=True)
+    config_dir.mkdir(parents=True, exist_ok=True)
 
     default_config = {
         "presets": {
@@ -850,7 +849,7 @@ def fetchez_cli():
         target = global_args.recipe
         base_config = None
 
-        if os.path.exists(target):
+        if Path(target).exists():
             with open(target, "r", encoding="utf-8") as f:
                 base_config = yaml.safe_load(f)
         else:
@@ -975,7 +974,7 @@ def fetchez_cli():
                 current_args.append(arg)
             elif current_cmd == "file" and arg.startswith("-"):
                 current_args.append(arg)
-            elif os.path.isfile(arg):
+            elif Path(arg).is_file():
                 if current_cmd == "file":
                     if current_args and current_args[0].startswith("--paths="):
                         current_args[0] += f",{arg}"

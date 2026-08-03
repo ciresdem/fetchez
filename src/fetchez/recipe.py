@@ -19,6 +19,7 @@ import json
 import yaml
 import inspect
 import logging
+from pathlib import Path
 
 from .core import run_fetchez
 from .spatial import yield_parsed_regions, Region
@@ -33,6 +34,8 @@ from .registry import (
 )
 from .utils import TqdmLoggingHandler, colorize, CYAN
 from . import __version__ as fetchez_version
+
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +87,12 @@ class Recipe:
         self.config = config
         self.base_dir = base_dir or os.getcwd()
         self.recipe_dir = self.base_dir
-        self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
+        self.name = "Unnamed_Recipe"
+        if isinstance(self.config, dict):
+            self.name = self.config.get("project", {}).get("name", "Unnamed_Recipe")
+        else:
+            self.from_file(self.config)
+
         setup_logging(True)
 
     @classmethod
@@ -96,11 +104,13 @@ class Recipe:
         if isinstance(config_source, dict):
             return cls(config_source)
 
-        if not os.path.exists(config_source):
+        config_path = Path(config_source)
+
+        if not config_path.exists():
             raise FileNotFoundError(f"Recipe not found: {config_source}")
 
-        base_dir = os.path.dirname(os.path.abspath(config_source))
-        ext = os.path.splitext(config_source)[1].lower()
+        base_dir = config_path.resolve().parent
+        ext = config_path.suffix.lower()
 
         with open(config_source, "r") as f:
             if ext in [".yaml", ".yml"]:
@@ -193,16 +203,18 @@ class Recipe:
                 )
                 raise RuntimeError("Fetchez version incompatibility.")
 
-    def _resolve_path(self, path, base=None):
+    def _resolve_path(
+        self, path: str, base: Optional[str] = None
+    ) -> Optional[str | Any]:
         """Resolves output paths relative to the recipe file."""
 
         if not isinstance(path, str):
             return path
         if path.startswith(("http", "s3://", "gs://", "ftp://")):
             return path
-        if os.path.isabs(path):
+        if Path(path).is_absolute():
             return path
-        return os.path.abspath(os.path.join(base or self.base_dir, path))
+        return str(Path(Path(base or self.base_dir) / path).resolve())
 
     def _init_modules(
         self, module_defs, target_region=None, global_region_srs="EPSG:4326"
@@ -248,7 +260,7 @@ class Recipe:
                     )
                     modules_to_run.append(instance)
                 except Exception as e:
-                    logger.error(f"Failed to load {mod_key}: {e}")
+                    logger.exception(f"Failed to load {mod_key}: {e}")
 
         return modules_to_run
 
@@ -367,7 +379,7 @@ class Recipe:
 
         return active_schemas
 
-    def _inject_batch_context(self, config_block, **kwargs):
+    def _inject_batch_context(self, config_block: Any, **kwargs) -> Any:
         """Recursively formats strings in the config to inject runtime context variables."""
 
         if isinstance(config_block, dict):
@@ -377,8 +389,8 @@ class Recipe:
             }
         elif isinstance(config_block, list):
             return [self._inject_batch_context(v, **kwargs) for v in config_block]
-        elif isinstance(config_block, str):
-            res = config_block
+        elif isinstance(config_block, str) or isinstance(config_block, Path):
+            res = str(config_block)
             # Dynamically replace any provided kwargs!
             for key, val in kwargs.items():
                 if val is not None:
@@ -580,7 +592,7 @@ class Recipe:
             batch_name if batch_name else self.name.lower().replace(" ", "_")
         )
         receipt_filename = f"{receipt_prefix}_receipt.md"
-        receipt_path = os.path.join(self.base_dir, receipt_filename)
+        receipt_path = Path(self.base_dir / receipt_filename)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -649,11 +661,11 @@ class Recipe:
 
     def run(
         self,
-        outdir=None,
-        shared_cache=None,
-        overwrite=False,
-        refresh=False,
-        ignore_failures=False,
+        outdir: Optional[str] = None,
+        shared_cache: Optional[str] = None,
+        overwrite: bool = False,
+        refresh: bool = False,
+        ignore_failures: bool = False,
     ):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
@@ -677,16 +689,16 @@ class Recipe:
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
         recipe_name = self.config.get("project", {}).get("name", "Unnamed")
 
-        original_cwd = os.getcwd()
+        original_cwd = Path.cwd()
         if outdir is None:
-            base_outdir = os.path.abspath(original_cwd)
+            base_outdir = original_cwd.resolve()
         else:
-            base_outdir = os.path.abspath(outdir)
+            base_outdir = Path(outdir).resolve()
 
         # State Tracking
-        state_file = os.path.join(original_cwd, ".fetchez_batch_state.json")
+        state_file = Path(original_cwd / ".fetchez_batch_state.json")
         completed_tiles = []
-        if os.path.exists(state_file) and not overwrite:
+        if state_file.exists() and not overwrite:
             try:
                 with open(state_file, "r") as f:
                     completed_tiles = json.load(f)
@@ -696,8 +708,8 @@ class Recipe:
         # Shared Cache
         abs_cache = None
         if shared_cache:
-            abs_cache = os.path.abspath(shared_cache)
-            os.makedirs(abs_cache, exist_ok=True)
+            abs_cache = Path(shared_cache).resolve()
+            abs_cache.mkdir(parents=True, exist_ok=True)
             logger.info(f"Shared cache enabled: {abs_cache}")
 
         # Batch Loop
@@ -732,9 +744,9 @@ class Recipe:
                     f"{orig_name}_{batch_name}"
                 )
 
-                tile_dir = os.path.join(tile_dir, batch_name)
+                tile_dir = Path(tile_dir / batch_name)
 
-            os.makedirs(tile_dir, exist_ok=True)
+            tile_dir.mkdir(parents=True, exist_ok=True)
             os.chdir(tile_dir)
 
             try:
@@ -831,9 +843,9 @@ class Recipe:
                 # Dump the localized recipe for debugging and reproducibility
                 batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
 
-                batch_dir = os.path.dirname(os.path.abspath(batch_config_fn))
+                batch_dir = Path(batch_config_fn).resolve().parent
                 if batch_dir:
-                    os.makedirs(batch_dir, exist_ok=True)
+                    batch_dir.mkdir(parents=True, exist_ok=True)
 
                 with open(batch_config_fn, "w") as f:
                     yaml.dump(

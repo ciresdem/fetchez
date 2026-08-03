@@ -285,7 +285,7 @@ class EarthData(FetchModule):
 
                 lats = coords[::2]
                 lons = coords[1::2]
-                points = list(zip(lons, lats))
+                points = list(zip(lons, lats, strict=True))
 
                 granule_poly = Polygon(points)
 

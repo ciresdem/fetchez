@@ -11,10 +11,10 @@ Run subprocess on the entry fn; using format templates.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import subprocess
 import shlex
 import logging
+from pathlib import Path
 from fetchez.hooks import FetchHook
 
 logger = logging.getLogger(__name__)
@@ -43,10 +43,10 @@ class Exec(FetchHook):
                 if entry.get("status") != 0:
                     continue
 
-                filepath = os.path.abspath(entry.get("dst_fn"))
-                dirname = os.path.dirname(filepath)
-                filename = os.path.basename(filepath)
-                name_only = os.path.splitext(filename)[0]
+                filepath = Path(entry.get("dst_fn"))
+                dirname = filepath.parent
+                filename = filepath.name
+                name_only = filepath.with_suffix("").name
                 command_str = self.cmd.format(
                     file=filepath,
                     url=entry.get("url"),

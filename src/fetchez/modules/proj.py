@@ -11,14 +11,12 @@ Fetch transformation grids via the PROJ Content Delivery Network (CDN).
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import json
 import logging
+from pathlib import Path
 from typing import Optional
-from fetchez import core
+from fetchez import core, cli, spatial
 from fetchez.modules import FetchModule
-from fetchez import cli
-from fetchez import spatial
 
 from shapely.geometry import shape
 
@@ -104,9 +102,9 @@ class PROJ(FetchModule):
     #     return not (rw > ge or re < gw or rs > gn or rn < gs)
 
     def run(self):
-        idx_file = os.path.join(self._outdir, "proj_files.geojson")
+        idx_file = Path(self._outdir) / "proj_files.geojson"
 
-        if not os.path.exists(idx_file):
+        if not idx_file.exists():
             logger.info("Fetching PROJ CDN Index...")
             if core.Fetch(PROJ_CDN_INDEX_URL).fetch_file(idx_file) != 0:
                 logger.error("Failed to fetch PROJ index.")
@@ -142,7 +140,7 @@ class PROJ(FetchModule):
 
                 self.add_entry_to_results(
                     url=props["url"],
-                    dst_fn=os.path.basename(props["url"]),
+                    dst_fn=str(Path(props["url"]).name),
                     data_type="grid",
                     agency="PROJ",
                     title=props.get("name"),
