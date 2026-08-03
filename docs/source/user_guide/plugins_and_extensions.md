@@ -1,6 +1,6 @@
 # 🐄 Plugins & Extensions
 
-Fetchez is designed to be highly extendable. Fetchez can extended by adding Modules, Bundles, Hooks, Presets, Recipes, Modifiers and Schemas. Using the fetchez registry system, its simple to create custom personal plugins or widely distributed Fetchez extensions.
+Fetchez is designed to be highly extendable. Fetchez can extended by adding Modules, Bundles, Hooks, Presets, Readers, Profiles, Recipes, Modifiers and Schemas. Using the fetchez registry system, its simple to create custom personal plugins or widely distributed Fetchez extensions.
 
 There are two ways to extend `fetchez`: **Local Plugins** (for quick, personal scripts and plugins) and **Full Extensions** (for distributable Python packages).
 

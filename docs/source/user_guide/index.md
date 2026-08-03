@@ -9,9 +9,8 @@ installation
 cli_usage
 modules_and_bundles
 hooks_and_presets
-plugins_and_extensions
+streams
 recipes
-modifiers
-schemas
+plugins_and_extensions
 data_persistence
 ```
