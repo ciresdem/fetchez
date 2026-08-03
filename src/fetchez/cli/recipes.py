@@ -360,24 +360,29 @@ def run_recipe(
                         fg="yellow",
                     )
 
-    parsed_modifiers = [parse_hook_string(m) for m in modifier]
-    parsed_schemas = [s for s in schema]
+    try:
+        parsed_modifiers = [parse_hook_string(m) for m in modifier]
+        parsed_schemas = [s for s in schema]
 
-    if parsed_modifiers:
-        base_config["modifiers"] = parsed_modifiers
+        if parsed_modifiers:
+            base_config["modifiers"] = parsed_modifiers
 
-    if schema:
-        base_config["schemas"] = parsed_schemas
+        if schema:
+            base_config["schemas"] = parsed_schemas
 
-    recipe = Recipe.from_dict(base_config)
-    recipe.run(
-        outdir=outdir,
-        shared_cache=shared_cache,
-        refresh=refresh,
-        ignore_failures=ignore_failures,
-    )
+        recipe = Recipe.from_dict(base_config)
 
-    click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
+        recipe.run(
+            outdir=outdir,
+            shared_cache=shared_cache,
+            refresh=refresh,
+            ignore_failures=ignore_failures,
+        )
+
+        click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
+
+    except Exception as e:
+        click.secho(f"Failed to execute {name} recipe!: {str(e)}", fg="red")
 
 
 recipes_group.add_command(schemas_group, name="schemas")
