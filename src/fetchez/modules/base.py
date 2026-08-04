@@ -400,7 +400,6 @@ class FetchModule:
             "vdatum": kwargs.pop("vdatum", "Unknown"),
             "url": str(url),
         }
-
         entry_metadata = kwargs.pop("metadata", {})
         standard_metadata.update(entry_metadata)
         entry["metadata"] = standard_metadata

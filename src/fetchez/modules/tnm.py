@@ -222,8 +222,26 @@ class TheNationalMap(FetchModule):
                             item_bbox.get("maxY"),
                         )
 
-                    # Extract the tile footprint (e.g., 'n35w120')
-                    fn_bn = filename.split("_")[-2]
+                    # Extract the tile footprint or project ID based on dataset type
+                    if (
+                        "ned19" in filename.lower()
+                        or "opr" in filename.lower()
+                        or "lpc" in filename.lower()
+                    ):
+                        fn_bn = "_".join(filename.split("_")[:-1])
+                    elif bounds:
+                        fn_bn = f"{round(bounds[0], 4)}_{round(bounds[1], 4)}_{round(bounds[2], 4)}_{round(bounds[3], 4)}"
+                    else:
+                        fn_bn = item.get("title", filename)
+
+                    # date = item.get("publicationDate", "")
+                    # if bounds:
+                    #     bounds_str = f"{round(bounds[0], 4)}_{round(bounds[1], 4)}_{round(bounds[2], 4)}_{round(bounds[3], 4)}"
+                    #     project_id = "/".join(item.get("title", ""))
+                    #     fn_bn = f"{bounds_str}_{project_id}"
+                    # else:
+                    #     fn_bn = item.get("title", filename)
+
                     date = item.get("publicationDate", "")
 
                     item_data = {
