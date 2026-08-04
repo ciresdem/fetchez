@@ -26,7 +26,7 @@ class ExcludeModuleModifier(BaseModifier):
     """
 
     name = "exclude_module"
-    meta_desc = "Exclude specific modules from a recipe by name"
+    meta_desc = "Exclude specific modules from a recipe by name."
 
     def __init__(self, modules=None, **kwargs):
         super().__init__(**kwargs)

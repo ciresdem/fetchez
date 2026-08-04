@@ -386,7 +386,7 @@ class FetchModule:
         if hasattr(self, "stream_kwargs"):
             entry.update(self.stream_kwargs)
 
-        # Intercept standard spatial metadata fields for compliance
+        # Intercept standard spatial metadata fields
         standard_metadata = {
             "name": self.name,  # Module name (e.g., 'tnm', 'copernicus')
             "title": kwargs.pop("title", "Unknown"),
