@@ -26,10 +26,17 @@ class BaseSchema:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
+        self.errors = []
+
     # @classmethod
     def validate(self, config):
         """Validatesthe recipe config based on rules and returns [True/False, {errors}]
         Subclasses must override this to inject their domain-specific rules.
         """
 
-        return True, []
+        return len(self.errors) == 0, self.errors
+
+    def run(self, config):
+        valid, errors = self.validate(config)
+
+        return len(errors) == 0, self.errors
