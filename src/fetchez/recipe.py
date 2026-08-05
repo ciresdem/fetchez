@@ -773,6 +773,7 @@ class Recipe:
                     iteration_config_modified = modifier.apply(
                         iteration_config_modified
                     )
+                iteration_config_modified.pop("modifiers", None)
                 iteration_config = copy.deepcopy(iteration_config_modified)
 
                 # Inject outdir for shared caching
