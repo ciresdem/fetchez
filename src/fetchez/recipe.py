@@ -810,9 +810,7 @@ class Recipe:
                 errors = []
                 for schema in schemas:
                     logger.info(f"Validating recipe with {schema.name} schema")
-                    iteration_valid, iteration_errors = schema.validate(
-                        iteration_config
-                    )
+                    iteration_valid, iteration_errors = schema.run(iteration_config)
                     if not iteration_valid:
                         errors.extend(iteration_errors)
 
@@ -908,7 +906,7 @@ class Recipe:
                         json.dump(completed_tiles, f, indent=2)
 
             except Exception as e:
-                logger.error(f"Batch '{batch_name or 'run'}' failed: {e}")
+                logger.exception(f"Batch '{batch_name or 'run'}' failed: {e}")
                 logger.warning(
                     "Batch processing halted. Re-run command to resume from this tile."
                 )

@@ -69,8 +69,6 @@ class CheckParams(BaseSchema):
         ModuleRegistry.load_all()
         HookRegistry.load_all()
 
-        errors = []
-
         # Validate Module Hooks
         for mod in config.get("modules", []):
             mod_name = mod.get("module")
@@ -82,43 +80,29 @@ class CheckParams(BaseSchema):
                 HookCls = HookRegistry.get_class(h_name)
 
                 if not HookCls:
-                    errors.append(f"Missing Hook: '{h_name}' (in module {mod_name})")
+                    self.errors.append(
+                        f"Missing Hook: '{h_name}' (in module {mod_name})"
+                    )
                     continue
 
-                # sig = inspect.signature(HookCls.__init__)
-
-                # parent_sig = inspect.signature(HookCls.__class__.__mro__[1].__init__)
-                # params = [p for p in sig.parameters if p != "self"]
-                # parent_params = [p for p in sig.parameters if p != 'self']
-                # params.extend(parent_params)
-                # print(parent_params)
                 params = get_full_inheritance_parameters(HookCls)
                 for k, _v in h_args.items():
                     if k not in params:
-                        errors.append(
+                        self.errors.append(
                             f"[{mod_name} -> {h_name}] Possibly invalid parameter: {k}"
                         )
 
-                # valid_hook_args = {
-                #     k: v
-                #     for k, v in h_args.items()
-                #     if k in sig.parameters or "kwargs" in str(sig.parameters)
-                # }
-
         # Validate Global Hooks
-        # global_hook_counts = {}
         for hook in config.get("global_hooks", []):
             h_name = hook.get("name")
             h_args = hook.get("args", {})
             HookCls = HookRegistry.get_class(h_name)
 
             if not HookCls:
-                errors.append(f"Missing Global Hook: '{h_name}'")
+                self.errors.append(f"Missing Global Hook: '{h_name}'")
                 continue
 
             params = get_full_inheritance_parameters(HookCls)
             for k, _v in h_args.items():
                 if k not in params:
-                    errors.append(f"[{h_name}] Possibly invalid parameter: {k}")
-
-        return len(errors) == 0, errors
+                    self.errors.append(f"[{h_name}] Possibly invalid parameter: {k}")
