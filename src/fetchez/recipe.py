@@ -16,7 +16,6 @@ import os
 import copy
 import json
 
-import yaml
 import inspect
 import logging
 from pathlib import Path
@@ -391,7 +390,6 @@ class Recipe:
             return [self._inject_batch_context(v, **kwargs) for v in config_block]
         elif isinstance(config_block, str) or isinstance(config_block, Path):
             res = str(config_block)
-            # Dynamically replace any provided kwargs!
             for key, val in kwargs.items():
                 if val is not None:
                     res = res.replace(f"%{key}%", str(val))
@@ -687,7 +685,7 @@ class Recipe:
         threads = run_opts.get("threads", 1)
         raw_region = self.config.get("region")
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
-        recipe_name = self.config.get("project", {}).get("name", "Unnamed")
+        _xrecipe_name = self.config.get("project", {}).get("name", "Unnamed")
 
         original_cwd = Path.cwd()
         if outdir is None:
@@ -775,6 +773,7 @@ class Recipe:
                     iteration_config_modified = modifier.apply(
                         iteration_config_modified
                     )
+                iteration_config_modified.pop("modifiers", None)
                 iteration_config = copy.deepcopy(iteration_config_modified)
 
                 # Inject outdir for shared caching
@@ -787,6 +786,11 @@ class Recipe:
                         "stdin",
                     ]:
                         mod.setdefault("args", {})["outdir"] = abs_cache
+                        # for hook in mod.get("hooks", []):
+                        #     if abs_cache or tile_dir:
+                        #         for arg in hook.get("args", {}):
+                        #             if arg in ["cache_dir", "outdir"]:
+                        #                 hook.setdefault("args", {})[arg] = abs_cache or tile_dir
 
                 if batch_name or target_region:
                     # Inject the %place-holder% context into outputs
@@ -796,6 +800,7 @@ class Recipe:
                         batch_name=batch_name
                         or (target_region.format("fn") if target_region else ""),
                         shared_cache=abs_cache or tile_dir,
+                        cache_dir=abs_cache or tile_dir,
                         outdir=base_outdir,
                         tile_dir=tile_dir,
                         region_srs=global_region_srs,
@@ -840,21 +845,21 @@ class Recipe:
                 if not modules_to_run:
                     continue
 
-                # Dump the localized recipe for debugging and reproducibility
-                batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
+                # # Dump the localized recipe for debugging and reproducibility
+                # batch_config_fn = f"{batch_name or recipe_name}_recipe.yaml"
 
-                batch_dir = Path(batch_config_fn).resolve().parent
-                if batch_dir:
-                    batch_dir.mkdir(parents=True, exist_ok=True)
+                # batch_dir = Path(batch_config_fn).resolve().parent
+                # if batch_dir:
+                #     batch_dir.mkdir(parents=True, exist_ok=True)
 
-                with open(batch_config_fn, "w") as f:
-                    yaml.dump(
-                        iteration_config,
-                        f,
-                        sort_keys=False,
-                        default_flow_style=False,
-                    )
-                logger.debug(f"Saved localized recipe to {batch_config_fn}")
+                # with open(batch_config_fn, "w") as f:
+                #     yaml.dump(
+                #         iteration_config,
+                #         f,
+                #         sort_keys=False,
+                #         default_flow_style=False,
+                #     )
+                # logger.debug(f"Saved localized recipe to {batch_config_fn}")
 
                 self._generate_receipt(iteration_config, batch_name)
 
