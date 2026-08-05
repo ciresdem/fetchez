@@ -38,7 +38,6 @@ class CheckModules(BaseSchema):
         ModuleRegistry.load_all()
         HookRegistry.load_all()
 
-        errors = []
         claimed_outputs = set()
 
         def check_output_collision(hook_dict, context_name):
@@ -47,7 +46,7 @@ class CheckModules(BaseSchema):
             out_file = hook_dict.get("args", {}).get("output")
             if out_file:
                 if out_file in claimed_outputs:
-                    errors.append(
+                    self.errors.append(
                         f"[{context_name}] Output Collision: Multiple hooks are attempting to write to '{out_file}'."
                     )
                 claimed_outputs.add(out_file)
@@ -69,7 +68,7 @@ class CheckModules(BaseSchema):
 
             for key in mod_keys:
                 if key not in valid_keys:
-                    errors.append(
+                    self.errors.append(
                         f"Module `{mod_name}` has unexpected reference to `{key}`"
                     )
 
@@ -77,7 +76,7 @@ class CheckModules(BaseSchema):
                 "file",
                 "local_fs",
             ]:
-                errors.append(f"Missing Module: '{mod_name}'")
+                self.errors.append(f"Missing Module: '{mod_name}'")
 
             # Check Module-level Hooks
             # mod_hook_counts = {}
@@ -86,14 +85,16 @@ class CheckModules(BaseSchema):
                 HookCls = HookRegistry.get_class(h_name)
 
                 if not HookCls:
-                    errors.append(f"Missing Hook: '{h_name}' (in module {mod_name})")
+                    self.errors.append(
+                        f"Missing Hook: '{h_name}' (in module {mod_name})"
+                    )
                     continue
 
                 # Dependency Check
                 if hasattr(HookCls, "_validate_deps"):
                     passed, msg = HookCls()._validate_deps()
                     if not passed:
-                        errors.append(
+                        self.errors.append(
                             f"[{mod_name} -> {h_name}] Missing Dependency: {msg}"
                         )
 
@@ -106,15 +107,15 @@ class CheckModules(BaseSchema):
             HookCls = HookRegistry.get_class(h_name)
 
             if not HookCls:
-                errors.append(f"Missing Global Hook: '{h_name}'")
+                self.errors.append(f"Missing Global Hook: '{h_name}'")
                 continue
 
             # Dependency Check
             if hasattr(HookCls, "_validate_deps"):
                 passed, msg = HookCls()._validate_deps()
                 if not passed:
-                    errors.append(f"[Global -> {h_name}] Missing Dependency: {msg}")
+                    self.errors.append(
+                        f"[Global -> {h_name}] Missing Dependency: {msg}"
+                    )
 
             check_output_collision(hook, "Global Hooks")
-
-        return len(errors) == 0, errors
