@@ -1,8 +1,8 @@
-Streams
-========
+Base Stream
+===========
 
 ```{eval-rst}
-.. automodule:: fetchez.streams
+.. automodule:: fetchez.streams.base
    :members:
    :undoc-members:
    :show-inheritance:

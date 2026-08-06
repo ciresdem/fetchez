@@ -25,8 +25,10 @@ from . import core
 from . import spatial
 from . import registry
 from .api import (
+    Pipeline,
     search,
     get,
+    read,
     list_modules,
     search_modules,
     list_bundles,
@@ -45,12 +47,14 @@ from .api import (
 )
 
 __all__ = [
+    "Pipeline",
     "core",
     "fred",
     "spatial",
     "registry",
     "search",
     "get",
+    "read",
     "list_modules",
     "search_modules",
     "list_bundles",
