@@ -23,6 +23,8 @@ nitpicky = True
 nitpick_ignore = [
     ("py:data", "typing.Union"),
     ("py:class", "wsgiref.types.WSGIEnvironment"),
+    ("py:class", "tkinter.getint"),
+    ("py:class", "tkinter.getdouble"),
 ]
 
 extensions = [
