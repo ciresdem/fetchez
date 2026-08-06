@@ -20,6 +20,7 @@ from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand, parse_hook_string
 from fetchez.spatial import region_help_msg
+from fetchez.api import search_recipes
 from .schemas import schemas_group
 from .modifiers import modifiers_group
 
@@ -79,11 +80,13 @@ def recipes_group():
 
 
 @recipes_group.command("list", cls=FetchezMainCommand)
-def list_recipes():
+@click.option("--search", "-s", help="Search by name, description, or tag.")
+def list_recipes(search):
     """List all available built-in and local recipes."""
 
     RecipeRegistry.load_all()
-    registry = RecipeRegistry.get_registry()
+    # registry = RecipeRegistry.get_registry()
+    registry = search_recipes(search)
 
     click.secho("\n📜 Available Pipeline Recipes:", fg="cyan", bold=True)
     click.echo("=" * 60)
