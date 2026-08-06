@@ -27,7 +27,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-from .streams.base import FetchezStream
+from .streams.base import BaseStream
 from .utils import parse_hook_string
 from .core import run_fetchez
 from .spatial import parse_region
@@ -438,11 +438,11 @@ class Pipeline:
 
 
 def read(sources, region=None, shared_cache=None, **kwargs):
-    """Initializes a lazy Fetchez stream."""
+    """Initializes a Fetchez stream."""
 
     modules = _compile_modules(
         sources, region=region, shared_cache=shared_cache, **kwargs
     )
     parsed_region = parse_region(region)[0] if region else None
 
-    return FetchezStream(modules=modules, region=parsed_region)
+    return BaseStream(modules=modules, region=parsed_region)

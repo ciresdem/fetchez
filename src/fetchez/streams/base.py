@@ -43,7 +43,7 @@ class QueueSinkHook(FetchHook):
         return entries
 
 
-class FetchezStream:
+class BaseStream:
     def __init__(self, modules, region=None):
         self.modules = modules
         self.region = region
@@ -76,6 +76,17 @@ class FetchezStream:
             kwargs = {**hook_config.get("args", {}), **kwargs}
             self.global_hooks.append(hook_class(**kwargs))
 
+        elif isinstance(hook_or_string, dict):
+            HookRegistry.load_fast()
+            PresetRegistry.load_fast()
+
+            hook_name = hook_or_string.get("name") or hook_or_string.get("preset")
+            if hook_name:
+                hook_class = HookRegistry.get_class(hook_name)
+                self.global_hooks.append(hook_class(**hook_or_string.get("args", {})))
+            else:
+                raise ValueError(f"Invalid hook definition: {hook_or_string}.")
+
         else:
             hook = (
                 hook_or_string
@@ -87,9 +98,10 @@ class FetchezStream:
         return self
 
     def __iter__(self):
-        """Lazily yield chunks using a background pipeline thread."""
+        """Yield chunks using a background pipeline thread."""
 
-        chunk_queue = queue.Queue(maxsize=100)  # Buffer to prevent memory blowout
+        [mod.run() for mod in self.modules]
+        chunk_queue = queue.Queue(maxsize=100)
         sink = QueueSinkHook(chunk_queue)
 
         run_hooks = self.global_hooks + [sink]
