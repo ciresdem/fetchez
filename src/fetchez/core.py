@@ -597,7 +597,7 @@ class Fetch:
                     import shutil
 
                     Path(dst_fn).parent.mkdir(parents=True, exist_ok=True)
-                    if not Path(src_path) == Path(dst_fn):
+                    if not Path(src_path).resolve() == Path(dst_fn).resolve():
                         shutil.copy2(src_path, dst_fn)
                     return 0
                 except Exception as e:
