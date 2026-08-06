@@ -614,12 +614,14 @@ class RecipeRegistry(YamlRegistry):
                 "name", Path(file_path).name.replace(".yaml", "")
             )
             desc = config["project"].get("description", "No description available.")
+            tags = config["project"].get("tags", [])
 
             registry[name] = {
                 "name": name,
                 "desc": desc,
                 "config": config,
                 "path": file_path,
+                "tags": tags,
             }
         except Exception as e:
             logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
