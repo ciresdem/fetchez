@@ -123,9 +123,9 @@ class FetchModule:
         )
 
         if self.outdir is None:
-            self._outdir = str(Path(Path.cwd(), self.name))
+            self._outdir = str(Path.cwd().resolve() / self.name)
         else:
-            self._outdir = str(Path(self.outdir) / self.name)
+            self._outdir = str(Path(self.outdir).resolve() / self.name)
 
         self.stream_kwargs = {
             k: v for k, v in kwargs.items() if k not in ["datatype", "data_type"]
