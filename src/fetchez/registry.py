@@ -15,6 +15,7 @@ Fetchez Modules, Hooks, Schemas, and other plugins.
 import os
 import sys
 import json
+import copy
 import pkgutil
 import importlib
 import importlib.util
@@ -23,13 +24,13 @@ import importlib.resources
 import inspect
 import logging
 from pathlib import Path
-from typing import Dict, Any, Type, Optional
+from typing import Dict, Any, Type, Optional, List
 
 from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.modifiers import BaseModifier
 from fetchez.recipes.schemas import BaseSchema
-from fetchez.streams import BaseReader
+from fetchez.streams.readers import BaseReader
 from fetchez.utils import get_class_arguments
 
 logger = logging.getLogger(__name__)
@@ -641,7 +642,6 @@ class PresetRegistry(YamlRegistry):
             if not config:
                 return
 
-            # Legacy ~/.fetchez/presets.py
             if "presets" in config:
                 for p_name, p_def in config.get("presets", {}).items():
                     registry[p_name] = p_def
@@ -652,22 +652,105 @@ class PresetRegistry(YamlRegistry):
             logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
 
     @classmethod
-    def hook_list_from_preset(cls, preset_def):
-        """Convert yaml definition to list of Hook Objects."""
+    def expand_hooks(
+        cls,
+        hook_defs: List[Dict[str, Any]],
+        parent_hooks: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Recursively expands preset references in a list of hook definitions into a flat list of hook dictionary configs."""
 
+        cls.load_all()
+        expanded_list = []
+        parent_hooks = parent_hooks or []
+
+        for h in hook_defs:
+            if isinstance(h, str):
+                h = {"name": h}
+
+            h = copy.deepcopy(h)
+            name = h.get("name")
+            is_preset = h.get("preset")
+
+            if parent_hooks and name:
+                # Convert parent_hooks (list) into a map for fast lookup
+                hook_map = {
+                    hook.get("name"): hook
+                    for hook in parent_hooks
+                    if isinstance(hook, dict) and "name" in hook
+                }
+                if name in hook_map:
+                    h_args = h.get("args", {}).copy()
+                    h_args.update(hook_map[name].get("args", {}))
+                    h["args"] = h_args
+
+            if is_preset:
+                user_args = h.get("args", [])
+                if isinstance(user_args, dict):
+                    # Convert dict format to list-of-dicts if user passed it that way
+                    user_args = [
+                        {"name": k, "args": v.get("args", v)}
+                        for k, v in user_args.items()
+                    ]
+
+                preset_def = cls.get_yaml(is_preset)
+
+                if preset_def:
+                    preset_hooks = copy.deepcopy(preset_def.get("hooks", []))
+
+                    # Merge user_args and parent_hooks to pass down the chain
+                    combined_overrides = copy.deepcopy(parent_hooks)
+                    for u_arg in user_args:
+                        u_name = u_arg.get("name")
+                        existing = next(
+                            (p for p in combined_overrides if p.get("name") == u_name),
+                            None,
+                        )
+                        if existing:
+                            existing.setdefault("args", {}).update(
+                                u_arg.get("args", {})
+                            )
+                        else:
+                            combined_overrides.append(u_arg)
+
+                    expanded_child_hooks = cls.expand_hooks(
+                        preset_hooks, parent_hooks=combined_overrides
+                    )
+                    expanded_list.extend(expanded_child_hooks)
+                else:
+                    logger.error(f"Preset '{is_preset}' not found in registry.")
+            else:
+                expanded_list.append(h)
+
+        return expanded_list
+
+    @classmethod
+    def hook_list_from_preset(cls, preset_def_or_name: Any) -> List[Any]:
+        """Convert a preset name or dictionary into an expanded list of instantiated Hook objects."""
+
+        from .registry import HookRegistry
+
+        if isinstance(preset_def_or_name, str):
+            hook_defs = cls.expand_hooks([{"preset": preset_def_or_name}])
+        elif isinstance(preset_def_or_name, dict):
+            raw_hooks = preset_def_or_name.get("hooks", [])
+            hook_defs = cls.expand_hooks(raw_hooks)
+        else:
+            return []
+
+        HookRegistry.load_all()
         hooks = []
-        for h_def in preset_def.get("hooks", []):
+        for h_def in hook_defs:
             name = h_def.get("name")
             kwargs = h_def.get("args", {})
 
-            hook_cls = HookRegistry.get_class(name)
+            hook_cls = HookRegistry.get_class(str(name))
             if hook_cls:
                 try:
                     hooks.append(hook_cls(**kwargs))
-                except Exception as exception:
-                    logger.error(f"Failed to init preset hook '{name}': {exception}")
+                except Exception as e:
+                    logger.error(f"Failed to init hook '{name}' from preset: {e}")
             else:
-                logger.warning(f"Preset hook '{name}' not found.")
+                logger.warning(f"Hook '{name}' not found in registry.")
 
         return hooks
 
@@ -680,11 +763,108 @@ class BundleRegistry(YamlRegistry):
     entry_point_group = "fetchez.modules.bundles"
     user_folder = "modules/bundles"
 
+    @staticmethod
+    def get_module_signature(mod_dict: Any) -> str:
+        """Creates a unique signature for a module configuration to allow deduplication."""
+
+        if isinstance(mod_dict, str):
+            return mod_dict
+
+        m_name = mod_dict.get("module")
+        if not m_name:
+            return str(mod_dict)
+
+        args = mod_dict.get("args", {})
+        ids = [
+            f"{key}={args[key]}"
+            for key in [
+                "datatype",
+                "datasets",
+                "formats",
+                "layer",
+                "product",
+                "survey_id",
+                "url",
+                "path",
+            ]
+            if key in args
+        ]
+
+        return f"{m_name}::" + "::".join(sorted(ids)) if ids else m_name
+
     @classmethod
-    def expand_bundle(cls, name):
-        bundle_def = cls.get_yaml(name)
-        if bundle_def:
-            return bundle_def.get("modules")
+    def expand_modules(
+        cls, raw_modules: List[Any], parent_weight: float = 1.0
+    ) -> List[Dict[str, Any]]:
+        """Recursively flattens bundles/recipes, calculates stacked weights, and deduplicates/merges modules."""
+
+        cls.load_all()
+        ModuleRegistry.load_all()
+        BundleRegistry.load_all()
+        RecipeRegistry.load_all()
+        PresetRegistry.load_all()
+
+        expanded_dict: dict[str, Any] = {}
+
+        for mod_dict in raw_modules:
+            if isinstance(mod_dict, str):
+                bundle_def = cls.get_yaml(mod_dict)
+                if bundle_def:
+                    mod_dict = {"bundle": mod_dict}
+                else:
+                    expanded_dict[mod_dict] = {"module": mod_dict}
+                    continue
+
+            target = mod_dict.get("bundle") or mod_dict.get("recipe")
+            if target:
+                user_args = mod_dict.get("args", {})
+                user_hooks = mod_dict.get("hooks", [])
+                current_weight = float(user_args.get("weight", 1.0)) * parent_weight
+
+                bundle_def = cls.get_yaml(target)
+                if not bundle_def:
+                    recipe_meta = RecipeRegistry.get_yaml(target)
+                    if recipe_meta:
+                        bundle_def = recipe_meta.get("config", {})
+
+                if bundle_def:
+                    child_modules = bundle_def.get("modules", [])
+                    child_expanded = cls.expand_modules(child_modules, current_weight)
+
+                    for child_mod in child_expanded:
+                        if user_hooks:
+                            child_mod["hooks"] = PresetRegistry.expand_hooks(
+                                child_mod.get("hooks", []), user_hooks
+                            )
+
+                        sig = cls.get_module_signature(child_mod)
+                        expanded_dict[sig] = child_mod
+
+            elif "module" in mod_dict:
+                sig = cls.get_module_signature(mod_dict)
+
+                args = mod_dict.get("args", {}).copy()
+                local_weight = float(args.get("weight", 1.0))
+                args["weight"] = local_weight * parent_weight
+                mod_dict["args"] = args
+
+                if sig in expanded_dict and isinstance(expanded_dict[sig], dict):
+                    existing = expanded_dict[sig]
+                    merged_args = existing.get("args", {}).copy()
+                    merged_args.update(mod_dict.get("args", {}))
+                    merged_hooks = mod_dict.get("hooks", existing.get("hooks", []))
+
+                    expanded_dict[sig] = {
+                        "module": mod_dict["module"],
+                        "args": merged_args,
+                        "hooks": merged_hooks,
+                    }
+                else:
+                    expanded_dict[sig] = mod_dict
+            else:
+                logger.error(f"Invalid module definition: {mod_dict}")
+
+        return list(expanded_dict.values())
 
 
 # Profiles extend Streams

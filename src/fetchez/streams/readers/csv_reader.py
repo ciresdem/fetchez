@@ -13,7 +13,7 @@ Basic CSV reader to create a generic 'list' stream.
 
 import csv
 from fetchez.utils import int_or, str_or
-from .. import BaseReader
+from .base import BaseReader
 
 
 class CSVReader(BaseReader):

@@ -27,9 +27,11 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
+from .streams.base import FetchezStream
 from .utils import parse_hook_string
 from .core import run_fetchez
 from .spatial import parse_region
+from .recipe import Recipe
 from .registry import (
     ModuleRegistry,
     BundleRegistry,
@@ -149,6 +151,59 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "presets": _search_registry(PresetRegistry, term),
         "profiles": _search_registry(ProfileRegistry, term),
     }
+
+
+def _compile_modules(sources, region=None, shared_cache=None, **kwargs) -> List[Any]:
+    """Resolves strings/dicts into initialized FetchModules with local hooks."""
+
+    if isinstance(sources, (str, dict)):
+        sources = [sources]
+
+    BundleRegistry.load_all()
+    ModuleRegistry.load_all()
+    PresetRegistry.load_all()
+    HookRegistry.load_all()
+
+    # Shared Cache
+    abs_cache = None
+    if shared_cache:
+        abs_cache = Path(shared_cache).resolve()
+        abs_cache.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Shared cache enabled: {abs_cache}")
+
+    expanded_defs = BundleRegistry.expand_modules(sources)
+    parsed_region = parse_region(region)[0] if region else None
+
+    initialized_modules = []
+    for mod_def in expanded_defs:
+        mod_name = mod_def.get("module")
+        mod_args = {**mod_def.get("args", {}), **kwargs}
+        if abs_cache and mod_name not in [
+            "file",
+            "local_fs",
+            "stdin",
+        ]:
+            mod_def.setdefault("args", {})["outdir"] = abs_cache
+
+        raw_hooks = mod_def.get("hooks", [])
+        expanded_hooks = PresetRegistry.expand_hooks(raw_hooks)
+
+        active_mod_hooks = []
+        for h_def in expanded_hooks:
+            HookCls = HookRegistry.get_class(str(h_def.get("name")))
+            if HookCls:
+                active_mod_hooks.append(HookCls(**h_def.get("args", {})))
+
+        ModCls = ModuleRegistry.get_class(str(mod_name))
+        if not ModCls:
+            ModCls = ModuleRegistry.get_class("local_fs")
+            mod_args["path"] = mod_name
+
+        initialized_modules.append(
+            ModCls(src_region=parsed_region, hook=active_mod_hooks, **mod_args)
+        )
+
+    return initialized_modules
 
 
 def get(
@@ -322,3 +377,72 @@ def run_recipe(
     except Exception as e:
         logger.error(f"Failed to run recipe '{target}': {e}")
         return False
+
+
+class Pipeline:
+    """A Builder class for orchestrating Fetchez workflows via the Recipe engine."""
+
+    def __init__(self, sources, region=None, **kwargs):
+        self.config = {
+            "project": {"name": kwargs.get("name", "api_pipeline")},
+            "region": region,
+            "modules": sources if isinstance(sources, list) else [sources],
+            "global_hooks": [],
+        }
+
+        self.kwargs = kwargs
+
+    def modifier(self, **kwargs):
+        pass
+
+    def schema(self, **kwargs):
+        pass
+
+    def hook(self, hook_or_string, **kwargs):
+        """Chain a global hook definition to the pipeline."""
+
+        PresetRegistry.load_all()
+        HookRegistry.load_all()
+
+        if isinstance(hook_or_string, str):
+            for h in hook_or_string:
+                parsed_h = parse_hook_string(h)
+                if parsed_h.get("name") in PresetRegistry.get_registry().keys():
+                    parsed_h["preset"] = parsed_h.pop("name")
+                elif parsed_h.get("name") not in HookRegistry.get_registry().keys():
+                    raise ValueError(f"Hook or Preset '{h}' not found in the Registry!")
+                self.config["global_hooks"].append(parsed_h)
+
+        elif isinstance(hook_or_string, dict):
+            if hook_or_string.get("name") or hook_or_string.get("preset"):
+                self.config["global_hooks"].append(hook_or_string)
+            else:
+                raise ValueError(f"Invalid hook definition: {hook_or_string}.")
+        else:
+            raise ValueError(
+                "Pipeline builder expects hook definitions (strings or dicts), "
+                "not instantiated classes."
+            )
+        return self
+
+    def execute(
+        self, threads=4, shared_cache=None, ignore_failures=False, refresh=False
+    ):
+        """Execute the configured pipeline through the Recipe engine."""
+
+        self.config["execution"] = {"threads": threads}
+
+        return Recipe.from_dict(self.config).run(
+            shared_cache=shared_cache, refresh=refresh, ignore_failures=ignore_failures
+        )
+
+
+def read(sources, region=None, shared_cache=None, **kwargs):
+    """Initializes a lazy Fetchez stream."""
+
+    modules = _compile_modules(
+        sources, region=region, shared_cache=shared_cache, **kwargs
+    )
+    parsed_region = parse_region(region)[0] if region else None
+
+    return FetchezStream(modules=modules, region=parsed_region)
