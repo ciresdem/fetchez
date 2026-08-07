@@ -600,6 +600,11 @@ class Fetch:
                     if not Path(src_path).resolve() == Path(dst_fn).resolve():
                         shutil.copy2(src_path, dst_fn)
                     return 0
+                except shutil.SameFileError:
+                    logger.debug(
+                        "Source and destination share the same; skipping copy."
+                    )
+                    return 0
                 except Exception as e:
                     logger.error(f"Local copy failed: {e}")
                     return -1
