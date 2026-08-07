@@ -49,7 +49,7 @@ class ExcludeModuleModifier(BaseModifier):
                 mod_name = mod.split(":")[0].strip()
 
             elif isinstance(mod, dict):
-                mod_name = list(mod.keys())[0].strip()
+                mod_name = mod.get("module", mod.get("bundle", "unknown")).strip()
 
             if mod_name and mod_name in self.excluded_modules:
                 logger.info(

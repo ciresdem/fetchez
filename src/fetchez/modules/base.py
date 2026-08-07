@@ -257,7 +257,7 @@ class FetchModule:
                 file_age_days = floor(
                     (time.time() - cache_file.stat().st_mtime) / 86400
                 )
-                logger.info(
+                logger.debug(
                     f"[{self.name}] Using cached API response from {file_age_days} days ago."
                 )
 
