@@ -192,9 +192,10 @@ class FetchModule:
 
         def _sanitize(val):
             """Recursively strip out un-hashable objects."""
-
             if isinstance(val, (str, int, float, bool, type(None))):
                 return val
+            if isinstance(val, Path):
+                return str(val)
             if isinstance(val, (list, tuple)):
                 cleaned = [_sanitize(v) for v in val]
                 return [v for v in cleaned if v is not None]
@@ -202,6 +203,9 @@ class FetchModule:
                 cleaned = {str(k): _sanitize(v) for k, v in val.items()}
                 return {k: v for k, v in cleaned.items() if v is not None}
 
+            logger.debug(
+                f"Cache warning: Cannot serialize object of type {type(val)}. Dropping from hash."
+            )
             return None
 
         cache_dict = {}
@@ -257,9 +261,10 @@ class FetchModule:
                 file_age_days = floor(
                     (time.time() - cache_file.stat().st_mtime) / 86400
                 )
-                logger.debug(
-                    f"[{self.name}] Using cached API response from {file_age_days} days ago."
-                )
+                if file_age_days > 14:
+                    logger.info(
+                        f"[{self.name}] Using cached API response from {file_age_days} days ago."
+                    )
 
                 # Custom decoder to rebuild the Region object with its SRS
                 def _json_object_hook(d):

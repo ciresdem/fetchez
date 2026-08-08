@@ -23,6 +23,7 @@ from fetchez.hooks import FetchHook
 class QueueSinkHook(FetchHook):
     """An internal hook that yields stream chunks to a Queue."""
 
+    name = "queue_sink"
     meta_stage = "stream"
 
     def __init__(self, q):
@@ -47,7 +48,7 @@ class BaseStream:
     def __init__(self, modules, region=None):
         self.modules = modules
         self.region = region
-        self.global_hooks = []  # Strictly GLOBAL hooks
+        self.global_hooks = []
 
     def pipe(self, hook_or_string, **kwargs):
         """Chain a processing hook onto the pipeline."""
