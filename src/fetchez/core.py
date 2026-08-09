@@ -34,7 +34,6 @@ import requests
 import lxml.etree
 import lxml.html as lh
 import filelock
-
 from shapely.geometry import Polygon, mapping
 
 from . import utils

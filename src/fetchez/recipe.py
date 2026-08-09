@@ -18,6 +18,7 @@ import json
 
 import inspect
 import logging
+import tracemalloc
 from pathlib import Path
 
 from .core import run_fetchez
@@ -745,12 +746,19 @@ class Recipe:
                         raise
 
                 try:
+                    tracemalloc.start()
                     run_fetchez(
                         modules_to_run,
                         threads=threads,
                         global_hooks=global_hooks,
                         ignore_failures=ignore_failures,
                     )
+                    current, peak = tracemalloc.get_traced_memory()
+                    logger.info(
+                        f"Pipeline Memory Usage - Current: {current / 10**6:.2f} MB | Peak: {peak / 10**6:.2f} MB"
+                    )
+
+                    tracemalloc.stop()
                 except Exception as e:
                     if ignore_failures:
                         logger.error(f"fetchez execution failed: {e}")
