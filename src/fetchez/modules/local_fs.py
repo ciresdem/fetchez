@@ -56,7 +56,9 @@ class LocalFS(FetchModule):
         super().__init__(name="local_fs", **kwargs)
 
         # Support both spellings of data_type
-        self.datatype = datatype or data_type or kwargs.get("data_type")
+        self.datatype = (
+            datatype or data_type or kwargs.get("data_type") or Path(str(path)).suffix
+        )
         self.ext = ext if ext.startswith(".") else f".{ext}"
 
         # Normalize explicit file/path inputs into a single list
@@ -79,6 +81,10 @@ class LocalFS(FetchModule):
         try:
             with open(inf_path, "r") as f:
                 data = json.load(f)
+
+                if "minmax" in data and len(data["minmax"]) >= 4:
+                    return Region.from_list(data["minmax"][:4])
+
                 if all(k in data for k in ["min_x", "max_x", "min_y", "max_y"]):
                     return Region.from_list(
                         [data["min_x"], data["max_x"], data["min_y"], data["max_y"]]
@@ -92,12 +98,29 @@ class LocalFS(FetchModule):
         file_region = None
         inf_path = file_path.with_name(f"{file_path.name}.inf")
 
+        if not inf_path.exists():
+            try:
+                from fetchez.registry import ReaderRegistry
+
+                ReaderClass = ReaderRegistry.get_reader(
+                    str(file_path), self.datatype, region=None
+                )
+
+                if ReaderClass:
+                    if hasattr(ReaderClass, "generate_inf"):
+                        _inf = ReaderClass.generate_inf(out_path=str(inf_path))
+
+            except Exception as e:
+                logger.exception(
+                    f"Failed to dynamically generate .inf for {file_path}: {e}"
+                )
+
         if inf_path.exists():
             file_region = self._read_inf(inf_path)
 
-        # Apply spatial filtering if region metadata is available
         if file_region and self.wgs_region:
             if not regions_intersect_p(self.wgs_region, file_region):
+                logger.debug(f"Skipping {file_path.name}: Outside spatial bounds.")
                 return False
 
         self.add_entry_to_results(
@@ -110,7 +133,6 @@ class LocalFS(FetchModule):
 
     def run(self):
         if not self.targets:
-            # Default to current working directory if no paths were supplied
             self.targets = [Path.cwd()]
 
         matched_files = 0

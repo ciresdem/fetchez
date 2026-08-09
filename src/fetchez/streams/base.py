@@ -45,10 +45,11 @@ class QueueSinkHook(FetchHook):
 
 
 class BaseStream:
-    def __init__(self, modules, region=None):
+    def __init__(self, modules, region=None, ignore_failures=False):
         self.modules = modules
         self.region = region
         self.global_hooks = []
+        self.ignore_failures = ignore_failures
 
     def pipe(self, hook_or_string, **kwargs):
         """Chain a processing hook onto the pipeline."""
@@ -111,7 +112,12 @@ class BaseStream:
 
         def background_worker():
             try:
-                run_fetchez(self.modules, threads=2, global_hooks=run_hooks)
+                run_fetchez(
+                    self.modules,
+                    threads=2,
+                    global_hooks=run_hooks,
+                    ignore_failures=self.ignore_failures,
+                )
             finally:
                 chunk_queue.put(DONE)
 

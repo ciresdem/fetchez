@@ -44,7 +44,7 @@ class CSVReader(BaseReader):
         self.fields = fields or []
         self.skiplines = skiplines
 
-    def yield_chunks(self):
+    def _read_chunks(self):
         reader = csv.reader
         fields = [int_or(x) for x in self.fields]
         if not all(fields):
