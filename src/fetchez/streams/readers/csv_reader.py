@@ -40,7 +40,7 @@ class CSVReader(BaseReader):
         self.encoding = encoding
         self.as_dict = as_dict
         self.delimiter = delimiter
-        self.quitechar = quotechar
+        self.quotechar = quotechar
         self.fields = fields or []
         self.skiplines = skiplines
 
