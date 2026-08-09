@@ -52,9 +52,7 @@ class ExcludeModuleModifier(BaseModifier):
                 mod_name = mod.get("module", mod.get("bundle", "unknown")).strip()
 
             if mod_name and mod_name in self.excluded_modules:
-                logger.info(
-                    f"Modifier '{self.name}': Dropping module '{mod_name}' from recipe."
-                )
+                logger.info(f"[{self.name}]: Dropping module '{mod_name}' from recipe.")
             else:
                 filtered_modules.append(mod)
 
