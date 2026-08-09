@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1 - 2026-08-09]
+
+### ADDED
+- Use tags to search for recipes
+- Add streams docs
+
+### CHANGED
+- Merged local_fs and path modules
+
+### BUGFIX
+- exclude_modules dict input fix
+
 ## [0.8.0 - 2026-08-06]
 ### ADDED
 - Add new ModifierRegistry to intercept recipes and modify them before running
