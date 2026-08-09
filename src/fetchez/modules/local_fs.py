@@ -95,6 +95,7 @@ class LocalFS(FetchModule):
 
     def _register_file(self, file_path: Path):
         """Helper to register a valid local file entry."""
+
         file_region = None
         inf_path = file_path.with_name(f"{file_path.name}.inf")
 

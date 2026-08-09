@@ -12,7 +12,7 @@ Base fetchez Reader class to create 'streams'
 """
 
 import json
-import numpy as np
+import math
 import logging
 
 from fetchez.spatial import Region
@@ -39,7 +39,7 @@ class BaseReader:
     def generate_inf(self, out_path=None):
         out_path = out_path or f"{self.path}.inf"
 
-        minmax = [np.inf, -np.inf, np.inf, -np.inf, np.inf, -np.inf]
+        minmax = [math.inf, -math.inf, math.inf, -math.inf, math.inf, -math.inf]
         total_pts = 0
 
         # Consume the stream directly (do not yield!)
@@ -71,7 +71,7 @@ class BaseReader:
         meta = {}
 
         # Write the .inf file once the stream is completely exhausted
-        if total_pts > 0 and minmax[0] != np.inf:
+        if total_pts > 0 and minmax[0] != math.inf:
             w, e, s, n = minmax[0], minmax[1], minmax[2], minmax[3]
             wkt = f"POLYGON (({w} {n}, {e} {n}, {e} {s}, {w} {s}, {w} {n}))"
 
