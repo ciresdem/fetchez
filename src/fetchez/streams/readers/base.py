@@ -48,24 +48,8 @@ class BaseReader:
                 continue
 
             try:
-                # xmin, xmax, ymin, ymax, zmin, zmax, count = self._extract_bounds(chunk)
-                count = len(chunk)
-                xmin = min(chunk.x)
-                ymin = min(chunk.y)
-                zmin = min(chunk.z)
-                xmax = max(chunk.x)
-                ymax = max(chunk.y)
-                zmax = max(chunk.z)
-
-                total_pts += count
-                minmax[0] = min(minmax[0], xmin)  # W
-                minmax[1] = max(minmax[1], xmax)  # E
-                minmax[2] = min(minmax[2], ymin)  # S
-                minmax[3] = max(minmax[3], ymax)  # N
-                minmax[4] = min(minmax[4], zmin)  # Z-min
-                minmax[5] = max(minmax[5], zmax)  # Z-max
+                xmin, xmax, ymin, ymax, zmin, zmax, count = self._extract_bounds(chunk)
             except Exception:
-                # raise
                 pass  # Silently fail bounds extraction if chunk is weird
 
         meta = {}
@@ -91,12 +75,14 @@ class BaseReader:
 
     def _read_chunks(self):
         """Subclasses MUST implement this to yield their specific data chunks."""
+
         raise NotImplementedError
 
     def _extract_bounds(self, chunk):
-        """Subclasses MUST implement this to return (xmin, xmax, ymin, ymax, zmin, zmax, count)
+        """Subclasses implement this to return (xmin, xmax, ymin, ymax, zmin, zmax, count)
         for a given chunk.
         """
+
         raise NotImplementedError
 
     def yield_chunks(self):
