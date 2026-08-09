@@ -78,6 +78,7 @@ class LocalFS(FetchModule):
 
     def _read_inf(self, inf_path: Path) -> Optional[Region]:
         """Attempt to parse an existing .inf sidecar file for spatial bounds."""
+
         try:
             with open(inf_path, "r") as f:
                 data = json.load(f)

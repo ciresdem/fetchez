@@ -25,7 +25,7 @@ for chunk in stream:
     pass # Data is processed automatically by the hooks!
 ```
 
-xs## Format Readers
+## Format Readers
 
 At the core of the streaming engine are Readers. Readers are responsible for parsing physical files (CSV, HDF5, LAZ) and yielding chunks of data.
 
@@ -55,12 +55,17 @@ class MyCustomReader(BaseReader):
         return xmin, xmax, ymin, ymax, zmin, zmax, len(chunk)
 ```
 
-## Reader Profiles
-
 ### Extending Streams (Plugins and Extensions)
 Fetchez is generic. If you are building a custom tool and want to create your own format readers or profiles, you can register them either in your project or in the `~/.fetchez` configuration directory and they will be discoverable with the `fetchez.registry.ReaderRegistry` and `fetchez.registry.ProfileRegistry`.
 xs
 In your project, make a directory called 'streams/readers' and/or 'streams/profiles'; add any python readers and YAML profiles to the appropriate directory and register them with Fetchez in your `pyproject.toml`:
+
+**Streams**
+
+```toml
+[project.entry-points."fetchez.streams"]
+my_project_readers = "my_project.streams"
+```
 
 **Readers**
 
