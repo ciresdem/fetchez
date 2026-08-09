@@ -25,9 +25,7 @@ for chunk in stream:
     pass # Data is processed automatically by the hooks!
 ```
 
-## Data Streams
-
-## Format Readers
+xs## Format Readers
 
 At the core of the streaming engine are Readers. Readers are responsible for parsing physical files (CSV, HDF5, LAZ) and yielding chunks of data.
 
