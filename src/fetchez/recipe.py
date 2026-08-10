@@ -727,23 +727,23 @@ class Recipe:
 
                 self.to_markdown(iteration_config, batch_name)
 
-                try:
-                    for mod in modules_to_run:
+                for mod in modules_to_run:
+                    try:
                         mod.run()
-                except Exception as e:
-                    if ignore_failures:
-                        logger.error(f"[{mod.name}] Module execution failed: {e}")
-                        logger.warning(
-                            f"[{mod.name}] 'ignore-failures' is SET. "
-                            "Pipeline will continue, but your final output may be incomplete!"
-                        )
-                    else:
-                        # Default behavior: Fail and abort
-                        logger.critical(
-                            f"[{mod.name}] Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
-                            "Set 'ignore_failures' if you wish to bypass this."
-                        )
-                        raise
+                    except Exception as e:
+                        if ignore_failures:
+                            logger.error(f"[{mod.name}] Module execution failed: {e}")
+                            logger.warning(
+                                f"[{mod.name}] 'ignore-failures' is SET. "
+                                "Pipeline will continue, but your final output may be incomplete!"
+                            )
+                        else:
+                            # Default behavior: Fail and abort
+                            logger.critical(
+                                f"[{mod.name}] Fatal error encountered. Aborting pipeline to prevent incomplete data generation. "
+                                "Set 'ignore_failures' if you wish to bypass this."
+                            )
+                            raise
 
                 try:
                     tracemalloc.start()
