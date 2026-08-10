@@ -22,7 +22,7 @@ except ImportError:
     sys.stderr.write("ERROR: Requires 'pandas' and 'matplotlib'. Install via pip.\n")
     sys.exit(1)
 
-from fetchez import core, registry
+import fetchez as fz
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("tide_viz")
@@ -30,32 +30,21 @@ logger = logging.getLogger("tide_viz")
 
 def fetch_tides(station, start, end, out_dir):
     """Wraps fetchez to get the data."""
-
-    registry.ModuleRegistry.load_all()
-    TidesModule = registry.ModuleRegistry.load_module("tides")
-    if not TidesModule:
-        logger.error("Error: 'tides' module not found in fetchez registry.")
-        sys.exit(1)
-
-    fetcher = TidesModule(
+    results = fz.get(
+        "tides",
         station=station,
-        # start_date=start,
-        # end_date=end,
-        date="today",
+        start_date=start,
+        end_date=end,
         datum="MLLW",
         product="water_level",
         outdir=out_dir,
     )
 
-    fetcher.run()
-
-    if not fetcher.results:
+    if not results:
         logger.warning("Fetchez found no data (check dates/station ID).")
         return None
 
-    core.run_fetchez([fetcher], threads=1)
-
-    return fetcher.results[0]["dst_fn"]
+    return results[0]  # Returns the downloaded file path
 
 
 def plot_tides(csv_path, station_id, out_img):
