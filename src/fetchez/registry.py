@@ -24,6 +24,7 @@ import importlib.resources
 import inspect
 import logging
 from pathlib import Path
+import threading
 from typing import Dict, Any, Type, Optional, List
 
 from fetchez.modules import FetchModule
@@ -34,6 +35,8 @@ from fetchez.streams.readers import BaseReader
 from fetchez.utils import get_class_arguments
 
 logger = logging.getLogger(__name__)
+
+REG_LOCK = threading.Lock()
 
 
 class PluginRegistry:
@@ -142,9 +145,10 @@ class PluginRegistry:
     def load_all(cls):
         """Load all plugins: builtins, user plugins, and pip extensions."""
 
-        cls.load_builtins()
-        cls.load_user_plugins()
-        cls.load_installed_plugins()
+        with REG_LOCK:
+            cls.load_builtins()
+            cls.load_user_plugins()
+            cls.load_installed_plugins()
 
     @classmethod
     def _get_cache_path(cls):
@@ -161,31 +165,32 @@ class PluginRegistry:
         If cache is missing, falls back to the slow load_all().
         """
 
-        registry = cls.get_registry()
-        if registry:
-            return
-
-        cache_path = cls._get_cache_path()
-        if Path(cache_path).exists():
-            try:
-                with open(cache_path, "r") as f:
-                    registry.update(json.load(f))
-
-                    meta = registry.pop("__meta__", {})
-                    if not cls._cache_is_valid(meta):
-                        logger.debug(
-                            f"Cache {cache_path} invalidated by system change. Rebuilding..."
-                        )
-                        cls.clear_cache()
-                        cls.load_all()
-                        cls.save_cache()
-                        return
+        with REG_LOCK:
+            registry = cls.get_registry()
+            if registry:
                 return
-            except Exception as e:
-                logger.debug(f"Cache read failed: {e}")
 
-        cls.load_all()
-        cls.save_cache()
+            cache_path = cls._get_cache_path()
+            if Path(cache_path).exists():
+                try:
+                    with open(cache_path, "r") as f:
+                        registry.update(json.load(f))
+
+                        meta = registry.pop("__meta__", {})
+                        if not cls._cache_is_valid(meta):
+                            logger.debug(
+                                f"Cache {cache_path} invalidated by system change. Rebuilding..."
+                            )
+                            cls.clear_cache()
+                            cls.load_all()
+                            cls.save_cache()
+                            return
+                    return
+                except Exception as e:
+                    logger.debug(f"Cache read failed: {e}")
+
+            cls.load_all()
+            cls.save_cache()
 
     @classmethod
     def save_cache(cls):
@@ -446,38 +451,39 @@ class YamlRegistry:
 
     @classmethod
     def load_all(cls):
-        cls.get_registry()
+        with REG_LOCK:
+            cls.get_registry()
 
-        try:
-            eps = importlib.metadata.entry_points(group=cls.entry_point_group)
-        except TypeError:
-            eps = importlib.metadata.entry_points().get(cls.entry_point_group, [])
-
-        for ep in eps:
-            pkg_name = ep.value
             try:
-                for file_path in importlib.resources.files(pkg_name).iterdir():
-                    if file_path.name.endswith((".yaml", ".yml")):
-                        cls._register_yaml(
-                            file_path.read_text(encoding="utf-8"), str(file_path)
-                        )
-            except Exception as e:
-                logger.warning(f"Failed to load yamls from package {pkg_name}: {e}")
+                eps = importlib.metadata.entry_points(group=cls.entry_point_group)
+            except TypeError:
+                eps = importlib.metadata.entry_points().get(cls.entry_point_group, [])
 
-        builtin_module = importlib.import_module(cls.builtin_pkg)
-        builtin_path = builtin_module.__path__
-        home_dir = Path.home() / ".fetchez" / cls.user_folder
-        builtin_path.append(home_dir)
-        for fdir in builtin_path:
-            if Path(fdir).exists():
-                for fn in os.listdir(fdir):
-                    if fn.endswith((".yaml", ".yml")):
-                        try:
-                            f_dir = Path(fdir) / fn
-                            with open(f_dir, "r", encoding="utf-8") as f:
-                                cls._register_yaml(f.read(), f_dir)
-                        except Exception as e:
-                            logger.warning(f"Failed to load yaml {fn}: {e}")
+            for ep in eps:
+                pkg_name = ep.value
+                try:
+                    for file_path in importlib.resources.files(pkg_name).iterdir():
+                        if file_path.name.endswith((".yaml", ".yml")):
+                            cls._register_yaml(
+                                file_path.read_text(encoding="utf-8"), str(file_path)
+                            )
+                except Exception as e:
+                    logger.warning(f"Failed to load yamls from package {pkg_name}: {e}")
+
+            builtin_module = importlib.import_module(cls.builtin_pkg)
+            builtin_path = builtin_module.__path__
+            home_dir = Path.home() / ".fetchez" / cls.user_folder
+            builtin_path.append(home_dir)
+            for fdir in builtin_path:
+                if Path(fdir).exists():
+                    for fn in os.listdir(fdir):
+                        if fn.endswith((".yaml", ".yml")):
+                            try:
+                                f_dir = Path(fdir) / fn
+                                with open(f_dir, "r", encoding="utf-8") as f:
+                                    cls._register_yaml(f.read(), f_dir)
+                            except Exception as e:
+                                logger.warning(f"Failed to load yaml {fn}: {e}")
 
     load_fast = load_all
 

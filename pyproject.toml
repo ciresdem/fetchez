@@ -113,7 +113,7 @@ exclude = [
 mypy_path = "src"
 packages = ["fetchez"]
 python_version = "3.12"
-exclude = ["^build/", "^dist/", "^\\.venv/"]
+exclude = ["^build/", "^dist/", "^\\.venv/", "^examples/",]
 # allow_untyped_globals = true
 # strict = true
 
@@ -166,6 +166,7 @@ extend-select = [  # Extend the default ruleset:
 "src/fetchez/_cli.py" = ["T201"]
 "src/fetchez/hooks/stream_dump.py" = ["T203"] # allow pprint here
 "tests/**/*.py" = ["S"]
+"examples/*.py" = ["T201", "T203"]
 
 [tool.pytest.ini_options]
 markers = [

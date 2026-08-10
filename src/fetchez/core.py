@@ -877,6 +877,116 @@ def _fetch_worker(module, entry, verbose=True):
     #     return -1
 
 
+def _pipeline_worker(mod, original_entry, global_hooks, ignore_failures, verbose):
+    """Unified worker: Fetches data, runs file/stream hooks, and exhausts streams concurrently."""
+
+    file_name = Path(original_entry.get("dst_fn", "item")).name
+    dynamic_hooks = []
+
+    # Fetch
+    try:
+        status = mod.fetch_entry(original_entry, check_size=True, verbose=verbose)
+        if status != 0:
+            raise IOError(f"Fetch worker returned non-zero status code: {status}")
+    except Exception as e:
+        if not ignore_failures:
+            raise RuntimeError(f"Failed to fetch {file_name}: {e}") from e
+        logger.error(f"[{mod.name}] Failed to fetch {file_name}: {e} (Continuing...)")
+        original_entry["status"] = "failed"
+        original_entry["error_message"] = str(e)
+        return [(mod, original_entry)], dynamic_hooks
+
+    current_entries = [(mod, original_entry)]
+
+    # File Hooks
+    gf_hooks = [h for h in global_hooks if h.stage == "file"]
+    lf_hooks = [h for h in mod.hooks if h.stage == "file"]
+    active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
+
+    for hook in active_file_hooks:
+        if STOP_EVENT.is_set():
+            raise KeyboardInterrupt("Pipeline aborted by user.")
+        try:
+            current_entries = hook.run(current_entries)
+            if current_entries is None:
+                current_entries = []
+            utils._log_hook_history(current_entries, hook)
+        except Exception as e:
+            err_msg = f'File hook "{hook.name}" failed on {file_name}: {e}'
+            if not ignore_failures:
+                raise RuntimeError(err_msg) from e
+            logger.error(f"[{mod.name}] {err_msg}")
+            original_entry["status"] = "failed"
+            original_entry["error_message"] = str(e)
+            return [(mod, original_entry)], dynamic_hooks
+
+    # Stream Hooks
+    gs_hooks = [h for h in global_hooks if h.stage == "stream"]
+    ls_hooks = [h for h in mod.hooks if h.stage == "stream"]
+    active_stream_hooks = utils.merge_hooks(ls_hooks, gs_hooks)
+    active_stream_hooks.sort(key=lambda hook: 0 if hook.name == "stream-init" else 1)
+
+    if active_stream_hooks:
+        has_stream = any(item.get("stream") is not None for _, item in current_entries)
+        has_stream_init = "stream-init" in [item.name for item in active_stream_hooks]
+
+        if not has_stream and not has_stream_init:
+            try:
+                from fetchez.registry import HookRegistry
+
+                HookRegistry.load_builtins()
+                init_hook_cls = HookRegistry.get_class("stream-init")
+                if init_hook_cls:
+                    logger.debug(f"Auto-initializing stream for {mod.name}")
+                    init_hook = init_hook_cls()
+                    dynamic_hooks.append(init_hook)
+                    current_entries = init_hook.run(current_entries)
+            except Exception as e:
+                logger.warning(f"Could not auto-initialize stream: {e}")
+
+        for hook in active_stream_hooks:
+            if STOP_EVENT.is_set():
+                raise KeyboardInterrupt("Pipeline aborted by user.")
+            try:
+                current_entries = hook.run(current_entries)
+                if current_entries is None:
+                    current_entries = []
+                utils._log_hook_history(current_entries, hook)
+            except Exception as e:
+                err_msg = f'Stream hook "{hook.name}" failed on {file_name}: {e}'
+                if not ignore_failures:
+                    raise RuntimeError(err_msg) from e
+                logger.error(f"[{mod.name}] {err_msg}")
+                original_entry["status"] = "failed"
+                original_entry["error_message"] = str(e)
+                return [(mod, original_entry)], dynamic_hooks
+
+    # Stream Exhaustion (Data Processing)
+    processed_entries = []
+    for owner, item in current_entries:
+        if STOP_EVENT.is_set():
+            raise KeyboardInterrupt("Pipeline aborted by user.")
+        stream = item.get("stream")
+        if stream and isinstance(
+            stream, (collections.abc.Iterator, collections.abc.Generator)
+        ):
+            try:
+                logger.debug(
+                    f"Exhausting stream for {Path(item.get('dst_fn', '')).name}..."
+                )
+                collections.deque(stream, maxlen=0)
+            except Exception as e:
+                err_msg = f"Stream processing error in {Path(item.get('dst_fn', '')).name}: {e}"
+                if not ignore_failures:
+                    raise RuntimeError(err_msg) from e
+                logger.error(f"[{mod.name}] {err_msg}")
+                item["status"] = "failed"
+                item["error_message"] = str(e)
+        processed_entries.append((owner, item))
+
+    return processed_entries, dynamic_hooks
+
+
 # List[FetchModule]
 def run_fetchez(
     modules: List[Any],
@@ -971,8 +1081,16 @@ def run_fetchez(
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
         try:
+            # Submit the new pipeline worker
             futures = {
-                executor.submit(_fetch_worker, mod, entry, verbose=True): (mod, entry)
+                executor.submit(
+                    _pipeline_worker,
+                    mod,
+                    entry,
+                    global_hooks,
+                    ignore_failures,
+                    not silent,
+                ): (mod, entry)
                 for mod, entry in all_entries
             }
 
@@ -996,164 +1114,16 @@ def run_fetchez(
                     pbar.set_description(f"[{mod.name}] {short_name}")
 
                     try:
-                        status = future.result()
-                        if status != 0:
-                            raise IOError(
-                                f"Fetch worker returned non-zero status code: {status}"
-                            )
+                        # Collect fully processed data from the thread
+                        processed_entries, dynamic_hooks = future.result()
+                        final_results_with_owner.extend(processed_entries)
+                        active_hooks_full.extend(dynamic_hooks)
+                        pbar.update(1)
                     except Exception as e:
-                        err_msg = f"Failed to fetch {file_name}: {e}"
-                        if not ignore_failures:
-                            logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
-                            STOP_EVENT.set()
-                            executor.shutdown(wait=False, cancel_futures=True)
-                            raise RuntimeError(err_msg) from e
-
-                        logger.error(f"[{mod.name}] {err_msg} (Continuing...)")
-                        original_entry["status"] = "failed"
-                        original_entry["error_message"] = str(e)
-                        final_results_with_owner.append((mod, original_entry))
-                        pbar.update(1)
-                        continue
-                        # logger.error(f"Worker exception: {e}")
-                        # original_entry.update({"status": -1})
-                        # # continue
-
-                    # --- File Hooks ---
-                    gf_hooks = [h for h in global_hooks if h.stage == "file"]
-                    lf_hooks = [h for h in mod.hooks if h.stage == "file"]
-
-                    active_file_hooks = utils.merge_hooks(lf_hooks, gf_hooks)
-                    active_hooks_full.append(active_file_hooks)
-
-                    current_entries = [(mod, original_entry)]
-
-                    hook_failed = False
-                    for hook in active_file_hooks:
-                        try:
-                            current_entries = hook.run(current_entries)
-                            if current_entries is None:
-                                current_entries = []
-                            utils._log_hook_history(current_entries, hook)
-                        except Exception as e:
-                            err_msg = (
-                                f'File hook "{hook.name}" failed on {file_name}: {e}'
-                            )
-                            if not ignore_failures:
-                                logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
-                                STOP_EVENT.set()
-                                executor.shutdown(wait=False, cancel_futures=True)
-                                raise RuntimeError(err_msg) from e
-
-                            logger.error(f"[{mod.name}] {err_msg}")
-                            original_entry["status"] = "failed"
-                            original_entry["error_message"] = str(e)
-                            hook_failed = True
-                            break
-
-                    if hook_failed:
-                        final_results_with_owner.append((mod, original_entry))
-                        pbar.update(1)
-                        continue
-
-                    # --- Stream Hooks ---
-                    gs_hooks = [h for h in global_hooks if h.stage == "stream"]
-                    ls_hooks = [h for h in mod.hooks if h.stage == "stream"]
-
-                    active_stream_hooks = utils.merge_hooks(ls_hooks, gs_hooks)
-
-                    # make sure 'stream-init' is the first stream hook to be run!
-                    active_stream_hooks.sort(
-                        key=lambda hook: 0 if hook.name == "stream-init" else 1
-                    )
-
-                    active_hooks_full.append(active_stream_hooks)
-                    if active_stream_hooks:
-                        # If stream hooks exist but no stream is active.
-                        has_stream = any(
-                            item.get("stream") is not None
-                            for _, item in current_entries
-                        )
-                        # Make sure a custom stream-init isn't set by the entry
-                        has_stream_init = "stream-init" in [
-                            item.name for item in active_stream_hooks
-                        ]
-
-                        if not has_stream and not has_stream_init:
-                            try:
-                                from fetchez.registry import HookRegistry
-
-                                HookRegistry.load_builtins()
-
-                                init_hook_cls = HookRegistry.get_class("stream-init")
-                                if init_hook_cls:
-                                    logger.debug(
-                                        f"Auto-initializing stream for {mod.name}"
-                                    )
-                                    current_entries = init_hook_cls().run(
-                                        current_entries
-                                    )
-                            except Exception as e:
-                                logger.warning(f"Could not auto-initialize stream: {e}")
-
-                        # Run the stream transforms
-                        for hook in active_stream_hooks:
-                            try:
-                                current_entries = hook.run(current_entries)
-                                if current_entries is None:
-                                    current_entries = []
-                                utils._log_hook_history(current_entries, hook)
-                            except Exception as e:
-                                err_msg = f'Stream hook "{hook.name}" failed on {file_name}: {e}'
-                                if not ignore_failures:
-                                    logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
-                                    STOP_EVENT.set()
-                                    executor.shutdown(wait=False, cancel_futures=True)
-                                    raise RuntimeError(err_msg) from e
-
-                                logger.error(f"[{mod.name}] {err_msg}")
-                                original_entry["status"] = "failed"
-                                original_entry["error_message"] = str(e)
-                                hook_failed = True
-                                break
-
-                    if hook_failed:
-                        final_results_with_owner.append((mod, original_entry))
-                        pbar.update(1)
-                        continue
-
-                    # --- Stream Exhaustion ---
-                    processed_entries = []
-                    for owner, item in current_entries:
-                        stream = item.get("stream")
-                        if stream and isinstance(
-                            stream,
-                            (collections.abc.Iterator, collections.abc.Generator),
-                        ):
-                            try:
-                                logger.debug(
-                                    f"Exhausting stream for {Path(item.get('dst_fn', '')).name}..."
-                                )
-                                collections.deque(stream, maxlen=0)
-                            except Exception as e:
-                                err_msg = f"Stream processing error in {Path(item.get('dst_fn', '')).name}: {e}"
-                                if not ignore_failures:
-                                    logger.critical(f"CRITICAL: [{mod.name}] {err_msg}")
-                                    STOP_EVENT.set()
-                                    executor.shutdown(wait=False, cancel_futures=True)
-                                    raise RuntimeError(err_msg) from e
-
-                                logger.error(f"[{mod.name}] {err_msg}")
-                                item["status"] = "failed"
-                                item["error_message"] = str(e)
-                                # logger.exception(
-                                #     f"Stream processing error in {Path(item.get('dst_fn', '')).name}: {e}"
-                                # )
-
-                        processed_entries.append((owner, item))
-
-                    final_results_with_owner.extend(processed_entries)
-                    pbar.update(1)
+                        logger.critical(f"CRITICAL: [{mod.name}] {e}")
+                        STOP_EVENT.set()
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        raise
 
         except KeyboardInterrupt:
             STOP_EVENT.set()
