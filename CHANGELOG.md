@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2 - 2026-08-09]
+### CHANGED
+- Update example scripts/etc.
+- Allow readers.base to generate generic inf files
+- local_fs module correctly parses Readers
+
+### BUGFIX
+- recipe.py would kill all fetching when one failed (even on ignore_failures).
+
 ## [0.8.1 - 2026-08-09]
 
 ### ADDED
