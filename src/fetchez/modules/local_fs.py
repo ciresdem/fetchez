@@ -104,6 +104,7 @@ class LocalFS(FetchModule):
             try:
                 from fetchez.registry import ReaderRegistry
 
+                ReaderRegistry.load_all()
                 ReaderClass = ReaderRegistry.get_reader(
                     str(file_path), self.datatype, region=None
                 )

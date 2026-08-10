@@ -49,6 +49,14 @@ class BaseReader:
 
             try:
                 xmin, xmax, ymin, ymax, zmin, zmax, count = self._extract_bounds(chunk)
+                # minmax = [xmin, xmax, ymin, ymax, zmin, zmax]
+                minmax[0] = min(minmax[0], xmin)
+                minmax[1] = max(minmax[1], xmax)
+                minmax[2] = min(minmax[2], ymin)
+                minmax[3] = max(minmax[3], ymax)
+                minmax[4] = min(minmax[4], zmin)
+                minmax[5] = max(minmax[5], zmax)
+                total_pts += count
             except Exception:
                 pass  # Silently fail bounds extraction if chunk is weird
 
@@ -70,6 +78,7 @@ class BaseReader:
                     json.dump(meta, f, indent=4)
             except Exception:
                 logger.debug(f"Could not write inf file {out_path}")
+                pass
 
         return meta
 
