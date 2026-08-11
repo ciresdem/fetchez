@@ -19,6 +19,7 @@ from typing import Optional, Any, Union, List
 
 from fetchez.modules import FetchModule
 from fetchez.spatial import Region, regions_intersect_p
+from fetchez.utils import str2bool
 from fetchez import cli
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ class LocalFS(FetchModule):
         ext: str = ".tif",
         datatype: Optional[Any] = None,
         data_type: Optional[Any] = None,
+        want_inf: bool = False,
         **kwargs,
     ):
         kwargs["use_cache"] = kwargs.get("use_cache", False)  # No cache for local_fs!
@@ -60,6 +62,8 @@ class LocalFS(FetchModule):
             datatype or data_type or kwargs.get("data_type") or Path(str(path)).suffix
         )
         self.ext = ext if ext.startswith(".") else f".{ext}"
+
+        self.want_inf = str2bool(want_inf)
 
         # Normalize explicit file/path inputs into a single list
         self.targets: List[Path] = []
@@ -100,7 +104,7 @@ class LocalFS(FetchModule):
         file_region = None
         inf_path = file_path.with_name(f"{file_path.name}.inf")
 
-        if not inf_path.exists():
+        if not inf_path.exists() and self.want_inf:
             try:
                 from fetchez.registry import ReaderRegistry
 
