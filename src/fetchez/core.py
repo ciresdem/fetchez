@@ -127,9 +127,21 @@ def xml2py(node) -> Optional[Dict]:
     return texts
 
 
-def get_userpass(authenticator_url: str) -> Tuple[Optional[str], Optional[str]]:
+def get_userpass(
+    authenticator_url: str,
+    env_user: Optional[str] = None,
+    env_pass: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[str]]:
     """Retrieve username and password from netrc for a given URL."""
 
+    # Environmental Variables
+    if env_user and env_pass:
+        _user = os.environ.get(env_user)
+        _pass = os.environ.get(env_pass)
+        if _user and _pass:
+            return _user, _pass
+
+    # .netrc
     username = None
     password = None
     try:
@@ -149,7 +161,10 @@ def get_userpass(authenticator_url: str) -> Tuple[Optional[str], Optional[str]]:
 
 
 def get_raw_credentials(
-    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
+    url: Optional[str] = None,
+    authenticator_url: str = "https://urs.earthdata.nasa.gov",
+    env_user: Optional[str] = None,
+    env_pass: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str]]:
     """Get raw (username, password) from .netrc or interactive prompt.
     Optionally validate against an HTTP `url`.
@@ -158,7 +173,9 @@ def get_raw_credentials(
     credentials_valid = False
     errprefix = ""
 
-    username, password = get_userpass(authenticator_url)
+    username, password = get_userpass(
+        authenticator_url, env_user=env_user, env_pass=env_pass
+    )
 
     while not credentials_valid:
         if not username or not password:
@@ -196,11 +213,16 @@ def get_raw_credentials(
 
 
 def get_credentials(
-    url: Optional[str] = None, authenticator_url: str = "https://urs.earthdata.nasa.gov"
+    url: Optional[str] = None,
+    authenticator_url: str = "https://urs.earthdata.nasa.gov",
+    env_user: Optional[str] = None,
+    env_pass: Optional[str] = None,
 ) -> Optional[str]:
     """Wrapper for get_raw_credentials that returns a Base64 Basic Auth string."""
 
-    username, password = get_raw_credentials(url, authenticator_url)
+    username, password = get_raw_credentials(
+        url, authenticator_url, env_user=env_user, env_pass=env_pass
+    )
 
     if username and password:
         cred_str = f"{username}:{password}"
@@ -415,7 +437,7 @@ class fetchezSession(requests.Session):
         super().__init__(**kwargs)
 
     def rebuild_auth(self, prepared_request, response):
-        """Intercept the security sweep to preserve Earthdata credentials."""
+        """Intercept the security sweep to preserve credentials."""
 
         super().rebuild_auth(prepared_request, response)
 
