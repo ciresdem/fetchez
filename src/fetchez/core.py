@@ -1081,7 +1081,6 @@ def run_fetchez(
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
         try:
-            # Submit the new pipeline worker
             futures = {
                 executor.submit(
                     _pipeline_worker,
@@ -1114,7 +1113,6 @@ def run_fetchez(
                     pbar.set_description(f"[{mod.name}] {short_name}")
 
                     try:
-                        # Collect fully processed data from the thread
                         processed_entries, dynamic_hooks = future.result()
                         final_results_with_owner.extend(processed_entries)
                         active_hooks_full.extend(dynamic_hooks)
