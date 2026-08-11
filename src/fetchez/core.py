@@ -184,9 +184,14 @@ def get_raw_credentials(
             logger.info("Please enter your credentials. If you don't have an account,")
             logger.info(f"register at: {authenticator_url}\n")
 
-            # Ensure you strip whitespace just in case!
-            username = utils.get_username().strip()
-            password = utils.get_password().strip()
+            username = utils.get_username()
+            password = utils.get_password()
+            if env_user and env_pass:
+                os.environ[env_user] = username
+                os.environ[env_pass] = password
+                username, password = get_userpass(
+                    authenticator_url, env_user=env_user, env_pass=env_pass
+                )
 
         if not url:
             # If no validation URL is provided, trust the input and return immediately
