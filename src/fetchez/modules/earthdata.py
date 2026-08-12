@@ -122,7 +122,10 @@ class EarthData(FetchModule):
 
         # Authentication
         credentials = core.get_credentials(
-            "https://urs.earthdata.nasa.gov", "https://urs.earthdata.nasa.gov"
+            url="https://urs.earthdata.nasa.gov",
+            authenticator_url="https://urs.earthdata.nasa.gov",
+            env_user="EARTHDATA_USERNAME",
+            env_pass="EARTHDATA_PASSWORD",
         )
         if credentials:
             self.headers = {
