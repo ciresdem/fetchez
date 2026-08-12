@@ -913,6 +913,11 @@ def p_f_unzip(src_file, fns=None, outdir="./", tmp_fn=False) -> List[str]:
                         if tmp_fn:
                             dest_fn = make_temp_fn(member, temp_dir=outdir)
 
+                        if dest_fn.exists() and not tmp_fn:
+                            logger.debug(f"Skipping extraction, file exists: {dest_fn}")
+                            extracted_paths.append(str(dest_fn))
+                            continue
+
                         # Extract and write the file
                         with open(dest_fn, "wb") as f:
                             f.write(z.read(member))
