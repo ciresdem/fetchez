@@ -184,9 +184,8 @@ def get_raw_credentials(
             logger.info("Please enter your credentials. If you don't have an account,")
             logger.info(f"register at: {authenticator_url}\n")
 
-            with HOOK_LOCK:
-                username = utils.get_username()
-                password = utils.get_password()
+            username = utils.get_username()
+            password = utils.get_password()
 
         if not url:
             # If no validation URL is provided, trust the input and return immediately

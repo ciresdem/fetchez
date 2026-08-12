@@ -351,14 +351,18 @@ class FetchModule:
 
         try:
             parsed_url = urllib.parse.urlparse(entry["url"])
+            module_auth = getattr(self, "auth", None)
             if parsed_url.scheme == "ftp":
-                status = Fetch(url=entry["url"], headers=self.headers).fetch_ftp_file(
-                    entry["dst_fn"]
-                )
+                status = Fetch(
+                    url=entry["url"],
+                    headers=self.headers,
+                    auth=module_auth,
+                ).fetch_ftp_file(entry["dst_fn"])
             else:
                 status = Fetch(
                     url=entry["url"],
                     headers=self.headers,
+                    auth=module_auth,
                 ).fetch_file(
                     entry["dst_fn"],
                     check_size=check_size,
