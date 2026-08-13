@@ -375,12 +375,15 @@ def run_recipe(
 
         recipe = Recipe.from_dict(base_config)
 
-        recipe.run(
-            outdir=outdir,
-            shared_cache=shared_cache,
-            refresh=refresh,
-            ignore_failures=not fail_fast,
-        )
+        [
+            r
+            for r in recipe.run(
+                outdir=outdir,
+                shared_cache=shared_cache,
+                refresh=refresh,
+                ignore_failures=not fail_fast,
+            )
+        ]
 
         click.secho(f"✨ Successfully executed {name} recipe!", fg="green", bold=True)
 

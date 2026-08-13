@@ -323,6 +323,11 @@ def process_pipeline(
         click.secho(f"Pipeline recipe exported to {export}", fg="green", bold=True)
     else:
         click.secho("Executing dynamic pipeline...", fg="cyan", bold=True, err=True)
-        Recipe.from_dict(config).run(
-            shared_cache=shared_cache, refresh=refresh, ignore_failures=not fail_fast
-        )
+        [
+            r
+            for r in Recipe.from_dict(config).run(
+                shared_cache=shared_cache,
+                refresh=refresh,
+                ignore_failures=not fail_fast,
+            )
+        ]
