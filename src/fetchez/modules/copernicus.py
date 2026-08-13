@@ -13,7 +13,7 @@ Fetch data from the Copernicus Digital Elevation Model (DEM).
 
 import logging
 from typing import Optional, List, Any
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from fetchez import core
 from fetchez.modules import FetchModule

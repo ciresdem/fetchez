@@ -20,7 +20,7 @@ import datetime
 import logging
 import requests
 from requests.auth import AuthBase
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from typing import Dict, Optional
 
 from fetchez import core
