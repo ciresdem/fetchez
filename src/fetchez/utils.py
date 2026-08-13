@@ -20,7 +20,7 @@ import logging
 import zipfile
 import shutil
 import tempfile
-import tqdm
+from tqdm.auto import tqdm
 import re
 import inspect
 import click
@@ -77,7 +77,7 @@ class TqdmLoggingHandler(logging.Handler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            tqdm.tqdm.write(msg, file=sys.stderr)
+            tqdm.write(msg, file=sys.stderr)
             self.flush()
         except Exception:
             self.handleError(record)

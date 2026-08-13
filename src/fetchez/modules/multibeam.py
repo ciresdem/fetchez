@@ -15,7 +15,7 @@ import os
 import re
 import logging
 import requests
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from io import StringIO
 from typing import Optional, List, Tuple, cast
 

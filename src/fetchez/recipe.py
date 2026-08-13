@@ -82,7 +82,7 @@ class Recipe:
         recipe.run()
     """
 
-    def __init__(self, config, base_dir=None):
+    def __init__(self, config, base_dir=None, verbose=True):
         self.config = config
         self.base_dir = base_dir or Path.cwd()
         self.recipe_dir = self.base_dir
@@ -92,7 +92,7 @@ class Recipe:
         else:
             self.from_file(self.config)
 
-        setup_logging(True)
+        setup_logging(verbose)
 
     @classmethod
     def from_file(cls, config_source):
@@ -551,7 +551,7 @@ class Recipe:
         threads = run_opts.get("threads", 1)
         raw_region = self.config.get("region")
         global_region_srs = self.config.get("region_srs", "EPSG:4326")
-        _xrecipe_name = self.config.get("project", {}).get("name", "Unnamed")
+        recipe_name = self.config.get("project", {}).get("name", "Unnamed")
 
         original_cwd = Path.cwd()
         if outdir is None:
@@ -726,6 +726,17 @@ class Recipe:
                 # logger.debug(f"Saved localized recipe to {batch_config_fn}")
 
                 self.to_markdown(iteration_config, batch_name)
+
+                yield (
+                    iteration_config,
+                    target_region,
+                    batch_name
+                    or recipe_name
+                    or (target_region.format("fn") if target_region else ""),
+                    abs_cache or tile_dir,
+                    base_outdir,
+                    tile_dir,
+                )
 
                 for mod in modules_to_run:
                     try:

@@ -23,7 +23,7 @@ import io
 import logging
 import collections
 from pathlib import Path
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import urllib.parse
 from urllib.error import HTTPError
 from urllib.request import Request, build_opener, HTTPCookieProcessor
