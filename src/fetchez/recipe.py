@@ -727,17 +727,6 @@ class Recipe:
 
                 self.to_markdown(iteration_config, batch_name)
 
-                yield (
-                    iteration_config,
-                    target_region,
-                    batch_name
-                    or recipe_name
-                    or (target_region.format("fn") if target_region else ""),
-                    abs_cache or tile_dir,
-                    base_outdir,
-                    tile_dir,
-                )
-
                 for mod in modules_to_run:
                     try:
                         mod.run()
@@ -770,6 +759,7 @@ class Recipe:
                     )
 
                     tracemalloc.stop()
+
                 except Exception as e:
                     if ignore_failures:
                         logger.error(f"fetchez execution failed: {e}")
@@ -788,6 +778,17 @@ class Recipe:
                     completed_tiles.append(batch_name)
                     with open(state_file, "w") as f:
                         json.dump(completed_tiles, f, indent=2)
+
+                yield (
+                    iteration_config,
+                    target_region,
+                    batch_name
+                    or recipe_name
+                    or (target_region.format("fn") if target_region else ""),
+                    abs_cache or tile_dir,
+                    base_outdir,
+                    tile_dir,
+                )
 
             except Exception as e:
                 logger.exception(f"Batch '{batch_name or 'run'}' failed: {e}")
