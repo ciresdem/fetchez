@@ -372,7 +372,7 @@ def run_recipe(
 
     try:
         # Recipe.from_file(base_config).run()
-        Recipe(base_config).run(ignore_failures=ignore_failures)
+        [r for r in Recipe(base_config).run(ignore_failures=ignore_failures)]
         return True
     except Exception as e:
         logger.error(f"Failed to run recipe '{target}': {e}")
@@ -432,9 +432,14 @@ class Pipeline:
 
         self.config["execution"] = {"threads": threads}
 
-        return Recipe.from_dict(self.config).run(
-            shared_cache=shared_cache, refresh=refresh, ignore_failures=ignore_failures
-        )
+        return [
+            r
+            for r in Recipe.from_dict(self.config).run(
+                shared_cache=shared_cache,
+                refresh=refresh,
+                ignore_failures=ignore_failures,
+            )
+        ]
 
 
 def read(sources, region=None, shared_cache=None, **kwargs):
