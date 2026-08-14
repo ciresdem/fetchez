@@ -20,6 +20,8 @@ import requests
 
 from pyproj import CRS, Transformer
 from pyogrio.raw import read
+import shapely.wkb
+from shapely.geometry import Polygon
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -83,7 +85,7 @@ class DAV(FetchModule):
         self.want_footprints = want_footprints
         self.keep_footprints = keep_footprints
         self.cull = cull
-        self.cumulative_mask = None
+        self.cumulative_mask: Polygon = Polygon()
 
     def _region_to_ewkt(self):
         """Convert the current region to NAD83 (SRID 4269) EWKT Polygon string."""
@@ -225,9 +227,6 @@ class DAV(FetchModule):
             if len(geometry_wkb) > 0:
                 col_names = [str(col).lower() for col in meta.get("fields", [])]
 
-                if self.cull:
-                    import shapely.wkb
-
                 # Iterate over the arrays to recreate the properties dictionary
                 for i in range(len(geometry_wkb)):
                     if self.cull:
@@ -321,10 +320,6 @@ class DAV(FetchModule):
             dataset["_parsed_year"] = max(years) if years else 0
 
         if self.cull:
-            from shapely.geometry import Polygon
-
-            self.cumulative_mask = Polygon()
-
             datasets.sort(key=lambda x: x.get("_parsed_year", 0), reverse=True)
             logger.debug(f"Culling enabled. Sorting {len(datasets)} datasets by age.")
 
