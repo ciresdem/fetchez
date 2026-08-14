@@ -187,7 +187,9 @@ class DAV(FetchModule):
             or box_b[3] < box_a[1]
         )
 
-    def _process_index_shapefile(self, shp_path: str, dataset_id: str, data_type: str):
+    def _process_index_shapefile(
+        self, shp_path: str, dataset_id: str, data_type: str, is_bathy: bool
+    ):
         """Parse the downloaded index shapefile using PyShp + PyProj."""
 
         prj_path = shp_path.replace(".shp", ".prj")
@@ -276,6 +278,7 @@ class DAV(FetchModule):
                         data_type=data_type,
                         agency="NOAA Digital Coast",
                         title=f"Dataset {dataset_id}",
+                        is_bathy=is_bathy,
                     )
 
         except Exception as e:
@@ -333,12 +336,13 @@ class DAV(FetchModule):
             year_val = attrs.get("year")
             f_datatype = attrs.get("dataType")
             links_list = attrs.get("links", [])
+            description = attrs.get("projectDescription", "")
             if self.min_year or self.max_year:
                 import re
 
                 years = []
 
-                # Check the explicit 'year' key first, then fallback to the title
+                # Check the 'year' key first, then fallback to the title
                 for source in [year_val, name]:
                     if source:
                         matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
@@ -354,11 +358,7 @@ class DAV(FetchModule):
                     if self.max_year and dataset_year > self.max_year:
                         continue
                 else:
-                    # If no year can be parsed, log it but keep the data
-                    # so we don't accidentally drop valid datasets with bad metadata.
-                    logger.debug(
-                        f"Could not parse year for DAV dataset {fid}. Allowing through filter."
-                    )
+                    logger.debug(f"Could not parse year for DAV dataset {fid}.")
 
             if self.survey_id and (
                 int(utils.str_or(self.survey_id, "").strip()) != int(fid.strip())
@@ -370,6 +370,7 @@ class DAV(FetchModule):
 
             providers = attrs.get("providers", [])
             is_usgs = any(p.get("name") == "U.S. Geological Survey" for p in providers)
+            is_bathy = "bathy" in name.lower() or "bathy" in description.lower()
 
             bulk_url = None
             for link_obj in links_list:
@@ -440,7 +441,9 @@ class DAV(FetchModule):
                     shp_file = next((f for f in unzipped if f.endswith(".shp")), None)
 
                     if shp_file:
-                        self._process_index_shapefile(shp_file, fid, f_datatype)
+                        self._process_index_shapefile(
+                            shp_file, fid, f_datatype, is_bathy
+                        )
 
                     if not self.keep_footprints:
                         utils.remove_glob(local_zip)
