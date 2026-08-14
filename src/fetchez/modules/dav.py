@@ -20,6 +20,8 @@ import requests
 
 from pyproj import CRS, Transformer
 from pyogrio.raw import read
+import shapely.wkb
+from shapely.geometry import Polygon
 
 from fetchez import core
 from fetchez.modules import FetchModule
@@ -43,6 +45,7 @@ DAV_HEADERS = {"Content-Type": "application/json"}
     title_filter="Filter results by dataset title (case-insensitive)",
     want_footprints="Fetch the dataset footprint (tile index) zip only",
     keep_footprints="Keep the downloaded tile index zip after processing",
+    cull="Spatially cull older overlapping tiles to prevent redundant downloads",
 )
 class DAV(FetchModule):
     name = "dav"
@@ -71,6 +74,7 @@ class DAV(FetchModule):
         title_filter: Optional[str] = None,
         want_footprints: bool = False,
         keep_footprints: bool = False,
+        cull: bool = False,
         name: Optional[str] = "dav",
         **kwargs,
     ):
@@ -80,6 +84,8 @@ class DAV(FetchModule):
         self.title_filter = title_filter
         self.want_footprints = want_footprints
         self.keep_footprints = keep_footprints
+        self.cull = cull
+        self.cumulative_mask: Polygon = Polygon()
 
     def _region_to_ewkt(self):
         """Convert the current region to NAD83 (SRID 4269) EWKT Polygon string."""
@@ -183,7 +189,9 @@ class DAV(FetchModule):
             or box_b[3] < box_a[1]
         )
 
-    def _process_index_shapefile(self, shp_path: str, dataset_id: str, data_type: str):
+    def _process_index_shapefile(
+        self, shp_path: str, dataset_id: str, data_type: str, is_bathy: bool, year: str
+    ):
         """Parse the downloaded index shapefile using PyShp + PyProj."""
 
         prj_path = shp_path.replace(".shp", ".prj")
@@ -221,6 +229,14 @@ class DAV(FetchModule):
 
                 # Iterate over the arrays to recreate the properties dictionary
                 for i in range(len(geometry_wkb)):
+                    if self.cull:
+                        tile_geom = shapely.wkb.loads(geometry_wkb[i])
+                        # If this old tile is completely covered by newer data, skip it.
+                        if self.cumulative_mask.contains(tile_geom):
+                            continue
+                        # Otherwise, add its geometry to the coverage mask
+                        self.cumulative_mask = self.cumulative_mask.union(tile_geom)
+
                     props_lower = {
                         col.lower(): fields[n][i] for n, col in enumerate(col_names)
                     }
@@ -261,6 +277,8 @@ class DAV(FetchModule):
                         data_type=data_type,
                         agency="NOAA Digital Coast",
                         title=f"Dataset {dataset_id}",
+                        is_bathy=is_bathy,
+                        year=year,
                     )
 
         except Exception as e:
@@ -284,22 +302,44 @@ class DAV(FetchModule):
         data = self._get_features()
         datasets = data.get("datasets", [])
 
+        import re
+
+        for dataset in datasets:
+            attrs = dataset.get("attributes", {})
+            name = attrs.get("title", "")
+            year = attrs.get("year", "")
+
+            years = []
+            for source in [year, name]:
+                if source:
+                    matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
+                    if matches:
+                        years = [int(y) for y in matches]
+                        break
+
+            dataset["_parsed_year"] = max(years) if years else 0
+
+        if self.cull:
+            datasets.sort(key=lambda x: x.get("_parsed_year", 0), reverse=True)
+            logger.debug(f"Culling enabled. Sorting {len(datasets)} datasets by age.")
+
         logger.debug(f"Found {len(datasets)} potential datasets.")
 
         for dataset in datasets:
             attrs = dataset.get("attributes", {})
             fid = attrs.get("id")
             name = attrs.get("title")
-            year_val = attrs.get("year")
+            year = attrs.get("year")
             f_datatype = attrs.get("dataType")
             links_list = attrs.get("links", [])
+            description = attrs.get("projectDescription", "")
             if self.min_year or self.max_year:
                 import re
 
                 years = []
 
-                # Check the explicit 'year' key first, then fallback to the title
-                for source in [year_val, name]:
+                # Check the 'year' key first, then fallback to the title
+                for source in [year, name]:
                     if source:
                         matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
                         if matches:
@@ -314,11 +354,7 @@ class DAV(FetchModule):
                     if self.max_year and dataset_year > self.max_year:
                         continue
                 else:
-                    # If no year can be parsed, log it but keep the data
-                    # so we don't accidentally drop valid datasets with bad metadata.
-                    logger.debug(
-                        f"Could not parse year for DAV dataset {fid}. Allowing through filter."
-                    )
+                    logger.debug(f"Could not parse year for DAV dataset {fid}.")
 
             if self.survey_id and (
                 int(utils.str_or(self.survey_id, "").strip()) != int(fid.strip())
@@ -330,6 +366,7 @@ class DAV(FetchModule):
 
             providers = attrs.get("providers", [])
             is_usgs = any(p.get("name") == "U.S. Geological Survey" for p in providers)
+            is_bathy = "bathy" in name.lower() or "bathy" in description.lower()
 
             bulk_url = None
             for link_obj in links_list:
@@ -400,7 +437,9 @@ class DAV(FetchModule):
                     shp_file = next((f for f in unzipped if f.endswith(".shp")), None)
 
                     if shp_file:
-                        self._process_index_shapefile(shp_file, fid, f_datatype)
+                        self._process_index_shapefile(
+                            shp_file, fid, f_datatype, is_bathy, year
+                        )
 
                     if not self.keep_footprints:
                         utils.remove_glob(local_zip)

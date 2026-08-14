@@ -11,6 +11,7 @@ This turns files into streams.
 :license: MIT, see LICENSE for more details.
 """
 
+import math
 import logging
 
 from fetchez.spatial import Region
@@ -77,11 +78,17 @@ class DataStream(FetchHook):
                     kwargs_copy[k] = v
 
             dtype = entry.get("data_type")
+            entry_weight = entry.get("weight", 1.0)
+            entry_uncertainty = entry.get("uncertainty", 0.0)
             hook_dtype = kwargs_copy.pop("data_type", None)
             dtype = self.stream_type or hook_dtype or dtype
             # if dtype in ProfileRegistry.get_registry():
             # profile_args = ProfileRegistry.get_yaml(dtype)
             # print(profile_args)
+            kwargs_copy["weight"] = kwargs_copy.get("weight", 1.0) * entry_weight
+            kwargs_copy["uncertainty"] = math.sqrt(
+                kwargs_copy.get("uncertainty", 0.0) ** 2 + entry_uncertainty**2
+            )
             reader = ReaderRegistry.get_reader(src, dtype, **kwargs_copy)
 
             # if dtype:
