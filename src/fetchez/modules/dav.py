@@ -188,7 +188,7 @@ class DAV(FetchModule):
         )
 
     def _process_index_shapefile(
-        self, shp_path: str, dataset_id: str, data_type: str, is_bathy: bool
+        self, shp_path: str, dataset_id: str, data_type: str, is_bathy: bool, year: str
     ):
         """Parse the downloaded index shapefile using PyShp + PyProj."""
 
@@ -279,6 +279,7 @@ class DAV(FetchModule):
                         agency="NOAA Digital Coast",
                         title=f"Dataset {dataset_id}",
                         is_bathy=is_bathy,
+                        year=year,
                     )
 
         except Exception as e:
@@ -307,10 +308,10 @@ class DAV(FetchModule):
         for dataset in datasets:
             attrs = dataset.get("attributes", {})
             name = attrs.get("title", "")
-            year_val = attrs.get("year", "")
+            year = attrs.get("year", "")
 
             years = []
-            for source in [year_val, name]:
+            for source in [year, name]:
                 if source:
                     matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
                     if matches:
@@ -333,7 +334,7 @@ class DAV(FetchModule):
             attrs = dataset.get("attributes", {})
             fid = attrs.get("id")
             name = attrs.get("title")
-            year_val = attrs.get("year")
+            year = attrs.get("year")
             f_datatype = attrs.get("dataType")
             links_list = attrs.get("links", [])
             description = attrs.get("projectDescription", "")
@@ -343,7 +344,7 @@ class DAV(FetchModule):
                 years = []
 
                 # Check the 'year' key first, then fallback to the title
-                for source in [year_val, name]:
+                for source in [year, name]:
                     if source:
                         matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
                         if matches:
@@ -442,7 +443,7 @@ class DAV(FetchModule):
 
                     if shp_file:
                         self._process_index_shapefile(
-                            shp_file, fid, f_datatype, is_bathy
+                            shp_file, fid, f_datatype, is_bathy, year
                         )
 
                     if not self.keep_footprints:
