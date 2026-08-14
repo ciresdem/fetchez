@@ -43,6 +43,7 @@ DAV_HEADERS = {"Content-Type": "application/json"}
     title_filter="Filter results by dataset title (case-insensitive)",
     want_footprints="Fetch the dataset footprint (tile index) zip only",
     keep_footprints="Keep the downloaded tile index zip after processing",
+    cull="Spatially cull older overlapping tiles to prevent redundant downloads",
 )
 class DAV(FetchModule):
     name = "dav"
@@ -71,6 +72,7 @@ class DAV(FetchModule):
         title_filter: Optional[str] = None,
         want_footprints: bool = False,
         keep_footprints: bool = False,
+        cull: bool = False,
         name: Optional[str] = "dav",
         **kwargs,
     ):
@@ -80,6 +82,8 @@ class DAV(FetchModule):
         self.title_filter = title_filter
         self.want_footprints = want_footprints
         self.keep_footprints = keep_footprints
+        self.cull = cull
+        self.cumulative_mask = None
 
     def _region_to_ewkt(self):
         """Convert the current region to NAD83 (SRID 4269) EWKT Polygon string."""
@@ -219,8 +223,19 @@ class DAV(FetchModule):
             if len(geometry_wkb) > 0:
                 col_names = [str(col).lower() for col in meta.get("fields", [])]
 
+                if self.cull:
+                    import shapely.wkb
+
                 # Iterate over the arrays to recreate the properties dictionary
                 for i in range(len(geometry_wkb)):
+                    if self.cull:
+                        tile_geom = shapely.wkb.loads(geometry_wkb[i])
+                        # If this old tile is completely covered by newer data, skip it.
+                        if self.cumulative_mask.contains(tile_geom):
+                            continue
+                        # Otherwise, add its geometry to the coverage mask
+                        self.cumulative_mask = self.cumulative_mask.union(tile_geom)
+
                     props_lower = {
                         col.lower(): fields[n][i] for n, col in enumerate(col_names)
                     }
@@ -283,6 +298,31 @@ class DAV(FetchModule):
         logger.debug(f"Querying Digital Coast API for {self.datatype}...")
         data = self._get_features()
         datasets = data.get("datasets", [])
+
+        import re
+
+        for dataset in datasets:
+            attrs = dataset.get("attributes", {})
+            name = attrs.get("title", "")
+            year_val = attrs.get("year", "")
+
+            years = []
+            for source in [year_val, name]:
+                if source:
+                    matches = re.findall(r"\b(19\d{2}|20\d{2})\b", str(source))
+                    if matches:
+                        years = [int(y) for y in matches]
+                        break
+
+            dataset["_parsed_year"] = max(years) if years else 0
+
+        if self.cull:
+            from shapely.geometry import Polygon
+
+            self.cumulative_mask = Polygon()
+
+            datasets.sort(key=lambda x: x.get("_parsed_year", 0), reverse=True)
+            logger.debug(f"Culling enabled. Sorting {len(datasets)} datasets by age.")
 
         logger.debug(f"Found {len(datasets)} potential datasets.")
 
