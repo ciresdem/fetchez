@@ -13,9 +13,15 @@ Discoverability and documentation for fetching modules.
 
 import click
 import sys
-from fetchez.api import search_modules
+from fetchez.api import search_modules, update_module_registry
 from fetchez.registry import ModuleRegistry
-from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    get_class_arguments,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 from .bundles import bundles_group
 
 MODULES_COMMANDS = ["info", "list", "search", "bundles", "update-cache"]
@@ -42,34 +48,17 @@ def modules_group():
     pass
 
 
-def _print_grouped_modules(grouped_modules):
-    click.secho("\n🌍 Available Data Modules:", fg="yellow", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_modules.keys()):
-        click.secho(f"\n[ {cat} ]", fg="green", bold=True)
-        for name, meta in sorted(grouped_modules[cat], key=lambda x: x[0]):
-            desc = meta.get("desc", "No description provided.")
-            name_padded = f"{name:<16}"
-            click.echo(f"  {click.style(name_padded, bold=True, fg='cyan')} : {desc}")
-
-    click.echo("\nRun 'fetchez modules info <name>' for detailed metadata.\n")
-
-
 @modules_group.command("search", cls=FetchezMainCommand)
 @click.argument("term")
 def module_search(term):
     """Search all available modules by keyword."""
 
     registry = search_modules(term)
-    grouped_modules = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-        cat = meta.get("category", "uncategorized").title()
-        grouped_modules.setdefault(cat, []).append((name, meta))
-
-    _print_grouped_modules(grouped_modules)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Modules", "Provider")
+    click.echo(
+        "\nRun 'fetchez modules info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @modules_group.command("list", cls=FetchezMainCommand)
@@ -78,14 +67,11 @@ def module_list(search):
     """List all available modules grouped by category."""
 
     registry = search_modules(search)
-    grouped_modules = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-        cat = meta.get("category", "uncategorized").title()
-        grouped_modules.setdefault(cat, []).append((name, meta))
-
-    _print_grouped_modules(grouped_modules)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Modules", "Provider")
+    click.echo(
+        "\nRun 'fetchez modules info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @modules_group.command("info", cls=FetchezMainCommand)
@@ -93,7 +79,7 @@ def module_list(search):
 def module_info(name):
     """Get detailed metadata and available CLI arguments for a module."""
 
-    ModuleRegistry.load_all()
+    ModuleRegistry.load_fast()
     meta = ModuleRegistry.get_info(name)
     mod_cls = ModuleRegistry.get_class(name)
 
@@ -150,31 +136,13 @@ def module_info(name):
 
 @modules_group.command("update-cache", cls=FetchezMainCommand)
 def update_cache():
-    """Forces a clean rescan of all built-in, Globato, and user-defined modules.
+    """Forces a clean rescan of all built-in, external, and user-defined modules.
 
     Use this if you recently installed a new extension or added a custom Python
     plugin to your ~/.fetchez/modules/ folder and it isn't showing up.
     """
 
-    from fetchez.registry import ModuleRegistry
-
-    cleared = ModuleRegistry.clear_cache()
-    if cleared:
-        click.secho("Flushed existing module cache.", fg="yellow")
-    else:
-        click.echo("No existing cache found. Starting fresh.")
-
-    click.echo("Scanning environment for Fetchez modules...")
-
-    ModuleRegistry.load_fast()
-    registry = ModuleRegistry.get_registry()
-    unique_mods = len(set(meta.get("import_path") for meta in registry.values()))
-
-    click.secho(
-        f"✨ Successfully rebuilt cache! Found {unique_mods} active modules.",
-        fg="green",
-        bold=True,
-    )
+    update_module_registry()
 
 
 modules_group.add_command(bundles_group, name="bundles")

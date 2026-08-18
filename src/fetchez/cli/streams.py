@@ -13,7 +13,13 @@ Discoverability and documentation for processing readers.
 
 import click
 
-from fetchez.utils import FetchezMainGroup
+from fetchez.api import search_streams
+from fetchez.utils import (
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 from .readers import readers_group
 from .profiles import profiles_group
 
@@ -35,6 +41,19 @@ def streams_group():
     """
 
     pass
+
+
+@streams_group.command("list", cls=FetchezMainCommand)
+@click.option("--search", "-s", help="Filter streamss by name or keyword.")
+def stream_list(search):
+    """List all available streams grouped by provider and category."""
+
+    registry = search_streams(search)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Streams", "Provider")
+    click.echo(
+        "\nRun 'fetchez streams info <name>' for arguments and recipe examples.\n"
+    )
 
 
 streams_group.add_command(readers_group, name="readers")

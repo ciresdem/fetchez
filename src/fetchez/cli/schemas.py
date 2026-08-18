@@ -14,12 +14,22 @@ Discoverability and documentation for processing schemas.
 import sys
 import click
 
-# from fetchez.api import list_schemas
+from fetchez.api import search_schemas, update_schema_registry
 from fetchez.registry import SchemaRegistry
-from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    get_class_arguments,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
-@click.group(cls=FetchezMainGroup, name="schemas", fetchez_commands=["list", "info"])
+@click.group(
+    cls=FetchezMainGroup,
+    name="schemas",
+    fetchez_commands=["list", "info", "update-cache"],
+)
 def schemas_group():
     """Discover, search, and learn about recipe schemas.
 
@@ -38,38 +48,11 @@ def schemas_group():
 def schemas_list(search):
     """List all available processing schemas grouped by category."""
 
-    SchemaRegistry.load_all()
-    registry = SchemaRegistry.get_registry()
-
-    grouped_schemas = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-
-        if (
-            search
-            and search.lower() not in name.lower()
-            and search.lower() not in meta.get("desc", "").lower()
-        ):
-            continue
-
-        cat = meta.get("category", "uncategorized").title()
-        grouped_schemas.setdefault(cat, []).append((name, meta))
-
-    click.secho("\nAvailable Schemas by Category:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_schemas.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
-        for name, meta in sorted(grouped_schemas[cat], key=lambda x: x[0]):
-            desc = meta.get("desc", "No description provided.")
-
-            name_padded = f"{name:<16}"
-
-            click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
-
+    registry = search_schemas(search)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Schemas", "Provider")
     click.echo(
-        "\nRun 'fetchez schemas info <name>' for arguments and recipe examples.\n"
+        "\nRun 'fetchez recipes schemas info <name>' for arguments and recipe examples.\n"
     )
 
 
@@ -78,7 +61,7 @@ def schemas_list(search):
 def schemas_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    SchemaRegistry.load_all()
+    SchemaRegistry.load_fast()
     schema_cls = SchemaRegistry.get_class(name)
     meta = SchemaRegistry.get_info(name)
 
@@ -105,3 +88,14 @@ def schemas_info(name):
     click.echo(f"schema: {name}")
 
     click.echo("-" * 40 + "\n")
+
+
+@schemas_group.command("update-cache", cls=FetchezMainCommand)
+def update_cache():
+    """Forces a clean rescan of all built-in, external, and user-defined schemas.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/recipes/schemas/ folder and it isn't showing up.
+    """
+
+    update_schema_registry()

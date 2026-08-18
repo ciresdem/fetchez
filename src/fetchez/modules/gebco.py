@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class GEBCO_Base(FetchModule):
     """Base class to dynamically construct GEBCO THREDDS URLs based on year."""
 
-    name = "gebco"
+    # name = "gebco"
     meta_category = "Bathymetry"
     meta_desc = "General Bathymetric Chart of the Oceans (GEBCO)"
     meta_agency = "GEBCO / IHO / IOC"

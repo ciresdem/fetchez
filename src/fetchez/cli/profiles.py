@@ -16,8 +16,13 @@ import yaml
 import click
 from pathlib import Path
 
-from fetchez.registry import ProfileRegistry, ReaderRegistry
-from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.registry import ProfileRegistry
+from fetchez.utils import (
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 from fetchez.api import search_profiles
 
 
@@ -38,46 +43,17 @@ def profiles_group():
     pass
 
 
-def _print_grouped_profiles(grouped_profiles):
-    click.secho(
-        "\n📜 Available Format Stream Profiles by Category:", fg="cyan", bold=True
-    )
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_profiles.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
-        for name, meta in sorted(grouped_profiles[cat], key=lambda x: x[0]):
-            reader = meta.get("reader").get("name", "unknown")
-            desc = meta.get("description", "No description provided.")
-
-            name_padded = f"{name:<16}"
-            reader_padded = f"[{reader:^6}]"
-
-            click.echo(
-                f"  {click.style(name_padded, bold=True, fg='green')} {click.style(reader_padded, fg='blue')} : {desc}"
-            )
-    click.echo(
-        "\nRun 'fetchez streams profiles info <name>' for arguments and recipe examples.\n"
-    )
-
-
 @profiles_group.command("list", cls=FetchezMainCommand)
 @click.option("--search", "-s", help="Filter profiles by name or keyword.")
 def list_profiles(search):
     """List all available built-in and local profiles."""
 
-    ReaderRegistry.load_all()
     registry = search_profiles(search)
-    grouped_profiles = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-
-        reader_meta = ReaderRegistry.get_info(meta.get("reader").get("name"))
-        cat = reader_meta.get("category", "uncategorized").title()
-        grouped_profiles.setdefault(cat, []).append((name, meta))
-
-    _print_grouped_profiles(grouped_profiles)
+    grouped_hooks = group_registry_by_key(registry, "provider")
+    print_grouped_registry(grouped_hooks, "Stream Profiles", "Provider")
+    click.echo(
+        "\nRun 'fetchez streams profiles info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @profiles_group.command("info", cls=FetchezMainCommand)
@@ -85,7 +61,7 @@ def list_profiles(search):
 def info_profiles(name):
     """Print a clean, readable summary of a bundle's contents."""
 
-    ProfileRegistry.load_all()
+    ProfileRegistry.load_fast()
     meta = ProfileRegistry.get_yaml(name)
 
     if not meta:

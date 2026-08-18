@@ -689,7 +689,7 @@ def compile_sources(sources):
     import yaml
     from fetchez.registry import BundleRegistry
 
-    BundleRegistry.load_all()
+    BundleRegistry.load_fast()
 
     compiled_modules = []
     for src in sources:
@@ -721,6 +721,63 @@ def compile_sources(sources):
             compiled_modules.append(parse_source_string(src))
 
     return compiled_modules
+
+
+def group_registry_by_key(registry, key="category"):
+    grouped_hooks = {}
+    if isinstance(registry, dict):
+        registry_list = registry.items()
+    elif isinstance(registry, list):
+        registry_list = registry
+    else:
+        registry_list = [registry]
+
+    for name, meta in registry_list:
+        if name.split(".")[-1] in meta.get("aliases", []):
+            continue
+        cat = meta.get(key, "uncategorized").split(".")[0].title()
+        if "fetchez_user" in cat.lower():
+            cat = "User"
+
+        grouped_hooks.setdefault(cat, []).append((name, meta))
+    return grouped_hooks
+
+
+def print_grouped_registry(grouped_hooks, registry_type="Modules", key="Provider"):
+    import click
+
+    click.secho(f"\n📜 Available {registry_type} by {key}:", fg="cyan", bold=True)
+    click.echo("=" * 60)
+
+    for cat in sorted(grouped_hooks.keys()):
+        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
+        for name, meta in sorted(
+            grouped_hooks[cat], key=lambda x: x[1].get("category", x[0])
+        ):
+            category = meta.get(
+                "category", meta.get("Category", "Uncategorized")
+            ).title()
+            desc = (
+                meta.get("desc", meta.get("description", "No description provided."))
+                .strip()
+                .split("\n")[0]
+            )
+
+            name_padded = f"{name:<26}"
+            category_padded = f"[{category:^18}]"
+
+            width, _ = shutil.get_terminal_size()
+            width -= len(name_padded) + len(category_padded) + 6
+
+            # Slice the string to fit exactly one line (minus 3 for the ellipsis)
+            if len(desc) > width:
+                truncated_desc = desc[: width - 3] + "..."
+            else:
+                truncated_desc = desc
+
+            click.echo(
+                f"  {click.style(name_padded, bold=True, fg='green')} {click.style(category_padded, fg='blue')} : {truncated_desc}"
+            )
 
 
 def parse_hook_string_(h_str):

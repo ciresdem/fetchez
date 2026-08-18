@@ -18,7 +18,13 @@ from pathlib import Path
 
 from fetchez.recipe import Recipe
 from fetchez.registry import RecipeRegistry
-from fetchez.utils import FetchezMainGroup, FetchezMainCommand, parse_hook_string
+from fetchez.utils import (
+    parse_hook_string,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 from fetchez.spatial import region_help_msg
 from fetchez.api import search_recipes
 from .schemas import schemas_group
@@ -44,7 +50,7 @@ def _load_yaml(target):
         with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:
-        RecipeRegistry.load_all()
+        RecipeRegistry.load_fast()
         recipe_meta = RecipeRegistry.get_yaml(target)
         if recipe_meta:
             base_config = recipe_meta["config"]
@@ -84,20 +90,12 @@ def recipes_group():
 def list_recipes(search):
     """List all available built-in and local recipes."""
 
-    RecipeRegistry.load_all()
-    # registry = RecipeRegistry.get_registry()
     registry = search_recipes(search)
-
-    click.secho("\n📜 Available Pipeline Recipes:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-    for name, meta in sorted(registry.items()):
-        # Quick summary for the list view
-        # project = meta.get("project", {})
-        desc = meta.get("desc", "No description provided.").strip().split("\n")[0]
-
-        click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
-        click.echo(f" - {desc}")
-    click.echo("\nRun 'fetchez recipes info <name>' for details.\n")
+    grouped_hooks = group_registry_by_key(registry, "provider")
+    print_grouped_registry(grouped_hooks, "Recipes", "Provider")
+    click.echo(
+        "\nRun 'fetchez recipes info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @recipes_group.command("info", cls=FetchezMainCommand)
@@ -107,7 +105,7 @@ def info_recipe(name):
 
     from fetchez.recipe import Recipe
 
-    RecipeRegistry.load_all()
+    RecipeRegistry.load_fast()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -151,7 +149,7 @@ def info_recipe(name):
 def dump_recipe(name):
     """Print the raw YAML definition to the terminal."""
 
-    RecipeRegistry.load_all()
+    RecipeRegistry.load_fast()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -170,7 +168,7 @@ def dump_recipe(name):
 def copy_recipe(name):
     """Copy a recipe to your local ~/.fetchez/ folder for editing."""
 
-    RecipeRegistry.load_all()
+    RecipeRegistry.load_fast()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -330,7 +328,7 @@ def run_recipe(
 ):
     """Execute a YAML recipe by registry name or file path."""
 
-    RecipeRegistry.load_all()
+    RecipeRegistry.load_fast()
 
     click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
 

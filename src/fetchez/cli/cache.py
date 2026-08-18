@@ -16,9 +16,10 @@ import time
 import shutil
 import click
 from pathlib import Path
+from fetchez.api import update_registry_cache
 from fetchez.utils import FetchezMainGroup, FetchezMainCommand
 
-CACHE_COMMANDS = ["info", "clear"]
+CACHE_COMMANDS = ["info", "clear", "update-registry"]
 
 
 @click.group(
@@ -92,3 +93,14 @@ def cache_clear(dir):
             )
         else:
             click.echo("No cache to clear.")
+
+
+@cache_group.command("update-registry", cls=FetchezMainCommand)
+def update_registry():
+    """Forces a clean rescan of all built-in, external, and user-defined registries.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/ folder and it isn't showing up.
+    """
+
+    update_registry_cache()

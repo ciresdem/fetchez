@@ -16,8 +16,14 @@ import yaml
 import click
 from pathlib import Path
 
+from fetchez.api import search_bundles
 from fetchez.registry import BundleRegistry
-from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
 @click.group(
@@ -43,24 +49,16 @@ def bundles_group():
 
 
 @bundles_group.command("list", cls=FetchezMainCommand)
-def list_bundles():
+@click.option("--search", "-s", help="Filter bundles by name or keyword.")
+def list_bundles(search):
     """List all available built-in and local bundles."""
 
-    BundleRegistry.load_all()
-    registry = BundleRegistry.get_registry()
-
-    click.secho("\n📜 Available Module Bundles:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-    for name, meta in sorted(registry.items()):
-        # Quick summary for the list view
-        # project = meta.get("project", {})
-        desc = (
-            meta.get("description", "No description provided.").strip().split("\n")[0]
-        )
-
-        click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
-        click.echo(f" - {desc}")
-    click.echo("\nRun 'fetchez bundles info <name>' for details.\n")
+    registry = search_bundles(search)
+    grouped_bundles = group_registry_by_key(registry, "provider")
+    print_grouped_registry(grouped_bundles, "Bundles", "Provider")
+    click.echo(
+        "\nRun 'fetchez modules bundles info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @bundles_group.command("info", cls=FetchezMainCommand)
@@ -70,7 +68,7 @@ def info_bundles(name):
 
     from fetchez.recipe import Recipe
 
-    BundleRegistry.load_all()
+    BundleRegistry.load_fast()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:
@@ -101,7 +99,7 @@ def info_bundles(name):
 def dump_bundle(name):
     """Print the raw YAML definition to the terminal."""
 
-    BundleRegistry.load_all()
+    BundleRegistry.load_fast()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:
@@ -120,7 +118,7 @@ def dump_bundle(name):
 def copy_bundle(name):
     """Copy a module bundle to your local ~/.fetchez/ folder for editing."""
 
-    BundleRegistry.load_all()
+    BundleRegistry.load_fast()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:

@@ -14,11 +14,22 @@ Discoverability and documentation for processing modifiers.
 import sys
 import click
 
+from fetchez.api import search_modifiers, update_modifier_registry
 from fetchez.registry import ModifierRegistry
-from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    get_class_arguments,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
-@click.group(cls=FetchezMainGroup, name="modifiers", fetchez_commands=["list", "info"])
+@click.group(
+    cls=FetchezMainGroup,
+    name="modifiers",
+    fetchez_commands=["list", "info", "update-cache"],
+)
 def modifiers_group():
     """Discover, search, and learn about recipe modifiers.
 
@@ -36,38 +47,11 @@ def modifiers_group():
 def modifiers_list(search):
     """List all available processing modifiers grouped by category."""
 
-    ModifierRegistry.load_all()
-    registry = ModifierRegistry.get_registry()
-
-    grouped_modifiers = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-
-        if (
-            search
-            and search.lower() not in name.lower()
-            and search.lower() not in meta.get("desc", "").lower()
-        ):
-            continue
-
-        cat = meta.get("category", "uncategorized").title()
-        grouped_modifiers.setdefault(cat, []).append((name, meta))
-
-    click.secho("\nAvailable Modifiers by Category:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_modifiers.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
-        for name, meta in sorted(grouped_modifiers[cat], key=lambda x: x[0]):
-            desc = meta.get("desc", "No description provided.")
-
-            name_padded = f"{name:<16}"
-
-            click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
-
+    registry = search_modifiers(search)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Modifiers", "Provider")
     click.echo(
-        "\nRun 'fetchez modifiers info <name>' for arguments and recipe examples.\n"
+        "\nRun 'fetchez recipes modifiers info <name>' for arguments and recipe examples.\n"
     )
 
 
@@ -76,7 +60,7 @@ def modifiers_list(search):
 def modifiers_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    ModifierRegistry.load_all()
+    ModifierRegistry.load_fast()
     modifier_cls = ModifierRegistry.get_class(name)
     meta = ModifierRegistry.get_info(name)
 
@@ -103,3 +87,14 @@ def modifiers_info(name):
     click.echo(f"modifier: {name}")
 
     click.echo("-" * 40 + "\n")
+
+
+@modifiers_group.command("update-cache", cls=FetchezMainCommand)
+def update_cache():
+    """Forces a clean rescan of all built-in, external, and user-defined modifiers.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/recipes/modifiers/ folder and it isn't showing up.
+    """
+
+    update_modifier_registry()
