@@ -157,8 +157,10 @@ class PluginRegistry:
         out_cache = cache_dir / f"{cls.__name__}_cache.json"
         return out_cache
 
+    load_fast = load_all
+
     @classmethod
-    def load_fast(cls):
+    def _load_fast(cls):
         """Loads from the JSON cache for instant CLI menus.
         If cache is missing, falls back to the slow load_all().
         """
@@ -354,7 +356,9 @@ class PluginRegistry:
                     if not raw_mod_key.startswith(f"{prefix}.") and use_namespaces:
                         mod_key = f"{prefix}.{raw_mod_key}"
 
-                    logger.info(f"🧩 Loaded external plugin: '{mod_key}' from {prefix}")
+                    logger.debug(
+                        f"🧩 Loaded external plugin: '{mod_key}' from {prefix}"
+                    )
 
                     if raw_mod_key in registry and registry[raw_mod_key].get(
                         "import_path", ""
@@ -605,6 +609,7 @@ class ReaderRegistry(PluginRegistry):
 
     @classmethod
     def get_reader(cls, src, term: str, region=None, **kwargs):
+        ProfileRegistry.load_fast()
         if term:
             profile = ProfileRegistry.get_yaml(term)
             if profile:
@@ -719,7 +724,7 @@ class PresetRegistry(YamlRegistry):
     ) -> List[Dict[str, Any]]:
         """Recursively expands preset references in a list of hook definitions into a flat list of hook dictionary configs."""
 
-        cls.load_all()
+        cls.load_fast()
         expanded_list = []
         parent_hooks = parent_hooks or []
 
@@ -797,7 +802,7 @@ class PresetRegistry(YamlRegistry):
         else:
             return []
 
-        HookRegistry.load_all()
+        HookRegistry.load_fast()
         hooks = []
         for h_def in hook_defs:
             name = h_def.get("name")
@@ -858,11 +863,11 @@ class BundleRegistry(YamlRegistry):
     ) -> List[Dict[str, Any]]:
         """Recursively flattens bundles/recipes, calculates stacked weights, and deduplicates/merges modules."""
 
-        cls.load_all()
-        ModuleRegistry.load_all()
-        BundleRegistry.load_all()
-        RecipeRegistry.load_all()
-        PresetRegistry.load_all()
+        cls.load_fast()
+        ModuleRegistry.load_fast()
+        BundleRegistry.load_fast()
+        RecipeRegistry.load_fast()
+        PresetRegistry.load_fast()
 
         expanded_dict: dict[str, Any] = {}
 

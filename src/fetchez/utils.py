@@ -766,18 +766,24 @@ def print_grouped_registry(grouped_hooks, registry_type="Modules", key="Provider
             name_padded = f"{name:<26}"
             category_padded = f"[{category:^18}]"
 
-            width, _ = shutil.get_terminal_size()
-            width -= len(name_padded) + len(category_padded) + 6
-
-            # Slice the string to fit exactly one line (minus 3 for the ellipsis)
-            if len(desc) > width:
-                truncated_desc = desc[: width - 3] + "..."
-            else:
-                truncated_desc = desc
-
+            truncated_desc = truncate_string(
+                desc, len(name_padded) + len(category_padded) + 7
+            )
             click.echo(
                 f"  {click.style(name_padded, bold=True, fg='green')} {click.style(category_padded, fg='blue')} : {truncated_desc}"
             )
+
+
+def truncate_string(input_string: str, padding: int = 0):
+    width, _ = shutil.get_terminal_size()
+    width -= padding
+
+    # Slice the string to fit exactly one line (minus 3 for the ellipsis)
+    if len(input_string) > width:
+        truncated_string = input_string[: width - 3] + "..."
+    else:
+        truncated_string = input_string
+    return truncated_string
 
 
 def parse_hook_string_(h_str):
