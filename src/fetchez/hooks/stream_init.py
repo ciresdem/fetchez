@@ -41,8 +41,8 @@ class DataStream(FetchHook):
         self.reader_kwargs = kwargs
 
     def run(self, entries):
-        ReaderRegistry.load_all()
-        ProfileRegistry.load_all()
+        ReaderRegistry.load_fast()
+        ProfileRegistry.load_fast()
 
         for mod, entry in entries:
             if entry.get("stream"):

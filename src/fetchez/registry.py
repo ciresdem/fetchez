@@ -15,6 +15,7 @@ Fetchez Modules, Hooks, Schemas, and other plugins.
 import os
 import sys
 import json
+import yaml
 import copy
 import pkgutil
 import importlib
@@ -30,6 +31,7 @@ from fetchez.modules import FetchModule
 from fetchez.hooks import FetchHook
 from fetchez.recipes.modifiers import BaseModifier
 from fetchez.recipes.schemas import BaseSchema
+from fetchez.streams import BaseStream
 from fetchez.streams.readers import BaseReader
 from fetchez.utils import get_class_arguments
 
@@ -207,7 +209,8 @@ class PluginRegistry:
             with open(cls._get_cache_path(), "w") as f:
                 json.dump(clean_registry, f, indent=2)
         except Exception as e:
-            logger.debug(f"Failed to save cache: {e}")
+            logger.warning(f"Failed to save cache: {e}")
+            Path(cls._get_cache_path()).unlink()
 
     @classmethod
     def clear_cache(cls):
@@ -217,7 +220,7 @@ class PluginRegistry:
         if Path(cache_path).exists():
             try:
                 os.remove(cache_path)
-                logger.debug(f"Deleted cache file: {cache_path}")
+                logger.info(f"Deleted cache file: {cache_path}")
                 return True
             except Exception as e:
                 logger.error(f"Failed to delete cache file {cache_path}: {e}")
@@ -311,19 +314,56 @@ class PluginRegistry:
                 except Exception:
                     return False  # Package was uninstalled
         except Exception:
-            pass
+            return False
 
         return True
 
     @classmethod
-    def _register_from_module(cls, module):
+    def _register_from_module(cls, module, use_namespaces=False):
         """Inspect a module and dynamically extract its metadata."""
 
         registry = cls.get_registry()
 
-        for name, obj in inspect.getmembers(module, inspect.isclass):
+        is_core = module.__name__.startswith(cls.builtin_pkg)
+        is_local = module.__name__.startswith("fetchez_user_")
+
+        prefix = ""
+        if not is_core:
+            if is_local:
+                prefix = "local"
+            else:
+                # e.g., 'globato.modules.bato' -> 'globato'
+                # prefix = ".".join(module.__name__.split(".")[:-1])
+                prefix = module.__name__.split(".")[0]
+
+        local_classes = [
+            (name, obj)
+            for name, obj in inspect.getmembers(module, inspect.isclass)
+            if obj.__module__ == module.__name__
+        ]
+        for name, obj in local_classes:
             if issubclass(obj, cls.base_class) and obj is not cls.base_class:
-                mod_key = getattr(obj, "name", name.lower())
+                raw_mod_key = getattr(obj, "name", name.lower())
+                base_name = getattr(cls.base_class, "name", None)
+                if raw_mod_key == base_name:
+                    continue
+
+                # --- Plugin Namespaces ---
+                mod_key = raw_mod_key
+                if not is_core:
+                    if not raw_mod_key.startswith(f"{prefix}.") and use_namespaces:
+                        mod_key = f"{prefix}.{raw_mod_key}"
+
+                    logger.info(f"🧩 Loaded external plugin: '{mod_key}' from {prefix}")
+
+                    if raw_mod_key in registry and registry[raw_mod_key].get(
+                        "import_path", ""
+                    ).startswith("fetchez."):
+                        mod_key = f"{prefix}.{raw_mod_key}"
+                        logger.warning(
+                            f"⚠️ Blocked plugin '{prefix}' from hijacking core module '{raw_mod_key}'. "
+                            f"It has been safely sandboxed as '{mod_key}'."
+                        )
 
                 meta = {
                     "mod": module.__name__,
@@ -332,14 +372,14 @@ class PluginRegistry:
                     "aliases": obj.__dict__.get("meta_aliases", []),
                 }
 
-                # METADATA EXTRACTION
+                # --- Metadata Extraction ---
                 # Modules must define `meta_` atrributes
                 for attr_name in dir(obj):
                     if attr_name.startswith("meta_"):
                         clean_key = attr_name.replace("meta_", "")
                         meta[clean_key] = getattr(obj, attr_name)
 
-                # Fallbacks for the CLI
+                # --- Fallbacks for the CLI ---
                 meta.setdefault("category", "Generic")
                 meta.setdefault("desc", "No description provided.")
                 meta.setdefault("domain", "Universal (Files)")
@@ -353,8 +393,18 @@ class PluginRegistry:
                 meta["cli_args"] = get_class_arguments(obj)
 
                 registry[mod_key] = meta
+
+                # --- Register the raw_key if it doesn't exist (for backward compatibility) ---
+                # if not is_core and raw_mod_key not in registry:
+                #    registry[raw_mod_key] = meta
+
                 for alias in meta["aliases"]:
-                    registry[alias] = meta
+                    # registry[alias] = meta
+                    alias_key = alias if is_core else f"{prefix}.{alias}"
+                    registry[alias_key] = meta
+
+                    if not is_core and alias not in registry:
+                        registry[alias] = meta
 
     @classmethod
     def get_info(cls, mod_key: str) -> Dict[str, Any]:
@@ -455,11 +505,14 @@ class YamlRegistry:
 
         for ep in eps:
             pkg_name = ep.value
+            prefix = pkg_name.split(".")[0].lower()
             try:
                 for file_path in importlib.resources.files(pkg_name).iterdir():
                     if file_path.name.endswith((".yaml", ".yml")):
                         cls._register_yaml(
-                            file_path.read_text(encoding="utf-8"), str(file_path)
+                            prefix,
+                            file_path.read_text(encoding="utf-8"),
+                            str(file_path),
                         )
             except Exception as e:
                 logger.warning(f"Failed to load yamls from package {pkg_name}: {e}")
@@ -475,17 +528,16 @@ class YamlRegistry:
                         try:
                             f_dir = Path(fdir) / fn
                             with open(f_dir, "r", encoding="utf-8") as f:
-                                cls._register_yaml(f.read(), f_dir)
+                                cls._register_yaml("fetchez", f.read(), f_dir)
                         except Exception as e:
                             logger.warning(f"Failed to load yaml {fn}: {e}")
 
     load_fast = load_all
 
     @classmethod
-    def _register_yaml(cls, yaml_content: str, file_path: str):
-        import yaml
-
+    def _register_yaml(cls, provider, yaml_content: str, file_path: str):
         registry = cls.get_registry()
+
         try:
             config = yaml.safe_load(yaml_content)
             if not config:
@@ -493,7 +545,7 @@ class YamlRegistry:
 
             if "name" in config:
                 registry[config["name"]] = config
-
+            config["provider"] = provider
         except Exception as e:
             logger.debug(f"Failed to parse YAML {file_path}: {e}")
 
@@ -536,6 +588,13 @@ class SchemaRegistry(PluginRegistry):
     builtin_pkg = "fetchez.recipes.schemas"
     entry_point_group = "fetchez.recipes.schemas"
     user_folder = "recipes/schemas"
+
+
+class StreamRegistry(PluginRegistry):
+    base_class = BaseStream
+    builtin_pkg = "fetchez.streams"
+    entry_point_group = "fetchez.streams"
+    user_folder = "streams"
 
 
 class ReaderRegistry(PluginRegistry):
@@ -599,9 +658,7 @@ class RecipeRegistry(YamlRegistry):
     user_folder = "recipes"
 
     @classmethod
-    def _register_yaml(cls, yaml_content: str, file_path: str):
-        import yaml
-
+    def _register_yaml(cls, provider, yaml_content: str, file_path: str):
         registry = cls.get_registry()
 
         try:
@@ -622,6 +679,7 @@ class RecipeRegistry(YamlRegistry):
                 "config": config,
                 "path": file_path,
                 "tags": tags,
+                "provider": provider,
             }
         except Exception as e:
             logger.debug(f"Failed to parse recipe YAML {file_path}: {e}")
@@ -634,9 +692,7 @@ class PresetRegistry(YamlRegistry):
     user_folder = "hooks/presets"
 
     @classmethod
-    def _register_yaml(cls, yaml_content: str, file_path: str):
-        import yaml
-
+    def _register_yaml(cls, provider, yaml_content: str, file_path: str):
         registry = cls.get_registry()
 
         try:
@@ -646,9 +702,11 @@ class PresetRegistry(YamlRegistry):
 
             if "presets" in config:
                 for p_name, p_def in config.get("presets", {}).items():
+                    p_def["provider"] = provider
                     registry[p_name] = p_def
             else:
                 if "name" in config and "hooks" in config:
+                    config["provider"] = provider
                     registry[config["name"]] = config
         except Exception as e:
             logger.debug(f"Failed to parse preset YAML {file_path}: {e}")
@@ -950,8 +1008,6 @@ class _RecipeRegistry:
 
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str):
-        import yaml
-
         registry = cls.get_registry()
 
         try:
@@ -1041,8 +1097,6 @@ class _PresetRegistry:
 
     @classmethod
     def _register_yaml(cls, yaml_content: str, file_path: str, is_legacy=False):
-        import yaml
-
         registry = cls.get_registry()
 
         try:

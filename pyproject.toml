@@ -164,6 +164,7 @@ extend-select = [  # Extend the default ruleset:
 [tool.ruff.lint.per-file-ignores]
 # Allow print() statements in CLI module where they are expected
 "src/fetchez/_cli.py" = ["T201"]
+"examples/**/*.py" = ["T201"]
 "src/fetchez/hooks/stream_dump.py" = ["T203"] # allow pprint here
 "tests/**/*.py" = ["S"]
 

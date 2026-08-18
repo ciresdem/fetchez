@@ -14,7 +14,6 @@ Base fetchez Reader class to create 'streams'
 import queue
 import threading
 
-from fetchez.registry import HookRegistry, PresetRegistry
 from fetchez.core import run_fetchez
 from fetchez.utils import parse_hook_string
 from fetchez.hooks import FetchHook
@@ -53,6 +52,8 @@ class BaseStream:
 
     def pipe(self, hook_or_string, **kwargs):
         """Chain a processing hook onto the pipeline."""
+
+        from fetchez.registry import HookRegistry, PresetRegistry
 
         if isinstance(hook_or_string, str):
             PresetRegistry.load_fast()

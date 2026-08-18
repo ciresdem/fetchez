@@ -16,8 +16,14 @@ import yaml
 import click
 from pathlib import Path
 
+from fetchez.api import search_presets
 from fetchez.registry import PresetRegistry
-from fetchez.utils import FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 from fetchez.recipe import Recipe
 
 
@@ -43,24 +49,40 @@ def presets_group():
     pass
 
 
+def print_grouped_presets(grouped_hooks, key="Provider"):
+    click.secho(f"\nAvailable Presets by {key}:", fg="cyan", bold=True)
+    click.echo("=" * 60)
+
+    for cat in sorted(grouped_hooks.keys()):
+        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
+        for name, meta in sorted(
+            grouped_hooks[cat], key=lambda x: x[0]
+        ):  # x: x[1].get("category")):
+            category = meta.get(
+                "category", meta.get("Category", "Uncategorized")
+            ).title()
+            desc = meta.get("desc", meta.get("description", "No description provided."))
+
+            name_padded = f"{name:<26}"
+            category_padded = f"[{category:^18}]"
+
+            click.echo(
+                f"  {click.style(name_padded, bold=True, fg='green')} {click.style(category_padded, fg='blue')} : {desc}"
+            )
+    click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
+
+
 @presets_group.command("list", cls=FetchezMainCommand)
-def list_presets():
+@click.option("--search", "-s", help="Filter presets by name or keyword.")
+def list_presets(search):
     """List all available built-in and local presets."""
 
-    PresetRegistry.load_all()
-    registry = PresetRegistry.get_registry()
-
-    click.secho("\n📜 Available Pipeline Presets:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-    for name, meta in sorted(registry.items()):
-        # Quick summary for the list view
-        desc = (
-            meta.get("description", "No description provided.").strip().split("\n")[0]
-        )
-
-        click.secho(f"  {name:<25}", fg="green", bold=True, nl=False)
-        click.echo(f" - {desc}")
-    click.echo("\nRun 'fetchez presets info <name>' for details.\n")
+    registry = search_presets(search)
+    grouped_presets = group_registry_by_key(registry, "provider")
+    print_grouped_registry(grouped_presets, "Presets", "Provider")
+    click.echo(
+        "\nRun 'fetchez hooks presets info <name>' for arguments and recipe examples.\n"
+    )
 
 
 @presets_group.command("info", cls=FetchezMainCommand)
@@ -68,7 +90,7 @@ def list_presets():
 def info_preset(name):
     """Print a clean, readable summary of a preset's contents."""
 
-    PresetRegistry.load_all()
+    PresetRegistry.load_fast()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:
@@ -99,7 +121,7 @@ def info_preset(name):
 def dump_preset(name):
     """Print the raw YAML definition to the terminal."""
 
-    PresetRegistry.load_all()
+    PresetRegistry.load_fast()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:
@@ -118,7 +140,7 @@ def dump_preset(name):
 def copy_preset(name):
     """Copy a preset to your local ~/.fetchez/ folder for editing."""
 
-    PresetRegistry.load_all()
+    PresetRegistry.load_fast()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:

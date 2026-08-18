@@ -40,6 +40,8 @@ from .registry import (
     SchemaRegistry,
     ModifierRegistry,
     PresetRegistry,
+    StreamRegistry,
+    ReaderRegistry,
     ProfileRegistry,
 )
 
@@ -49,7 +51,7 @@ logger = logging.getLogger(__name__)
 def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]:
     """Helper to load and search a specific registry."""
 
-    registry_cls.load_all()
+    registry_cls.load_fast()
     full_reg = registry_cls.get_registry()
 
     if not term:
@@ -73,6 +75,49 @@ def _search_registry(registry_cls, term: Optional[str] = None) -> Dict[str, Any]
             found[name] = meta
 
     return found
+
+
+def _update_registry_cache(registry_cls):
+    cleared = registry_cls.clear_cache()
+    if cleared:
+        logger.info("Flushed existing registry cache.")
+    else:
+        logger.info("No existing cache found. Starting fresh.")
+
+    logger.info("Scanning environment for Fetchez registry entries...")
+
+    registry = _search_registry(registry_cls)
+    unique_items = len(set(meta.get("import_path") for meta in registry.values()))
+    logger.info(
+        f"Successfully rebuilt cache! Found {unique_items} active registry entries."
+    )
+
+
+def update_registry_cache():
+    update_module_registry()
+    update_hook_registry()
+    update_modifier_registry()
+    update_reader_registry()
+
+
+def update_module_registry():
+    _update_registry_cache(ModuleRegistry)
+
+
+def update_hook_registry():
+    _update_registry_cache(HookRegistry)
+
+
+def update_schema_registry():
+    _update_registry_cache(SchemaRegistry)
+
+
+def update_modifier_registry():
+    _update_registry_cache(ModifierRegistry)
+
+
+def update_reader_registry():
+    _update_registry_cache(ReaderRegistry)
 
 
 def list_modules() -> Dict[str, Any]:
@@ -131,6 +176,22 @@ def search_presets(term) -> Dict[str, Any]:
     return _search_registry(PresetRegistry, term)
 
 
+def list_streams() -> Dict[str, Any]:
+    return _search_registry(StreamRegistry)
+
+
+def search_streams(term) -> Dict[str, Any]:
+    return _search_registry(StreamRegistry, term)
+
+
+def list_readers() -> Dict[str, Any]:
+    return _search_registry(ReaderRegistry)
+
+
+def search_readers(term) -> Dict[str, Any]:
+    return _search_registry(ReaderRegistry, term)
+
+
 def list_profiles() -> Dict[str, Any]:
     return _search_registry(ProfileRegistry)
 
@@ -149,6 +210,8 @@ def search(term: str) -> Dict[str, Dict[str, Any]]:
         "schemas": _search_registry(SchemaRegistry, term),
         "modifiers": _search_registry(ModifierRegistry, term),
         "presets": _search_registry(PresetRegistry, term),
+        "streams": _search_registry(StreamRegistry, term),
+        "readers": _search_registry(ReaderRegistry, term),
         "profiles": _search_registry(ProfileRegistry, term),
     }
 
@@ -159,10 +222,10 @@ def _compile_modules(sources, region=None, shared_cache=None, **kwargs) -> List[
     if isinstance(sources, (str, dict)):
         sources = [sources]
 
-    BundleRegistry.load_all()
-    ModuleRegistry.load_all()
-    PresetRegistry.load_all()
-    HookRegistry.load_all()
+    BundleRegistry.load_fast()
+    ModuleRegistry.load_fast()
+    PresetRegistry.load_fast()
+    HookRegistry.load_fast()
 
     # Shared Cache
     abs_cache = None
@@ -240,8 +303,8 @@ def get(
 
     setup_logging(verbose)
 
-    ModuleRegistry.load_all()
-    HookRegistry.load_all()
+    ModuleRegistry.load_fast()
+    HookRegistry.load_fast()
 
     ModCls = ModuleRegistry.get_class(module)
     if not ModCls:
@@ -291,7 +354,7 @@ def get(
     try:
         mod_instance.run()
     except Exception as e:
-        logger.error(f"Query failed: {e}")
+        logger.exception(f"Query failed on {mod_instance}: {e}")
         return []
 
     if not mod_instance.results:
@@ -343,7 +406,7 @@ def run_recipe(
     import yaml
     from .recipe import Recipe
 
-    RecipeRegistry.load_all()
+    RecipeRegistry.load_fast()
     base_config = None
 
     if Path(target).exists():
@@ -401,8 +464,8 @@ class Pipeline:
     def hook(self, hook_or_string, **kwargs):
         """Chain a global hook definition to the pipeline."""
 
-        PresetRegistry.load_all()
-        HookRegistry.load_all()
+        PresetRegistry.load_fast()
+        HookRegistry.load_fast()
 
         if isinstance(hook_or_string, str):
             for h in hook_or_string:

@@ -14,13 +14,18 @@ Discoverability and documentation for processing hooks.
 import sys
 import click
 
-# from fetchez.api import list_hooks
 from fetchez.registry import HookRegistry
-from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
-from fetchez.api import search_hooks
+from fetchez.utils import (
+    get_class_arguments,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
+from fetchez.api import search_hooks, update_hook_registry
 from .presets import presets_group
 
-HOOKS_COMMANDS = ["info", "list", "presets"]
+HOOKS_COMMANDS = ["info", "list", "presets", "update-cache"]
 
 
 @click.group(
@@ -64,42 +69,15 @@ def hooks_group():
     pass
 
 
-def _print_grouped_hooks(grouped_hooks):
-    click.secho("\nAvailable Hooks by Category:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_hooks.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
-        for name, meta in sorted(grouped_hooks[cat], key=lambda x: x[0]):
-            provider = meta.get("mod", "").split(".")[0]
-            stage = meta.get("stage")
-            if "fetchez_user_hooks" in provider:
-                provider = "user"
-            desc = meta.get("desc", "No description provided.")
-
-            name_padded = f"{name:<16}"
-            provider_padded = f"[{stage:^9}]"
-
-            click.echo(
-                f"  {click.style(name_padded, bold=True, fg='green')} {click.style(provider_padded, fg='blue')} : {desc}"
-            )
-    click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
-
-
 @hooks_group.command("search", cls=FetchezMainCommand)
 @click.argument("term")
 def hook_search(term):
     """Search all available processing hooks by keyword."""
 
     registry = search_hooks(term)
-    grouped_hooks = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-        cat = meta.get("category", "uncategorized").title()
-        grouped_hooks.setdefault(cat, []).append((name, meta))
-
-    _print_grouped_hooks(grouped_hooks)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Hooks", "Provider")
+    click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
 
 
 @hooks_group.command("list", cls=FetchezMainCommand)
@@ -108,14 +86,9 @@ def hook_list(search):
     """List all available processing hooks grouped by category."""
 
     registry = search_hooks(search)
-    grouped_hooks = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-        cat = meta.get("category", "uncategorized").title()
-        grouped_hooks.setdefault(cat, []).append((name, meta))
-
-    _print_grouped_hooks(grouped_hooks)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Hooks", "Provider")
+    click.echo("\nRun 'fetchez hooks info <name>' for arguments and recipe examples.\n")
 
 
 @hooks_group.command("info", cls=FetchezMainCommand)
@@ -123,7 +96,7 @@ def hook_list(search):
 def hook_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    HookRegistry.load_all()
+    HookRegistry.load_fast()
     hook_cls = HookRegistry.get_class(name)
     meta = HookRegistry.get_info(name)
 
@@ -172,6 +145,17 @@ def hook_info(name):
             click.echo(f"        {key}: {val_str}")
 
     click.echo("-" * 40 + "\n")
+
+
+@hooks_group.command("update-cache", cls=FetchezMainCommand)
+def update_cache():
+    """Forces a clean rescan of all built-in, external, and user-defined hooks.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/modules/ folder and it isn't showing up.
+    """
+
+    update_hook_registry()
 
 
 hooks_group.add_command(presets_group, name="presets")

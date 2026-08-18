@@ -11,16 +11,25 @@ Discoverability and documentation for stream readers.
 :license: MIT, see LICENSE for more details.
 """
 
-import os
 import sys
 import click
 
-# from fetchez.api import list_readers
+from fetchez.api import search_readers, update_reader_registry
 from fetchez.registry import ReaderRegistry, ProfileRegistry
-from fetchez.utils import get_class_arguments, FetchezMainGroup, FetchezMainCommand
+from fetchez.utils import (
+    get_class_arguments,
+    group_registry_by_key,
+    print_grouped_registry,
+    FetchezMainGroup,
+    FetchezMainCommand,
+)
 
 
-@click.group(cls=FetchezMainGroup, name="readers", fetchez_commands=["list", "info"])
+@click.group(
+    cls=FetchezMainGroup,
+    name="readers",
+    fetchez_commands=["list", "info", "update-cache"],
+)
 def readers_group():
     """Discover, search, and learn about stream format readers.
 
@@ -48,38 +57,11 @@ def readers_group():
 def readers_list(search):
     """List all available stream readers grouped by category."""
 
-    ReaderRegistry.load_all()
-    registry = ReaderRegistry.get_registry()
-
-    grouped_readers = {}
-    for name, meta in registry.items():
-        if name in meta.get("aliases", []):
-            continue
-
-        if (
-            search
-            and search.lower() not in name.lower()
-            and search.lower() not in meta.get("desc", "").lower()
-        ):
-            continue
-
-        cat = meta.get("category", "uncategorized").title()
-        grouped_readers.setdefault(cat, []).append((name, meta))
-
-    click.secho("\n🌐 Available Readers by Category:", fg="cyan", bold=True)
-    click.echo("=" * 60)
-
-    for cat in sorted(grouped_readers.keys()):
-        click.secho(f"\n[ {cat} ]", fg="yellow", bold=True)
-        for name, meta in sorted(grouped_readers[cat], key=lambda x: x[0]):
-            desc = meta.get("desc", "No description provided.")
-
-            name_padded = f"{name:<16}"
-
-            click.echo(f"  {click.style(name_padded, bold=True, fg='green')}: {desc}")
-
+    registry = search_readers(search)
+    grouped_hooks = group_registry_by_key(registry, "mod")
+    print_grouped_registry(grouped_hooks, "Stream Readers", "Provider")
     click.echo(
-        f"\nRun '{os.path.basename(sys.argv[0])} readers info <name>' for arguments and examples.\n"
+        "\nRun 'fetchez streams readers info <name>' for arguments and recipe examples.\n"
     )
 
 
@@ -88,7 +70,7 @@ def readers_list(search):
 def readers_info(name):
     """Show arguments and YAML recipe examples for a specific reader."""
 
-    ReaderRegistry.load_all()
+    ReaderRegistry.load_fast()
     schema_cls = ReaderRegistry.get_class(name)
     meta = ReaderRegistry.get_info(name)
 
@@ -108,7 +90,7 @@ def readers_info(name):
         for key, val in args_dict.items():
             click.echo(f"    - {click.style(key, bold=True)} {val['default']}")
 
-    ProfileRegistry.load_all()
+    ProfileRegistry.load_fast()
     profile_registry = ProfileRegistry.get_registry()
     click.secho("\n  Available Profiles:", fg="yellow", bold=True)
     for profile in profile_registry:
@@ -118,3 +100,14 @@ def readers_info(name):
             click.echo(f"    - {click.style(profile_meta.get('name'), bold=True)}")
 
     click.echo("\n" + "-" * 40 + "\n")
+
+
+@readers_group.command("update-cache", cls=FetchezMainCommand)
+def update_cache():
+    """Forces a clean rescan of all built-in, external, and user-defined readers.
+
+    Use this if you recently installed a new extension or added a custom Python
+    plugin to your ~/.fetchez/recipes/readers/ folder and it isn't showing up.
+    """
+
+    update_reader_registry()

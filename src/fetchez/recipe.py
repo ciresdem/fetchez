@@ -347,7 +347,7 @@ class Recipe:
     def _init_hooks(self, hook_defs, mod=None):
         """Takes a flat list of expanded hook dictionaries and instantiates the Python classes."""
 
-        HookRegistry.load_all()
+        HookRegistry.load_fast()
         active_hooks = []
 
         for h in hook_defs:
@@ -395,7 +395,7 @@ class Recipe:
     def _init_modifiers(self, modifier_defs):
         """Looks for modifiers in the config and applies their rules."""
 
-        ModifierRegistry.load_all()
+        ModifierRegistry.load_fast()
         active_modifiers = []
 
         for modifier in modifier_defs:
@@ -443,7 +443,7 @@ class Recipe:
     def _init_schemas(self, schema_defs):
         """Looks for modifiers in the config and applies their rules."""
 
-        SchemaRegistry.load_all()
+        SchemaRegistry.load_fast()
         active_schemas = []
 
         for schema in schema_defs:
@@ -533,10 +533,10 @@ class Recipe:
     ):
         """Execute the recipe, supporting vector-based batching, caching, and resumption."""
 
-        ModuleRegistry.load_all()
-        BundleRegistry.load_all()
-        ModifierRegistry.load_all()
-        SchemaRegistry.load_all()
+        ModuleRegistry.load_fast()
+        BundleRegistry.load_fast()
+        ModifierRegistry.load_fast()
+        SchemaRegistry.load_fast()
 
         if not self.config:
             return
