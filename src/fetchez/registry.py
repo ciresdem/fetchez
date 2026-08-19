@@ -475,11 +475,18 @@ class ReaderRegistry(PluginRegistry):
 
     @classmethod
     def get_reader_for_dtype(cls, dtype: str):
-        """Iterate through registered readers to find one that supports this dtype."""
+        """Find reader by exact dtype match."""
 
         for name, meta in cls.get_registry().items():
-            if dtype.lower() in meta.get("dtype", ""):
-                return cls.get_class(name)
+            target_dtype = meta.get("dtype", "")
+
+            if isinstance(target_dtype, str):
+                if dtype.lower() == target_dtype.lower():
+                    return cls.get_class(name)
+            elif isinstance(target_dtype, list):
+                if dtype.lower() in [t.lower() for t in target_dtype]:
+                    return cls.get_class(name)
+
         return None
 
 
