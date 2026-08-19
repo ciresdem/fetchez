@@ -22,7 +22,7 @@ from fetchez.utils import (
     FetchezMainGroup,
     FetchezMainCommand,
 )
-from fetchez.api import search_hooks, update_hook_registry
+from fetchez.api import search_hooks
 from .presets import presets_group
 
 HOOKS_COMMANDS = ["info", "list", "presets", "update-cache"]
@@ -96,7 +96,7 @@ def hook_list(search):
 def hook_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    HookRegistry.load_fast()
+    HookRegistry.load_all()
     hook_cls = HookRegistry.get_class(name)
     meta = HookRegistry.get_info(name)
 
@@ -145,17 +145,6 @@ def hook_info(name):
             click.echo(f"        {key}: {val_str}")
 
     click.echo("-" * 40 + "\n")
-
-
-@hooks_group.command("update-cache", cls=FetchezMainCommand)
-def update_cache():
-    """Forces a clean rescan of all built-in, external, and user-defined hooks.
-
-    Use this if you recently installed a new extension or added a custom Python
-    plugin to your ~/.fetchez/modules/ folder and it isn't showing up.
-    """
-
-    update_hook_registry()
 
 
 hooks_group.add_command(presets_group, name="presets")

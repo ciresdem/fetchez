@@ -66,8 +66,8 @@ class CheckParams(BaseSchema):
           list: List of error messages.
         """
 
-        ModuleRegistry.load_fast()
-        HookRegistry.load_fast()
+        ModuleRegistry.load_all()
+        HookRegistry.load_all()
 
         # Validate Module Hooks
         for mod in config.get("modules", []):

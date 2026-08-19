@@ -14,7 +14,6 @@ Fetchez Modules, Hooks, Schemas, and other plugins.
 
 import os
 import sys
-import json
 import yaml
 import copy
 import pkgutil
@@ -148,177 +147,7 @@ class PluginRegistry:
         cls.load_user_plugins()
         cls.load_installed_plugins()
 
-    @classmethod
-    def _get_cache_path(cls):
-        """Path to the JSON registry cache."""
-
-        cache_dir = Path("~/.fetchez").expanduser()
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        out_cache = cache_dir / f"{cls.__name__}_cache.json"
-        return out_cache
-
-    load_fast = load_all
-
-    @classmethod
-    def _load_fast(cls):
-        """Loads from the JSON cache for instant CLI menus.
-        If cache is missing, falls back to the slow load_all().
-        """
-
-        registry = cls.get_registry()
-        if registry:
-            return
-
-        cache_path = cls._get_cache_path()
-        if Path(cache_path).exists():
-            try:
-                with open(cache_path, "r") as f:
-                    registry.update(json.load(f))
-
-                    meta = registry.pop("__meta__", {})
-                    if not cls._cache_is_valid(meta):
-                        logger.debug(
-                            f"Cache {cache_path} invalidated by system change. Rebuilding..."
-                        )
-                        cls.clear_cache()
-                        cls.load_all()
-                        cls.save_cache()
-                        return
-                return
-            except Exception as e:
-                logger.debug(f"Cache read failed: {e}")
-
-        cls.load_all()
-        cls.save_cache()
-
-    @classmethod
-    def save_cache(cls):
-        """Dumps the discovered registry to JSON."""
-
-        clean_registry = {}
-        for k, meta in cls.get_registry().items():
-            clean_meta = {
-                key: val
-                for key, val in meta.items()
-                if isinstance(val, (str, int, float, list, dict))
-            }
-            clean_registry[k] = clean_meta
-
-        # The System State
-        clean_registry["__meta__"] = cls._build_cache_meta()
-
-        try:
-            with open(cls._get_cache_path(), "w") as f:
-                json.dump(clean_registry, f, indent=2)
-        except Exception as e:
-            logger.warning(f"Failed to save cache: {e}")
-            Path(cls._get_cache_path()).unlink()
-
-    @classmethod
-    def clear_cache(cls):
-        """Deletes the JSON cache file for this specific registry."""
-
-        cache_path = cls._get_cache_path()
-        if Path(cache_path).exists():
-            try:
-                os.remove(cache_path)
-                logger.info(f"Deleted cache file: {cache_path}")
-                return True
-            except Exception as e:
-                logger.error(f"Failed to delete cache file {cache_path}: {e}")
-                return False
-        return False
-
-    @classmethod
-    def _build_cache_meta(cls):
-        """Generates a snapshot of the current system state."""
-
-        try:
-            import fetchez
-
-            fetchez_ver = getattr(fetchez, "__version__", "unknown")
-        except ImportError:
-            fetchez_ver = "unknown"
-
-        meta = {
-            "fetchez_version": fetchez_ver,
-            "python_version": sys.version,
-            "user_mtime": 0,
-            "pkg_versions": {},
-        }
-
-        # Local User Plugins
-        user_folder = (
-            Path.home() / ".fetchez" / cls.user_folder if cls.user_folder else None
-        )
-        if user_folder and Path(user_folder).exists():
-            mtimes = [Path(user_folder).stat().st_mtime]
-            for f in os.listdir(user_folder):
-                if f.endswith(".py"):
-                    mtimes.append(Path(Path(user_folder) / f).stat().st_mtime)
-            meta["user_mtime"] = max(mtimes)
-
-        # External Packages
-        try:
-            registry = cls.get_registry()
-            packages = set()
-
-            for _key, val in registry.items():
-                if "import_path" in val:
-                    base_pkg = val["import_path"].split(".")[0]
-                    if base_pkg not in ["fetchez", "builtins", "fetchez_user_modules"]:
-                        packages.add(base_pkg)
-
-            for pkg in packages:
-                try:
-                    meta["pkg_versions"][pkg] = importlib.metadata.version(pkg)
-                except Exception:
-                    pass
-        except Exception:
-            pass
-
-        return meta
-
-    @classmethod
-    def _cache_is_valid(cls, meta):
-        """Checks if the cached system state matches the current system state."""
-
-        if meta.get("python_version") != sys.version:
-            return False
-
-        try:
-            import fetchez
-
-            if meta.get("fetchez_version") != getattr(
-                fetchez, "__version__", "unknown"
-            ):
-                return False
-        except ImportError:
-            pass
-
-        # User Plugins
-        user_folder = Path(cls.user_folder).expanduser() if cls.user_folder else None
-        if user_folder and Path(user_folder).exists():
-            mtimes = [Path(user_folder).stat().st_mtime]
-            for f in os.listdir(user_folder):
-                if f.endswith(".py"):
-                    mtimes.append(Path(Path(user_folder) / f).stat().st_mtime)
-            if meta.get("user_mtime") != max(mtimes):
-                return False
-
-        # External Packages
-        try:
-            for pkg, cached_version in meta.get("pkg_versions", {}).items():
-                try:
-                    current_version = importlib.metadata.version(pkg)
-                    if current_version != cached_version:
-                        return False
-                except Exception:
-                    return False  # Package was uninstalled
-        except Exception:
-            return False
-
-        return True
+    load_fast = load_all  # temp in case we forgot to update any calls to the depreciated `load_fast`
 
     @classmethod
     def _register_from_module(cls, module, use_namespaces=False):
@@ -536,7 +365,7 @@ class YamlRegistry:
                         except Exception as e:
                             logger.warning(f"Failed to load yaml {fn}: {e}")
 
-    load_fast = load_all
+    load_fast = load_all  # temp for lingering load_fast calls
 
     @classmethod
     def _register_yaml(cls, provider, yaml_content: str, file_path: str):
@@ -609,7 +438,7 @@ class ReaderRegistry(PluginRegistry):
 
     @classmethod
     def get_reader(cls, src, term: str, region=None, **kwargs):
-        ProfileRegistry.load_fast()
+        ProfileRegistry.load_all()
         if term:
             profile = ProfileRegistry.get_yaml(term)
             if profile:
@@ -724,7 +553,7 @@ class PresetRegistry(YamlRegistry):
     ) -> List[Dict[str, Any]]:
         """Recursively expands preset references in a list of hook definitions into a flat list of hook dictionary configs."""
 
-        cls.load_fast()
+        cls.load_all()
         expanded_list = []
         parent_hooks = parent_hooks or []
 
@@ -802,7 +631,7 @@ class PresetRegistry(YamlRegistry):
         else:
             return []
 
-        HookRegistry.load_fast()
+        HookRegistry.load_all()
         hooks = []
         for h_def in hook_defs:
             name = h_def.get("name")
@@ -863,11 +692,11 @@ class BundleRegistry(YamlRegistry):
     ) -> List[Dict[str, Any]]:
         """Recursively flattens bundles/recipes, calculates stacked weights, and deduplicates/merges modules."""
 
-        cls.load_fast()
-        ModuleRegistry.load_fast()
-        BundleRegistry.load_fast()
-        RecipeRegistry.load_fast()
-        PresetRegistry.load_fast()
+        cls.load_all()
+        ModuleRegistry.load_all()
+        BundleRegistry.load_all()
+        RecipeRegistry.load_all()
+        PresetRegistry.load_all()
 
         expanded_dict: dict[str, Any] = {}
 

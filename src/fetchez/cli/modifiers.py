@@ -14,7 +14,7 @@ Discoverability and documentation for processing modifiers.
 import sys
 import click
 
-from fetchez.api import search_modifiers, update_modifier_registry
+from fetchez.api import search_modifiers
 from fetchez.registry import ModifierRegistry
 from fetchez.utils import (
     get_class_arguments,
@@ -60,7 +60,7 @@ def modifiers_list(search):
 def modifiers_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    ModifierRegistry.load_fast()
+    ModifierRegistry.load_all()
     modifier_cls = ModifierRegistry.get_class(name)
     meta = ModifierRegistry.get_info(name)
 
@@ -87,14 +87,3 @@ def modifiers_info(name):
     click.echo(f"modifier: {name}")
 
     click.echo("-" * 40 + "\n")
-
-
-@modifiers_group.command("update-cache", cls=FetchezMainCommand)
-def update_cache():
-    """Forces a clean rescan of all built-in, external, and user-defined modifiers.
-
-    Use this if you recently installed a new extension or added a custom Python
-    plugin to your ~/.fetchez/recipes/modifiers/ folder and it isn't showing up.
-    """
-
-    update_modifier_registry()

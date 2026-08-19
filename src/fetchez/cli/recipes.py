@@ -50,7 +50,7 @@ def _load_yaml(target):
         with open(target, "r", encoding="utf-8") as f:
             base_config = yaml.safe_load(f)
     else:
-        RecipeRegistry.load_fast()
+        RecipeRegistry.load_all()
         recipe_meta = RecipeRegistry.get_yaml(target)
         if recipe_meta:
             base_config = recipe_meta["config"]
@@ -105,7 +105,7 @@ def info_recipe(name):
 
     from fetchez.recipe import Recipe
 
-    RecipeRegistry.load_fast()
+    RecipeRegistry.load_all()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -149,7 +149,7 @@ def info_recipe(name):
 def dump_recipe(name):
     """Print the raw YAML definition to the terminal."""
 
-    RecipeRegistry.load_fast()
+    RecipeRegistry.load_all()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -168,7 +168,7 @@ def dump_recipe(name):
 def copy_recipe(name):
     """Copy a recipe to your local ~/.fetchez/ folder for editing."""
 
-    RecipeRegistry.load_fast()
+    RecipeRegistry.load_all()
     meta = RecipeRegistry.get_yaml(name)
 
     if not meta:
@@ -328,7 +328,7 @@ def run_recipe(
 ):
     """Execute a YAML recipe by registry name or file path."""
 
-    RecipeRegistry.load_fast()
+    RecipeRegistry.load_all()
 
     click.secho(f"Executing YAML recipe: {name}...", fg="cyan", bold=True)
 

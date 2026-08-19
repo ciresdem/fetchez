@@ -35,8 +35,8 @@ class CheckModules(BaseSchema):
           list: List of error messages.
         """
 
-        ModuleRegistry.load_fast()
-        HookRegistry.load_fast()
+        ModuleRegistry.load_all()
+        HookRegistry.load_all()
 
         claimed_outputs = set()
 

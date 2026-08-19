@@ -61,7 +61,7 @@ def list_profiles(search):
 def info_profiles(name):
     """Print a clean, readable summary of a bundle's contents."""
 
-    ProfileRegistry.load_fast()
+    ProfileRegistry.load_all()
     meta = ProfileRegistry.get_yaml(name)
 
     if not meta:

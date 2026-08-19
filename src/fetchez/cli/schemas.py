@@ -14,7 +14,7 @@ Discoverability and documentation for processing schemas.
 import sys
 import click
 
-from fetchez.api import search_schemas, update_schema_registry
+from fetchez.api import search_schemas
 from fetchez.registry import SchemaRegistry
 from fetchez.utils import (
     get_class_arguments,
@@ -61,7 +61,7 @@ def schemas_list(search):
 def schemas_info(name):
     """Show arguments and YAML recipe examples for a specific hook."""
 
-    SchemaRegistry.load_fast()
+    SchemaRegistry.load_all()
     schema_cls = SchemaRegistry.get_class(name)
     meta = SchemaRegistry.get_info(name)
 
@@ -88,14 +88,3 @@ def schemas_info(name):
     click.echo(f"schema: {name}")
 
     click.echo("-" * 40 + "\n")
-
-
-@schemas_group.command("update-cache", cls=FetchezMainCommand)
-def update_cache():
-    """Forces a clean rescan of all built-in, external, and user-defined schemas.
-
-    Use this if you recently installed a new extension or added a custom Python
-    plugin to your ~/.fetchez/recipes/schemas/ folder and it isn't showing up.
-    """
-
-    update_schema_registry()

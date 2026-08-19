@@ -689,7 +689,7 @@ def compile_sources(sources):
     import yaml
     from fetchez.registry import BundleRegistry
 
-    BundleRegistry.load_fast()
+    BundleRegistry.load_all()
 
     compiled_modules = []
     for src in sources:

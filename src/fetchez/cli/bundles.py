@@ -68,7 +68,7 @@ def info_bundles(name):
 
     from fetchez.recipe import Recipe
 
-    BundleRegistry.load_fast()
+    BundleRegistry.load_all()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:
@@ -99,7 +99,7 @@ def info_bundles(name):
 def dump_bundle(name):
     """Print the raw YAML definition to the terminal."""
 
-    BundleRegistry.load_fast()
+    BundleRegistry.load_all()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:
@@ -118,7 +118,7 @@ def dump_bundle(name):
 def copy_bundle(name):
     """Copy a module bundle to your local ~/.fetchez/ folder for editing."""
 
-    BundleRegistry.load_fast()
+    BundleRegistry.load_all()
     meta = BundleRegistry.get_yaml(name)
 
     if not meta:
