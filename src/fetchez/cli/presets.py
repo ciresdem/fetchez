@@ -90,7 +90,7 @@ def list_presets(search):
 def info_preset(name):
     """Print a clean, readable summary of a preset's contents."""
 
-    PresetRegistry.load_fast()
+    PresetRegistry.load_all()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:
@@ -121,7 +121,7 @@ def info_preset(name):
 def dump_preset(name):
     """Print the raw YAML definition to the terminal."""
 
-    PresetRegistry.load_fast()
+    PresetRegistry.load_all()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:
@@ -140,7 +140,7 @@ def dump_preset(name):
 def copy_preset(name):
     """Copy a preset to your local ~/.fetchez/ folder for editing."""
 
-    PresetRegistry.load_fast()
+    PresetRegistry.load_all()
     meta = PresetRegistry.get_yaml(name)
 
     if not meta:

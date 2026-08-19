@@ -13,7 +13,7 @@ Discoverability and documentation for fetching modules.
 
 import click
 import sys
-from fetchez.api import search_modules, update_module_registry
+from fetchez.api import search_modules
 from fetchez.registry import ModuleRegistry
 from fetchez.utils import (
     get_class_arguments,
@@ -79,7 +79,7 @@ def module_list(search):
 def module_info(name):
     """Get detailed metadata and available CLI arguments for a module."""
 
-    ModuleRegistry.load_fast()
+    ModuleRegistry.load_all()
     meta = ModuleRegistry.get_info(name)
     mod_cls = ModuleRegistry.get_class(name)
 
@@ -132,17 +132,6 @@ def module_info(name):
 
         # click.echo("      hooks:")
     click.echo("-" * 40 + "\n")
-
-
-@modules_group.command("update-cache", cls=FetchezMainCommand)
-def update_cache():
-    """Forces a clean rescan of all built-in, external, and user-defined modules.
-
-    Use this if you recently installed a new extension or added a custom Python
-    plugin to your ~/.fetchez/modules/ folder and it isn't showing up.
-    """
-
-    update_module_registry()
 
 
 modules_group.add_command(bundles_group, name="bundles")

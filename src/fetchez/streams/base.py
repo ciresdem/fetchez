@@ -56,7 +56,7 @@ class BaseStream:
         from fetchez.registry import HookRegistry, PresetRegistry
 
         if isinstance(hook_or_string, str):
-            PresetRegistry.load_fast()
+            PresetRegistry.load_all()
             if PresetRegistry.get_preset(hook_or_string):
                 override_def = [
                     {
@@ -70,7 +70,7 @@ class BaseStream:
                 return self
 
             hook_config = parse_hook_string(hook_or_string)
-            HookRegistry.load_fast()
+            HookRegistry.load_all()
             hook_class = HookRegistry.get_class(hook_config.get("name"))
 
             if not hook_class:
@@ -80,8 +80,8 @@ class BaseStream:
             self.global_hooks.append(hook_class(**kwargs))
 
         elif isinstance(hook_or_string, dict):
-            HookRegistry.load_fast()
-            PresetRegistry.load_fast()
+            HookRegistry.load_all()
+            PresetRegistry.load_all()
 
             hook_name = hook_or_string.get("name") or hook_or_string.get("preset")
             if hook_name:

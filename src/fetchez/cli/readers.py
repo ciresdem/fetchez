@@ -14,7 +14,7 @@ Discoverability and documentation for stream readers.
 import sys
 import click
 
-from fetchez.api import search_readers, update_reader_registry
+from fetchez.api import search_readers
 from fetchez.registry import ReaderRegistry, ProfileRegistry
 from fetchez.utils import (
     get_class_arguments,
@@ -70,7 +70,7 @@ def readers_list(search):
 def readers_info(name):
     """Show arguments and YAML recipe examples for a specific reader."""
 
-    ReaderRegistry.load_fast()
+    ReaderRegistry.load_all()
     schema_cls = ReaderRegistry.get_class(name)
     meta = ReaderRegistry.get_info(name)
 
@@ -90,7 +90,7 @@ def readers_info(name):
         for key, val in args_dict.items():
             click.echo(f"    - {click.style(key, bold=True)} {val['default']}")
 
-    ProfileRegistry.load_fast()
+    ProfileRegistry.load_all()
     profile_registry = ProfileRegistry.get_registry()
     click.secho("\n  Available Profiles:", fg="yellow", bold=True)
     for profile in profile_registry:
@@ -100,14 +100,3 @@ def readers_info(name):
             click.echo(f"    - {click.style(profile_meta.get('name'), bold=True)}")
 
     click.echo("\n" + "-" * 40 + "\n")
-
-
-@readers_group.command("update-cache", cls=FetchezMainCommand)
-def update_cache():
-    """Forces a clean rescan of all built-in, external, and user-defined readers.
-
-    Use this if you recently installed a new extension or added a custom Python
-    plugin to your ~/.fetchez/recipes/readers/ folder and it isn't showing up.
-    """
-
-    update_reader_registry()

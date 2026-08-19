@@ -45,15 +45,15 @@ def add_options(options):
 # class PipelineExecutor(click.Group):
 class PipelineExecutor(FetchezMainGroup):
     def list_commands(self, ctx):
-        ModuleRegistry.load_fast()
-        BundleRegistry.load_fast()
+        ModuleRegistry.load_all()
+        BundleRegistry.load_all()
         mod_list = list(ModuleRegistry.get_registry().keys())
         mod_list.extend(list(BundleRegistry.get_registry().keys()))
         return sorted(mod_list)
 
     def get_command(self, ctx, name):
-        ModuleRegistry.load_fast()
-        BundleRegistry.load_fast()
+        ModuleRegistry.load_all()
+        BundleRegistry.load_all()
         mod_meta = ModuleRegistry.get_info(name)
         bundle_yml = BundleRegistry.get_yaml(name)
 
@@ -273,8 +273,8 @@ def process_pipeline(
 ):
     """Executes after all chained commands have returned their dictionaries."""
 
-    HookRegistry.load_fast()
-    PresetRegistry.load_fast()
+    HookRegistry.load_all()
+    PresetRegistry.load_all()
 
     modules = [cmd for cmd in commands if cmd.pop("type", None) == "module"]
 
