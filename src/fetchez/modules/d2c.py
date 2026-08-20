@@ -24,6 +24,8 @@ class Dist2Coast(FetchModule):
     meta_category = "Reference"
     meta_desc = "Global Distance to Nearest Coastline (0.01-Degree Grid)."
     meta_agency = "NASA OBPG / PacIOOS"
+    meta_resolution = "1 degree"
+    meta_license = "Public Domain"
     meta_tags = ["distance", "coast", "ocean", "land", "raster", "reference"]
 
     def __init__(self, variant="base", **kwargs):
