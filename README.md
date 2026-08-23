@@ -1,5 +1,5 @@
 <p align="center">
-	<a href="https://continuous-dems.readthedocs.io/projects/fetchez">
+	<a href="https://continuous-dems.readthedocs.io">
 		<img src="/docs/source/_static/fetchez-logo.svg" height="80" alt="Continuous DEMs Logo">
 	</a>
 </p>
