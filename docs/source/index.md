@@ -6,7 +6,15 @@
 
 **Fetchez** is a robust, highly modular and extensible Python framework designed to orchestrate complex geospatial data engineering workflows.
 
-Originally developed as the core fetching engine for the [CUDEM](https://github.com/continuous-dems/cudem) project, Fetchez has evolved into a standalone ETL platform. It seamlessly retrieves Bathymetry, Topography, Imagery, and Oceanographic data from dozens of global repositories (NOAA, USGS, Copernicus, ESA) and processes it on the fly.
+Fetchez is part of the [Continuous DEMs Project](https://continuous-dems.readthedocs.io/), an ecosystem of tools for modern, continuous digital elevation model generation.
+
+## Key Features
+
+* **Unified Interface**: Access [80+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
+* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
+* **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
+* **Pipeline Hooks**: Transparently stream, filter, and process data as it is being downloaded.
+* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks and more.
 
 ## Quickstart
 
@@ -39,17 +47,9 @@ files = fetchez.get("nos_hydro", region=[-120, -118, 33, 34], min_year=2020)
 files = fetchez.get("charts", region=[-120, -118, 33, 34], hooks=['unzip', 'filename_filter:match=.000,stage="pre"', 'audit'])
 ```
 
-## Key Features
+## Learn More
 
-* **Unified Interface**: Access [80+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) using the exact same syntax.
-
-* **Parallel Fetching**: High-performance, multi-threaded downloading with automatic retry, timeout handling, and partial-download resumption.
-
-* **Infrastructure as Code:** Define complex data pipelines, cropping, and gridding workflows using CLI switches or simple YAML "Recipes".
-
-* **Pipeline Hooks**: Transparently stream, filter, and process data as it is being downloaded.
-
-* **Infinite Extensibility:** Built on a modern plugin architecture. Drop custom Python scripts into a local folder, or install community extensions via `pip` to add your own data sources, domain schemas, processing hooks and more.
+Interested in how the `fetchez` framework works? Read the [User Guide](user_guide/index.md) guide to learn about modules, hooks, recipes and more.
 
 
 ```{toctree}
