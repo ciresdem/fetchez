@@ -1,6 +1,6 @@
 <p align="center">
 	<a href="https://continuous-dems.readthedocs.io">
-		<img src="/docs/source/_static/fetchez-logo.svg" height="80" alt="Continuous DEMs Logo">
+		<img src="https://raw.githubusercontent.com/continuous-dems/fetchez/refs/heads/main/docs/source/_static/fetchez-logo.svg" height="80" alt="Fetchez Logo">
 	</a>
 </p>
 <h1 align="center">Fetchez</h1>
