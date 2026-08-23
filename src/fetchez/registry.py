@@ -193,7 +193,7 @@ class PluginRegistry:
                         "import_path", ""
                     ).startswith("fetchez."):
                         mod_key = f"{prefix}.{raw_mod_key}"
-                        logger.warning(
+                        logger.debug(
                             f"⚠️ Blocked plugin '{prefix}' from hijacking core module '{raw_mod_key}'. "
                             f"It has been safely sandboxed as '{mod_key}'."
                         )
