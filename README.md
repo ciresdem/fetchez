@@ -66,7 +66,7 @@ While **Fetchez** handles the data retrieval, data stream initiation and process
 ## 📚 Documentation
 Would you like to know more? Check out our [Official Documentation](https://fetchez.readthedocs.io) to learn about:
 
-* **Modules & Bundles:** Discover and learn about the over [80+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) availabel.
+* **Modules & Bundles:** Discover and learn about [more than 100 public datasets](https://fetchez.readthedocs.io/en/latest/modules/index.html) available through Fetchez.
 
 * **The Python API:** Build custom fetch modules and run full processing pipelines in your apps.
 
