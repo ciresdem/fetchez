@@ -40,3 +40,15 @@ authors:
     given-names: Matt
     website: "https://mattz.cool"
 
+
+references:
+  - type: "grant"
+    title: "TODO"
+    institution:
+      name: "National Science Foundation"
+    number: "TODO"
+    # TODO: authors looks structurally the same as the authors block above.
+    # authors:
+    #   - ...
+    #   - ...
+    #   - ...
