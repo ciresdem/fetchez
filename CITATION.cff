@@ -18,6 +18,15 @@ keywords:
   - "Python"
   - "DEM"
   - "Geospatial"
+  - "Bathymetry"
+  - "Topography"
+  - "Elevation"
+  - "LiDAR"
+  - "Remote Sensing"
+  - "Earth Science"
+  - "Hydrography"
+  - "Data Access"
+  - "ETL"
 
 contact:
   - name: "The Continuous DEMs Community"
