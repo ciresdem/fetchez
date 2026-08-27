@@ -1,5 +1,39 @@
-cff-version: 1.2.0
+cff-version: "1.2.0"
 message: "If you use this software, please cite it as below."
+
+title: "Fetchez"
+doi: "10.5281/zenodo.22130386"
+repository-code: "https://github.com/continuous-dems/fetchez"
+url: "https://fetchez.readthedocs.io/"
+abstract: >-
+  Fetchez is a robust, highly modular, and extendable Python framework designed
+  to orchestrate geospatial data engineering workflows.
+
+version: "0.8.6"
+date-released: "2026-08-27"
+
+type: "software"
+license: "MIT"
+keywords:
+  - "Python"
+  - "DEM"
+  - "Geospatial"
+  - "Bathymetry"
+  - "Topography"
+  - "Elevation"
+  - "LiDAR"
+  - "Remote Sensing"
+  - "Earth Science"
+  - "Hydrography"
+  - "Data Access"
+  - "ETL"
+
+contact:
+  - name: "The Continuous DEMs Community"
+    website: "https://continuous-dems.github.io"
+  - name: "The Continuous DEMs Community Chat"
+    website: "https://cudem.zulipchat.com"
+
 authors:
   - family-names: Love
     given-names: Matthew
@@ -13,9 +47,26 @@ authors:
     given-names: Elliot
   - family-names: Fisher
     given-names: Matt
+    website: "https://mattz.cool"
 
-    website: https://fetchez.readthedocs.io/
-title: "Fetchez"
-version: 0.8.6
-date-released: 2026-08-27
-url: "https://github.com/continuous-dems/fetchez"
+
+references:
+  - type: "grant"
+    title: "Pathways to Enable Open-Source Ecosystems (POSE) Phase I"
+    institution:
+      name: "National Science Foundation"
+    number: "2449419"
+    authors:
+      - family-names: Love
+        given-names: Matthew
+      - family-names: Amante
+        given-names: Christopher
+      - family-names: Carignan
+        given-names: Kelly
+      - family-names: MacFerrin
+        given-names: Michael
+      - family-names: Lim
+        given-names: Elliot
+      - family-names: Fisher
+        given-names: Matt
+        website: "https://mattz.cool"
