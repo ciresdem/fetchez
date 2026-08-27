@@ -17,7 +17,7 @@ license: "MIT"
 keywords:
   - "Python"
   - "DEM"
-  # TODO: More?
+  - "Geospatial"
 
 contact:
   - name: "The Continuous DEMs Community"
@@ -47,8 +47,17 @@ references:
     institution:
       name: "National Science Foundation"
     number: "TODO"
-    # TODO: authors looks structurally the same as the authors block above.
-    # authors:
-    #   - ...
-    #   - ...
-    #   - ...
+authors:
+  - family-names: Love
+    given-names: Matthew
+  - family-names: Amante
+    given-names: Christopher
+  - family-names: Carignan
+    given-names: Kelly
+  - family-names: MacFerrin
+    given-names: Michael
+  - family-names: Lim
+    given-names: Elliot
+  - family-names: Fisher
+    given-names: Matt
+    website: "https://mattz.cool"
