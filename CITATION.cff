@@ -1,5 +1,30 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
+
+title: "Fetchez"
+doi: "10.5281/zenodo.22130386"
+repository-code: "https://github.com/continuous-dems/fetchez"
+url: "https://fetchez.readthedocs.io/"
+abstract: >-
+  Fetchez is a robust, highly modular, and extendable Python framework designed
+  to orchestrate geospatial data engineering workflows.
+
+version: "0.8.6"
+date-released: "2026-08-27"
+
+type: "software"
+license: "MIT"
+keywords:
+  - "Python"
+  - "DEM"
+  # TODO: More?
+
+contact:
+  - name: "The Continuous DEMs Community"
+    website: "https://continuous-dems.github.io"
+  - name: "The Continuous DEMs Community Chat"
+    website: "https://cudem.zulipchat.com"
+
 authors:
   - family-names: Love
     given-names: Matthew
@@ -14,8 +39,3 @@ authors:
   - family-names: Fisher
     given-names: Matt
 
-    website: https://fetchez.readthedocs.io/
-title: "Fetchez"
-version: 0.8.6
-date-released: 2026-08-27
-url: "https://github.com/continuous-dems/fetchez"
