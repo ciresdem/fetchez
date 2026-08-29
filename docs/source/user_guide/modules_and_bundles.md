@@ -1,6 +1,6 @@
 # 🌎 Modules
 
-Fetchez comes builtin with [70+ different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) to access geospatial data from various remote apis and local file-systems.
+Fetchez comes builtin with [more than 100 different modules](https://fetchez.readthedocs.io/en/latest/modules/index.html) to access geospatial data from various remote apis and local file-systems.
 
 ## Data Modules
 
