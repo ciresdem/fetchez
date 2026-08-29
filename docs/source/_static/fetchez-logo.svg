@@ -1,26 +1,36 @@
 <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 320 220"
-    width="320"
-    height="220"
+    viewBox="0 0 300 200"
+    width="300"
+    height="200"
     role="img"
     aria-labelledby="title desc">
   <title id="title">Globato colored logo</title>
   <desc id="desc">Six rounded terrain-colored tiles crossed by a transparent multi-resolution terrain visor profile.</desc>
   <defs>
-    <mask id="visorCut" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="220">
-      <rect width="320" height="220" fill="white"/>
-      <path d="M10 200 C78 20 166 0 246 104 C266 130 286 132 305 132"
-	    fill="none" stroke="black" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <mask id="visorCut" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="200">
+      <rect width="300" height="200" fill="white"/>
+      <path
+	  d="
+	     M 14 174
+	     C 42 128, 74 84, 112 62
+	     C 150 40, 194 48, 230 82
+	     C 250 100, 266 119, 282 132
+	     C 264 123, 246 110, 226 95
+	     C 192 69, 153 61, 118 75
+	     C 79 91, 45 132, 14 174
+	     Z
+	     "
+	  fill="black"/>
     </mask>
   </defs>
 
   <g mask="url(#visorCut)">
-    <rect x="10" y="10" width="94" height="94" rx="16" fill="#F5F3EC"/>
-    <rect x="113" y="10" width="94" height="94" rx="16" fill="#6BAED6"/>
-    <rect x="216" y="10" width="94" height="94" rx="16" fill="#3B82C4"/>
-    <rect x="10" y="113" width="94" height="94" rx="16" fill="#46525E"/>
-    <rect x="113" y="113" width="94" height="94" rx="16" fill="#D8B65A"/>
-    <rect x="216" y="113" width="94" height="94" rx="16" fill="#667382"/>
+    <rect x="4 " y="4 " width="92" height="92" rx="16" fill="#F5F3EC"/>
+    <rect x="104" y="4 " width="92" height="92" rx="16" fill="#6BAED6"/>
+    <rect x="204" y="4 " width="92" height="92" rx="16" fill="#3B82C4"/>
+    <rect x="4 " y="104" width="92" height="92" rx="16" fill="#46525E"/>
+    <rect x="104" y="104" width="92" height="92" rx="16" fill="#D8B65A"/>
+    <rect x="204" y="104" width="92" height="92" rx="16" fill="#667382"/>
   </g>
 </svg>
