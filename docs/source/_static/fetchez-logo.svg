@@ -10,7 +10,7 @@
   <defs>
     <mask id="visorCut" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="220">
       <rect width="320" height="220" fill="white"/>
-      <path d="M18 158 C78 20 166 0 246 104 C266 130 286 132 305 112"
+      <path d="M10 200 C78 20 166 0 246 104 C266 130 286 132 305 132"
 	    fill="none" stroke="black" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
     </mask>
   </defs>
