@@ -5,35 +5,53 @@
     height="200"
     role="img"
     aria-labelledby="title desc">
-  <title id="title">Globato colored logo</title>
-  <desc id="desc">Six rounded terrain-colored tiles crossed by a transparent multi-resolution terrain visor profile.</desc>
+  <title id="title">Fetchez colored logo</title>
+  <desc id="desc">Six rounded terrain-colored tiles.</desc>
   <defs>
-    <mask id="visorCut" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="200">
+    <mask id="trebuchet" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="200">
       <rect width="300" height="200" fill="white"/>
-  <path
-     d="m 14,170 c -8.836562,0 -15.999993,7.16344 -15.999993,16 0,8.83656 7.163431,16 15.999993,16 8.836562,0 15.999993,-7.16344 15.999993,-16 0,-8.83656 -7.163431,-16 -15.999993,-16 z"
-     fill="black"
-     fill-rule="evenodd"
-     id="path435"/>
-  <path
-     d="M 14,171.02384 C 53.029766,133.26404 93.037767,95.465682 130.66032,66.595884 159.47189,44.257508 187.57304,32.548568 214.11944,36.80306 c 23.61166,4.370155 40.78418,18.712067 53.48086,36.764192 8.64983,12.910896 20.44521,47.768378 27.98286,55.422368 h -7.82519 C 279.38277,120.48516 266.60162,92.159122 256.41069,82.842773 243.0104,69.235651 226.95001,60.150627 207.9481,57.365704 183.21748,53.9231 157.35424,63.776936 131.20277,81.593209 94.143116,106.90702 56.795193,140.18325 14,171.02384 Z"
-     fill="black"
-     id="path1495"
-     style="stroke-width:0.929639"/>
-  <path
-     d="m 263.22619,126.94603 h 8.82463 7.35385 8.82463 7.35386 5.88308 v 26.61541 h -38.24005 z"
-     fill="black"
-     id="path1497"
-     style="stroke-width:0.596544"/>
+	  <path
+	      d="M 14,171.02384 C 53.029766,133.26404 93.037767,95.465682 130.66032,66.595884 159.47189,44.257508 187.57304,32.548568 214.11944,36.80306 c 23.61166,4.370155 40.78418,18.712067 53.48086,36.764192 8.64983,12.910896 20.44521,47.768378 27.98286,55.422368 h -7.82519 C 279.38277,120.48516 266.60162,92.159122 256.41069,82.842773 243.0104,69.235651 226.95001,60.150627 207.9481,57.365704 183.21748,53.9231 157.35424,63.776936 131.20277,81.593209 94.143116,106.90702 56.795193,140.18325 14,171.02384 Z"
+	      fill="black"
+	      id="path1495"
+	      style="stroke-width:0.929639;fill:#000000;fill-opacity:1"/>
+	  <rect
+	      fill="black"
+	      id="rect1868"
+	      width="30"
+	      height="30"
+	      x="280"
+	      y="129" />
+	  <ellipse
+	      fill="black"
+	      id="path5275"
+	      cx="10"
+	      cy="180"
+	      rx="20"
+	      ry="20" />
+ 	  <rect
+	      fill="black"
+	      id="rect1869"
+	      width="30"
+	      height="30"
+	      x="220"
+	      y="129" />
+	  <rect
+	      fill="black"
+	      id="rect1869"
+	      width="92"
+	      height="10"
+	      x="204"
+	      y="150" />
     </mask>
   </defs>
 
-  <g mask="url(#visorCut)">
-    <rect x="4 " y="4 " width="92" height="92" rx="16" fill="#F5F3EC"/>
-    <rect x="104" y="4 " width="92" height="92" rx="16" fill="#6BAED6"/>
-    <rect x="204" y="4 " width="92" height="92" rx="16" fill="#3B82C4"/>
-    <rect x="4 " y="104" width="92" height="92" rx="16" fill="#46525E"/>
-    <rect x="104" y="104" width="92" height="92" rx="16" fill="#D8B65A"/>
-    <rect x="204" y="104" width="92" height="92" rx="16" fill="#667382"/>
+  <g mask="url(#trebuchet)">
+    <rect x="4 " y="4 " width="92" height="92" rx="6" fill="#F5F3EC"/>
+    <rect x="104" y="4 " width="92" height="92" rx="6" fill="#6BAED6"/>
+    <rect x="204" y="4 " width="92" height="92" rx="6" fill="#3B82C4"/>
+    <rect x="4 " y="104" width="92" height="92" rx="6" fill="#46525E"/>
+    <rect x="104" y="104" width="92" height="92" rx="6" fill="#D8B65A"/>
+    <rect x="204" y="104" width="92" height="92" rx="6" fill="#667382"/>
   </g>
 </svg>
