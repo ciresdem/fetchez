@@ -11,6 +11,7 @@ Fetch elevation data from The National Map (TNM) API.
 :license: MIT, see LICENSE for more details.
 """
 
+import hashlib
 import logging
 from typing import Optional
 
@@ -56,6 +57,12 @@ DATASET_CODES = [
     "Land Cover - Woodland",
     "3D Hydrography Program (3DHP)",
 ]
+DATASET_ALIASES = {
+    "1m": 2,
+    "1_9as": 4,
+    "1_3as": 3,
+    "1_as": 1,
+}
 
 
 # =============================================================================
@@ -106,6 +113,7 @@ class TheNationalMap(FetchModule):
         date_type: Optional[str] = "dateCreated",
         date_start: Optional[str] = None,
         date_end: Optional[str] = None,
+        dedupe: bool = True,
         **kwargs,
     ):
         super().__init__(name="tnm", **kwargs)
@@ -116,6 +124,9 @@ class TheNationalMap(FetchModule):
         self.date_type = date_type
         self.date_start = date_start
         self.date_end = date_end
+        self.dedupe = utils.str2bool(dedupe)
+        if self.dedupe is None:
+            self.dedupe = True
 
     def run(self):
         """Run the TNM fetching module."""
@@ -133,7 +144,12 @@ class TheNationalMap(FetchModule):
         dataset_names = []
         if self.datasets is not None:
             try:
-                ds_indices = [int(x) for x in self.datasets.split("/")]
+                ds_indices = []
+                for x in self.datasets.split("/"):
+                    if x.lower() in DATASET_ALIASES:
+                        ds_indices.append(DATASET_ALIASES[x.lower()])
+                    else:
+                        ds_indices.append(int(x))
                 dataset_names = [
                     DATASET_CODES[i] for i in ds_indices if 0 <= i < len(DATASET_CODES)
                 ]
@@ -146,6 +162,7 @@ class TheNationalMap(FetchModule):
             dataset_names = ["National Elevation Dataset (NED) 1 arc-second"]
 
         best_tiles = {}
+        all_tiles = []
         while True:
             params = {
                 "bbox": bbox_str,
@@ -243,17 +260,34 @@ class TheNationalMap(FetchModule):
                     #     fn_bn = item.get("title", filename)
 
                     date = item.get("publicationDate", "")
+                    project = None
+                    if "/Projects/" in url:
+                        project = url.split("/Projects/", 1)[1].split("/", 1)[0]
+
+                    dst_fn = filename
+                    if not self.dedupe:
+                        url_hash = hashlib.sha256(url.encode()).hexdigest()[:12]
+                        dst_fn = f"{url_hash}/{filename}"
 
                     item_data = {
                         "url": url,
-                        "dst_fn": filename,
+                        "dst_fn": dst_fn,
                         "data_type": "tnm",
                         "format": fmt,
                         "bounds": bounds,
                         "date": date,
                         "remote_size": item.get("sizeInBytes"),
                         "title": item.get("title"),
+                        "tnm_project": project,
+                        "tnm_source_id": item.get("sourceId"),
+                        "tnm_publication_date": item.get("publicationDate"),
+                        "tnm_last_updated": item.get("lastUpdated"),
+                        "tnm_meta_url": item.get("metaUrl"),
+                        "tnm_vendor_meta_url": item.get("vendorMetaUrl"),
                     }
+                    if not self.dedupe:
+                        all_tiles.append(item_data)
+                        continue
 
                     # Check if we already have this tile and compare dates
                     if fn_bn not in best_tiles:
@@ -271,7 +305,8 @@ class TheNationalMap(FetchModule):
             if offset >= total:
                 break
 
-        for tile_data in best_tiles.values():
+        tiles = best_tiles.values() if self.dedupe else all_tiles
+        for tile_data in tiles:
             self.add_entry_to_results(**tile_data)
 
         return self
