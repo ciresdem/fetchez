@@ -34,7 +34,6 @@ import requests
 import lxml.etree
 import lxml.html as lh
 import filelock
-from shapely.geometry import Polygon, mapping
 
 from . import utils
 from . import __version__
@@ -335,37 +334,50 @@ class iso_xml:
 
         out_poly = []
         try:
-            # Find Bounding Box
-            # bbox = self.xml_doc.xpath('.//gmd:EX_GeographicBoundingBox', namespaces=self.namespaces)
-            bbox = self.xml_doc.find(".//{*}Polygon", namespaces=self.namespaces)
-            if not bbox:
-                return None
+            # Standard ISO 19115 EX_GeographicBoundingBox
+            w_node = self._xpath_get(".//gmd:westBoundLongitude/gco:Decimal")
+            e_node = self._xpath_get(".//gmd:eastBoundLongitude/gco:Decimal")
+            s_node = self._xpath_get(".//gmd:southBoundLatitude/gco:Decimal")
+            n_node = self._xpath_get(".//gmd:northBoundLatitude/gco:Decimal")
 
-            nodes = bbox.findall(".//{*}pos", namespaces=self.namespaces)
-            for node in nodes:
-                out_poly.append([float(x) for x in node.text.split()])
+            if all(v is not None for v in [w_node, e_node, s_node, n_node]):
+                w, e = float(w_node), float(e_node)
+                s, n = float(s_node), float(n_node)
+                # GeoJSON standard expects [lon, lat]
+                out_poly = [[w, s], [e, s], [e, n], [w, n], [w, s]]
+            else:
+                # Fallback to GML Polygon
+                bbox = self.xml_doc.find(".//{*}Polygon", namespaces=self.namespaces)
+                if not bbox:
+                    return None
 
-            ## Close polygon
-            if out_poly and (
-                out_poly[0][0] != out_poly[-1][0] or out_poly[0][1] != out_poly[-1][1]
-            ):
-                out_poly.append(out_poly[0])
+                nodes = bbox.findall(".//{*}pos", namespaces=self.namespaces)
+                for node in nodes:
+                    # GML is often lat/lon, swap to lon/lat for GeoJSON
+                    lat_lon = [float(x) for x in node.text.split()]
+                    out_poly.append([lat_lon[1], lat_lon[0]])
 
-            out_poly = [[lon, lat] for lat, lon in out_poly]
+                # Close polygon
+                if out_poly and (
+                    out_poly[0][0] != out_poly[-1][0]
+                    or out_poly[0][1] != out_poly[-1][1]
+                ):
+                    out_poly.append(out_poly[0])
+
             if geom:
                 try:
+                    from shapely.geometry import Polygon, mapping
+
                     poly = Polygon(out_poly)
                     geojson_dict = mapping(poly)
                 except Exception:
                     geojson_dict = {"type": "Polygon", "coordinates": [out_poly]}
-
                 return geojson_dict
-
             else:
                 return out_poly
 
-        except (IndexError, ValueError):
-            logger.error("Could not parse polygon from xml")
+        except (IndexError, ValueError) as e:
+            logger.error(f"Could not parse polygon from xml: {e}")
             return None
 
 
