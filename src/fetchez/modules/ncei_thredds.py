@@ -39,6 +39,7 @@ class NCEIThredds(FetchModule):
     meta_desc = "Dynamically fetch NOAA NCEI DEMs via THREDDS Catalogs."
     meta_agency = "NOAA NCEI"
     meta_license = "Public Domain"
+    meta_resolution = "Varies"
     meta_tags = ["dem", "coastal", "bathymetry", "thredds", "ngdc"]
 
     def __init__(
@@ -83,7 +84,7 @@ class NCEIThredds(FetchModule):
         return None
 
     def _parse_catalog(self, url: str) -> List[Dict]:
-        datasets = []
+        datasets: List[Dict] = []
         try:
             xml_doc = core.Fetch(url).fetch_xml()
             if xml_doc is None:
