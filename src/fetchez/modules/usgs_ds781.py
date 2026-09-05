@@ -16,6 +16,8 @@ class USGS_DS781(FetchModule):
     meta_category = "Topography"
     meta_desc = "USGS Data Series 781: California State Waters Map Series"
     meta_agency = "USGS"
+    meta_resolution = "Varies"
+    meta_license = "Public Domain"
     meta_tags = ["california", "bathymetry", "coastal", "usgs"]
 
     def __init__(self, update: bool = False, **kwargs):
@@ -24,7 +26,6 @@ class USGS_DS781(FetchModule):
 
         self.FRED = fred.FRED(name=self.name)
 
-        # Trigger the one-time crawl if the index is empty or update is forced
         if self.force_update or len(self.FRED.features) == 0:
             self.update_fred()
 
@@ -36,7 +37,6 @@ class USGS_DS781(FetchModule):
             logger.error("Failed to fetch DS 781 main page.")
             return
 
-        # Scrape links to individual map block catalogs
         catalog_links = main_page.xpath('//a[contains(@href, "data_catalog")]/@href')
         catalog_links = list(set(catalog_links))  # Remove duplicates
 
@@ -104,7 +104,6 @@ class USGS_DS781(FetchModule):
             self.FRED.save()
 
     def run(self):
-        # Rely entirely on the local spatial query
         results = self.FRED.search(region=self.wgs_region, layer=self.name)
 
         if not results:
