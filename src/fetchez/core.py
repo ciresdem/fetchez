@@ -340,11 +340,22 @@ class iso_xml:
             s_node = self._xpath_get(".//gmd:southBoundLatitude/gco:Decimal")
             n_node = self._xpath_get(".//gmd:northBoundLatitude/gco:Decimal")
 
+            # Legacy FGDC CSDGM Bounding Box
+            fgdc_w = self._xpath_get(".//westbc")
+            fgdc_e = self._xpath_get(".//eastbc")
+            fgdc_s = self._xpath_get(".//southbc")
+            fgdc_n = self._xpath_get(".//northbc")
+
             if all(v is not None for v in [w_node, e_node, s_node, n_node]):
                 w, e = float(w_node), float(e_node)
                 s, n = float(s_node), float(n_node)
-                # GeoJSON standard expects [lon, lat]
                 out_poly = [[w, s], [e, s], [e, n], [w, n], [w, s]]
+
+            elif all(v is not None for v in [fgdc_w, fgdc_e, fgdc_s, fgdc_n]):
+                w, e = float(fgdc_w), float(fgdc_e)
+                s, n = float(fgdc_s), float(fgdc_n)
+                out_poly = [[w, s], [e, s], [e, n], [w, n], [w, s]]
+
             else:
                 # Fallback to GML Polygon
                 bbox = self.xml_doc.find(".//{*}Polygon", namespaces=self.namespaces)
@@ -353,11 +364,10 @@ class iso_xml:
 
                 nodes = bbox.findall(".//{*}pos", namespaces=self.namespaces)
                 for node in nodes:
-                    # GML is often lat/lon, swap to lon/lat for GeoJSON
                     lat_lon = [float(x) for x in node.text.split()]
                     out_poly.append([lat_lon[1], lat_lon[0]])
 
-                # Close polygon
+                ## Close polygon
                 if out_poly and (
                     out_poly[0][0] != out_poly[-1][0]
                     or out_poly[0][1] != out_poly[-1][1]
